@@ -10,9 +10,7 @@ export default defineConfig({
 		rollupOptions: {
 			input: {
 				main: resolve('electron/main.ts'),
-				preload: resolve('electron/preload.ts'),
-				'world-cli': resolve('electron/world/cli.ts'),
-				'advance-cli': resolve('electron/game/cli-advance.ts')
+				preload: resolve('electron/preload.ts')
 			},
 			output: {
 				entryFileNames: '[name].js',

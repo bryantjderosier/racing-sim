@@ -18,10 +18,7 @@
 		"format": "prettier --write .",
 		"db:generate": "drizzle-kit generate",
 		"db:reset": "bash scripts/db-reset.sh",
-		"db:migrate": "node scripts/db-migrate.mjs",
-		"db:studio": "node scripts/db-studio.mjs",
-		"db:world-gen": "pnpm run build:electron && node dist-electron/world-cli.js",
-		"db:advance": "pnpm run build:electron && node dist-electron/advance-cli.js"
+		"db:migrate": "node scripts/db-migrate.mjs"
 	},
 	"devDependencies": {
 		"@duckdb/node-api": "^1.4.4-r.4",

@@ -1,4 +1,4 @@
-import type { AdvanceResult, GameClock, NewGameOptions, SeedTeam, Team } from '$lib/types';
+import type { Team } from '$lib/types';
 
 export function isElectron(): boolean {
 	return typeof window !== 'undefined' && 'electronAPI' in window;
@@ -14,25 +14,7 @@ export async function getTeams(): Promise<Team[]> {
 	return window.electronAPI.getTeams();
 }
 
-export async function listSeedTeams(): Promise<SeedTeam[]> {
-	if (!isElectron()) return [];
-	return window.electronAPI.listSeedTeams();
-}
-
-export async function newGame(options: NewGameOptions): Promise<{ ok: true } | null> {
+export async function createTeam(name: string): Promise<Team | null> {
 	if (!isElectron()) return null;
-	return window.electronAPI.newGame(options);
-}
-
-export async function getClock(): Promise<GameClock | null> {
-	if (!isElectron()) return null;
-	return window.electronAPI.getClock();
-}
-
-export async function advance(options?: {
-	maxDays?: number;
-	singleDay?: boolean;
-}): Promise<AdvanceResult | null> {
-	if (!isElectron()) return null;
-	return window.electronAPI.advance(options);
+	return window.electronAPI.createTeam(name);
 }
