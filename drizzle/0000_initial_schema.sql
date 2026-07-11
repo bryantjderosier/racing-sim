@@ -43,7 +43,8 @@ CREATE TYPE personnel_specialty_enum AS ENUM (
 );
 --> statement-breakpoint
 CREATE TYPE roster_seat_enum AS ENUM (
-	'CAR_1_PRIMARY', 'CAR_2_PRIMARY', 'RESERVE_SEAT', 'ACADEMY_SEAT',
+	'CAR_1_PRIMARY', 'CAR_2_PRIMARY', 'RESERVE_SEAT',
+	'ACADEMY_SEAT_1', 'ACADEMY_SEAT_2', 'ACADEMY_SEAT_3', 'ACADEMY_SEAT_4',
 	'BOX_TEAM_PRINCIPAL', 'BOX_TECHNICAL_DIRECTOR', 'BOX_AERO_CHIEF',
 	'CAR_1_RACE_ENGINEER', 'CAR_2_RACE_ENGINEER', 'BOX_CHIEF_SCOUT'
 );
@@ -68,7 +69,7 @@ CREATE TYPE sponsor_objective_type_enum AS ENUM (
 CREATE TYPE objective_status_enum AS ENUM ('PENDING_WEEKEND', 'MET', 'FAILED', 'ACTIVE_SEASONAL');
 --> statement-breakpoint
 CREATE TYPE facility_category_enum AS ENUM (
-	'AERODYNAMICS', 'POWERTRAIN', 'VEHICLE_DYNAMICS', 'OPERATIONS', 'COMMERCIAL'
+	'AERODYNAMICS', 'POWERTRAIN', 'VEHICLE_DYNAMICS', 'OPERATIONS', 'COMMERCIAL', 'YOUTH'
 );
 --> statement-breakpoint
 CREATE TYPE facility_project_type_enum AS ENUM ('UPGRADE_LEVEL', 'REFURBISHMENT');
@@ -118,6 +119,10 @@ CREATE TYPE penalty_source AS ENUM (
 CREATE TYPE game_phase_enum AS ENUM ('PRE_SEASON', 'IN_SEASON', 'END_OF_SEASON', 'OFF_SEASON');
 --> statement-breakpoint
 CREATE TYPE player_status_enum AS ENUM ('EMPLOYED', 'UNEMPLOYED');
+--> statement-breakpoint
+CREATE TYPE inbox_message_type_enum AS ENUM (
+	'BOARD', 'CONTRACT', 'FIA', 'RD', 'FINANCE', 'AFFILIATE_LOAN', 'NEWS'
+);
 --> statement-breakpoint
 CREATE TYPE sporting_regs_version_enum AS ENUM ('CURRENT', 'PENDING');
 --> statement-breakpoint
@@ -183,6 +188,7 @@ CREATE TABLE sponsors (
 	id INTEGER PRIMARY KEY,
 	name VARCHAR(100) NOT NULL UNIQUE,
 	tier sponsor_tier_enum NOT NULL,
+	star_rating UTINYINT NOT NULL DEFAULT 5,
 	min_reputation_req UTINYINT NOT NULL DEFAULT 10,
 	base_upfront_payment BIGINT NOT NULL DEFAULT 0,
 	base_per_race_payout BIGINT NOT NULL DEFAULT 0,
@@ -190,13 +196,14 @@ CREATE TABLE sponsors (
 	objective_threshold UTINYINT,
 	objective_bonus BIGINT NOT NULL DEFAULT 0,
 	deal_duration_seasons UTINYINT NOT NULL DEFAULT 1,
+	CONSTRAINT check_sponsor_stars CHECK (star_rating BETWEEN 1 AND 10),
 	CONSTRAINT check_reputation_bounds CHECK (min_reputation_req BETWEEN 1 AND 100),
 	CONSTRAINT check_financial_floors CHECK (
 		base_upfront_payment >= 0 AND base_per_race_payout >= 0 AND objective_bonus >= 0
 	)
 );
 --> statement-breakpoint
-CREATE INDEX idx_sponsor_market_tier ON sponsors(tier, min_reputation_req);
+CREATE INDEX idx_sponsor_market_tier ON sponsors(tier, min_reputation_req, star_rating);
 --> statement-breakpoint
 CREATE TABLE circuits (
 	id INTEGER PRIMARY KEY,
@@ -248,7 +255,13 @@ CREATE TABLE drivers (
 	portrait_id VARCHAR(100),
 	generation_season USMALLINT NOT NULL,
 	career_stage driver_career_stage_enum NOT NULL DEFAULT 'SINGLE_SEATER',
-	is_retired BOOLEAN NOT NULL DEFAULT FALSE
+	current_overall UTINYINT NOT NULL DEFAULT 50,
+	potential_overall UTINYINT NOT NULL DEFAULT 50,
+	is_retired BOOLEAN NOT NULL DEFAULT FALSE,
+	CONSTRAINT check_driver_overalls CHECK (
+		current_overall BETWEEN 1 AND 100 AND potential_overall BETWEEN 1 AND 100
+		AND potential_overall >= current_overall
+	)
 );
 --> statement-breakpoint
 CREATE TABLE personnel (
@@ -425,10 +438,12 @@ CREATE TABLE facility_projects (
 	status facility_project_status_enum NOT NULL DEFAULT 'CONSTRUCTING',
 	season_id USMALLINT NOT NULL,
 	start_week UTINYINT NOT NULL,
+	start_day UTINYINT NOT NULL DEFAULT 1,
 	target_level UTINYINT NOT NULL,
-	weeks_remaining UTINYINT NOT NULL,
+	days_remaining UTINYINT NOT NULL,
 	total_financial_cost BIGINT NOT NULL,
-	CONSTRAINT check_project_countdown CHECK (weeks_remaining >= 0)
+	CONSTRAINT check_facility_project_day CHECK (start_day BETWEEN 1 AND 7),
+	CONSTRAINT check_project_countdown CHECK (days_remaining >= 0)
 );
 --> statement-breakpoint
 CREATE INDEX idx_active_facility_builds ON facility_projects(team_id, status);
@@ -504,7 +519,9 @@ CREATE TABLE development_projects (
 	status project_status_enum NOT NULL DEFAULT 'DESIGNING',
 	season_id USMALLINT NOT NULL,
 	start_week UTINYINT NOT NULL,
-	target_weeks UTINYINT NOT NULL,
+	start_day UTINYINT NOT NULL DEFAULT 1,
+	target_days UTINYINT NOT NULL,
+	days_remaining UTINYINT NOT NULL,
 	allocated_staff_count UTINYINT NOT NULL DEFAULT 1,
 	wind_tunnel_hours_spent UTINYINT NOT NULL DEFAULT 0,
 	cfd_flops_spent UINTEGER NOT NULL DEFAULT 0,
@@ -513,7 +530,8 @@ CREATE TABLE development_projects (
 	target_points DECIMAL(7, 2) NOT NULL,
 	target_performance_boost UTINYINT NOT NULL DEFAULT 0,
 	target_reliability_boost UTINYINT NOT NULL DEFAULT 0,
-	CONSTRAINT check_project_durations CHECK (target_weeks > 0),
+	CONSTRAINT check_dev_project_day CHECK (start_day BETWEEN 1 AND 7),
+	CONSTRAINT check_project_durations CHECK (target_days > 0 AND days_remaining >= 0),
 	CONSTRAINT check_project_points CHECK (target_points > 0.00 AND current_progress_points BETWEEN 0.00 AND target_points),
 	CONSTRAINT check_project_boosts CHECK (target_performance_boost >= 0 AND target_reliability_boost >= 0)
 );
@@ -634,17 +652,23 @@ CREATE TABLE team_sponsors (
 	team_id INTEGER NOT NULL REFERENCES teams(id),
 	sponsor_id INTEGER REFERENCES sponsors(id),
 	assigned_slot sponsor_tier_enum NOT NULL,
+	slot_index UTINYINT NOT NULL DEFAULT 1,
 	start_season_id USMALLINT NOT NULL,
 	duration_seasons UTINYINT NOT NULL,
 	seasons_remaining UTINYINT NOT NULL,
 	actual_per_race_payout BIGINT NOT NULL,
 	is_ownership_affiliate BOOLEAN NOT NULL DEFAULT FALSE,
 	parent_team_id INTEGER REFERENCES teams(id),
-	CONSTRAINT unique_slot_per_team UNIQUE (team_id, assigned_slot),
+	CONSTRAINT unique_slot_index_per_team UNIQUE (team_id, assigned_slot, slot_index),
+	CONSTRAINT check_sponsor_slot_bounds CHECK (
+		(assigned_slot = 'TITLE_SPONSOR' AND slot_index = 1) OR
+		(assigned_slot = 'MAJOR_PARTNER' AND slot_index BETWEEN 1 AND 2) OR
+		(assigned_slot = 'MINOR_PARTNER' AND slot_index BETWEEN 1 AND 4)
+	),
 	CONSTRAINT check_contract_lifespan CHECK (duration_seasons > 0 AND seasons_remaining <= duration_seasons),
 	CONSTRAINT check_affiliate_title CHECK (
 		(is_ownership_affiliate = FALSE AND sponsor_id IS NOT NULL AND parent_team_id IS NULL) OR
-		(is_ownership_affiliate = TRUE AND assigned_slot = 'TITLE_SPONSOR' AND parent_team_id IS NOT NULL)
+		(is_ownership_affiliate = TRUE AND assigned_slot = 'TITLE_SPONSOR' AND slot_index = 1 AND parent_team_id IS NOT NULL)
 	)
 );
 --> statement-breakpoint
@@ -849,13 +873,32 @@ CREATE TABLE game_state (
 	id UTINYINT PRIMARY KEY DEFAULT 1,
 	season_year USMALLINT NOT NULL DEFAULT 2026,
 	current_week UTINYINT NOT NULL DEFAULT 1,
+	current_day UTINYINT NOT NULL DEFAULT 1,
 	phase game_phase_enum NOT NULL DEFAULT 'PRE_SEASON',
 	player_display_name VARCHAR(100) NOT NULL DEFAULT 'Player',
 	player_team_id INTEGER REFERENCES teams(id),
 	player_status player_status_enum NOT NULL DEFAULT 'UNEMPLOYED',
 	CONSTRAINT check_singleton_game_state CHECK (id = 1),
-	CONSTRAINT check_game_week CHECK (current_week BETWEEN 1 AND 52)
+	CONSTRAINT check_game_week CHECK (current_week BETWEEN 1 AND 52),
+	CONSTRAINT check_game_day CHECK (current_day BETWEEN 1 AND 7)
 );
+--> statement-breakpoint
+CREATE TABLE inbox_messages (
+	id INTEGER PRIMARY KEY,
+	message_type inbox_message_type_enum NOT NULL,
+	stops_clock BOOLEAN NOT NULL DEFAULT FALSE,
+	title VARCHAR(200) NOT NULL,
+	body TEXT NOT NULL,
+	created_season USMALLINT NOT NULL,
+	created_week UTINYINT NOT NULL,
+	created_day UTINYINT NOT NULL,
+	is_read BOOLEAN NOT NULL DEFAULT FALSE,
+	payload JSON,
+	CONSTRAINT check_inbox_week CHECK (created_week BETWEEN 1 AND 52),
+	CONSTRAINT check_inbox_day CHECK (created_day BETWEEN 1 AND 7)
+);
+--> statement-breakpoint
+CREATE INDEX idx_inbox_unread_stops ON inbox_messages(is_read, stops_clock);
 --> statement-breakpoint
 CREATE TABLE player_tenures (
 	id INTEGER PRIMARY KEY,
@@ -1061,5 +1104,5 @@ INSERT INTO series_sporting_regulations (
 	(4, 'PENDING', 2, 'SINGLE_SESSION', FALSE, FALSE, TRUE, 'AFTER_QUALIFYING', 150000, 75, NULL, TRUE, TRUE, 'QUALIFYING_RESULT', 0, TRUE, TRUE, 'STANDING', FALSE, NULL, TRUE, 2, TRUE, FALSE, 3, 3, 2, 2, 2, 5, 5, 0, 4, 5, 11, 16, 5, 5, TRUE),
 	(5, 'PENDING', 1, 'SINGLE_SESSION', FALSE, FALSE, TRUE, 'AFTER_QUALIFYING', 100000, 60, NULL, TRUE, TRUE, 'QUALIFYING_RESULT', 0, TRUE, FALSE, 'STANDING', FALSE, NULL, TRUE, 2, FALSE, FALSE, 2, 2, 2, 2, 2, 5, 5, 0, 5, 5, 7, 16, 4, 4, TRUE);
 --> statement-breakpoint
-INSERT INTO game_state (id, season_year, current_week, phase, player_display_name, player_team_id, player_status) VALUES
-	(1, 2026, 1, 'PRE_SEASON', 'Player', NULL, 'UNEMPLOYED');
+INSERT INTO game_state (id, season_year, current_week, current_day, phase, player_display_name, player_team_id, player_status) VALUES
+	(1, 2026, 1, 1, 'PRE_SEASON', 'Player', NULL, 'UNEMPLOYED');

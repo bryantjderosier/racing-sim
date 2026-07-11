@@ -1,5 +1,5 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
-// for information about these interfaces
+import type { AdvanceResult, GameClock, NewGameOptions, SeedTeam, Team } from '$lib/types';
 
 declare global {
 	namespace App {
@@ -13,18 +13,11 @@ declare global {
 	interface Window {
 		electronAPI: {
 			ping: () => Promise<string>;
-			getTeams: () => Promise<
-				{
-					id: number;
-					name: string;
-					createdAt: Date;
-				}[]
-			>;
-			createTeam: (name: string) => Promise<{
-				id: number;
-				name: string;
-				createdAt: Date;
-			}>;
+			getTeams: () => Promise<Team[]>;
+			listSeedTeams: () => Promise<SeedTeam[]>;
+			newGame: (options: NewGameOptions) => Promise<{ ok: true }>;
+			getClock: () => Promise<GameClock>;
+			advance: (options?: { maxDays?: number; singleDay?: boolean }) => Promise<AdvanceResult>;
 		};
 	}
 }

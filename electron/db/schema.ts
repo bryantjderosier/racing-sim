@@ -85,6 +85,7 @@ export const gameState = pgTable('game_state', {
 	id: smallint('id').primaryKey().default(1),
 	seasonYear: smallint('season_year').notNull().default(2026),
 	currentWeek: smallint('current_week').notNull().default(1),
+	currentDay: smallint('current_day').notNull().default(1),
 	phase: gamePhaseEnum('phase').notNull().default('PRE_SEASON'),
 	playerDisplayName: text('player_display_name').notNull().default('Player'),
 	playerTeamId: integer('player_team_id'),

@@ -8,6 +8,7 @@ import { runMigrations, shutdownDb } from './db/migrate.js';
 const isDev = !app.isPackaged && process.env.ELECTRON_DEV === '1';
 const loadURL = serve({ directory: 'build' });
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
+const DEV_URL = process.env.VITE_DEV_SERVER_URL ?? 'http://localhost:5180';
 
 async function createWindow() {
 	const mainWindow = new BrowserWindow({
@@ -22,7 +23,7 @@ async function createWindow() {
 	});
 
 	if (isDev) {
-		await mainWindow.loadURL('http://localhost:5173');
+		await mainWindow.loadURL(DEV_URL);
 		mainWindow.webContents.openDevTools({ mode: 'detach' });
 	} else {
 		await loadURL(mainWindow);
