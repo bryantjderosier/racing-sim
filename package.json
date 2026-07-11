@@ -6,8 +6,8 @@
 	"main": "dist-electron/main.js",
 	"scripts": {
 		"dev": "vite dev",
-		"dev:electron": "npm run build:electron && concurrently -k \"vite dev\" \"wait-on http://localhost:5173 && cross-env ELECTRON_DEV=1 electron .\"",
-		"build": "vite build && npm run build:electron",
+		"dev:electron": "pnpm run build:electron && concurrently -k \"vite dev\" \"wait-on http://localhost:5173 && cross-env ELECTRON_DEV=1 electron .\"",
+		"build": "vite build && pnpm run build:electron",
 		"build:electron": "vite build --config electron.vite.config.ts",
 		"start": "electron .",
 		"preview": "vite preview",
@@ -17,9 +17,12 @@
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"db:generate": "drizzle-kit generate",
-		"db:reset": "bash scripts/db-reset.sh"
+		"db:reset": "bash scripts/db-reset.sh",
+		"db:migrate": "node scripts/db-migrate.mjs",
+		"db:studio": "node scripts/db-studio.mjs"
 	},
 	"devDependencies": {
+		"@duckdb/node-api": "^1.4.4-r.4",
 		"@eslint/js": "^10.0.1",
 		"@sveltejs/adapter-static": "^3.0.10",
 		"@sveltejs/kit": "^2.63.0",
@@ -42,10 +45,10 @@
 		"wait-on": "^9.0.10"
 	},
 	"dependencies": {
-		"@duckdb/node-api": "^1.4.4-r.4",
 		"@duckdbfan/drizzle-duckdb": "^1.5.2-1",
 		"drizzle-orm": "^0.45.2",
 		"electron": "^43.0.0",
 		"electron-serve": "^3.0.1"
-	}
+	},
+	"packageManager": "pnpm@11.1.0"
 }

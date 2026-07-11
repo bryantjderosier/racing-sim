@@ -25,7 +25,8 @@ CREATE TYPE contract_termination_enum AS ENUM ('COMPLETED', 'MUTUAL_RESIGNATION'
 CREATE TYPE transaction_category_enum AS ENUM (
 	'SPONSOR_UPFRONT', 'SPONSOR_MILESTONE', 'PRIZE_MONEY', 'BUYOUT_INFLOW', 'DRIVER_SALARY', 'STAFF_SALARY',
 	'SIGNING_BONUS', 'PERFORMANCE_BONUS', 'BUYOUT_OUTFLOW', 'ENGINEERING_R_D', 'HQ_FACILITY_UPGRADE',
-	'MERCHANDISE_REVENUE', 'REGULATORY_FINE', 'OTHER_REVENUE', 'OTHER_EXPENSE'
+	'MERCHANDISE_REVENUE', 'REGULATORY_FINE', 'AFFILIATE_SUBSIDY', 'PART_SALE', 'PART_PURCHASE',
+	'OTHER_REVENUE', 'OTHER_EXPENSE'
 );
 --> statement-breakpoint
 CREATE TYPE scouted_entity_enum AS ENUM ('DRIVER', 'STAFF');
@@ -51,6 +52,8 @@ CREATE TYPE car_component_enum AS ENUM (
 	'CHASSIS', 'FRONT_WING', 'REAR_WING', 'UNDERBODY', 'SUSPENSION', 'BRAKES',
 	'ENGINE', 'TURBOCHARGER', 'HYBRID_SYSTEM', 'GEARBOX', 'COOLING_SYSTEM'
 );
+--> statement-breakpoint
+CREATE TYPE component_status_enum AS ENUM ('IN_INVENTORY', 'INSTALLED', 'PARKED_ILLEGAL', 'RETIRED');
 --> statement-breakpoint
 CREATE TYPE project_status_enum AS ENUM ('DESIGNING', 'PAUSED', 'COMPLETED', 'CANCELLED');
 --> statement-breakpoint
@@ -93,14 +96,14 @@ CREATE TYPE event_type_enum AS ENUM (
 CREATE TYPE event_status_enum AS ENUM ('SCHEDULED', 'ACTIVE', 'RESOLVED');
 --> statement-breakpoint
 CREATE TYPE session_type_enum AS ENUM (
-	'PRACTICE_1', 'PRACTICE_2', 'PRACTICE_3', 'QUALIFYING', 'SPRINT_RACE', 'MAIN_RACE'
+	'PRACTICE_1', 'PRACTICE_2', 'PRACTICE_3', 'QUALIFYING', 'SPRINT_QUALIFYING', 'SPRINT_RACE', 'MAIN_RACE'
 );
 --> statement-breakpoint
 CREATE TYPE weather_season_enum AS ENUM ('SPRING', 'SUMMER', 'AUTUMN', 'WINTER');
 --> statement-breakpoint
 CREATE TYPE tire_compound AS ENUM ('SOFT', 'MEDIUM', 'HARD', 'INTERMEDIATE', 'WET');
 --> statement-breakpoint
-CREATE TYPE physical_compound_type AS ENUM ('C1', 'C2', 'C3', 'C4', 'C5', 'C6');
+CREATE TYPE physical_compound_type AS ENUM ('C1', 'C2', 'C3', 'C4', 'C5');
 --> statement-breakpoint
 CREATE TYPE incident_severity AS ENUM ('YELLOW_FLAG', 'VSC', 'SAFETY_CAR', 'RED_FLAG', 'MECHANICAL_RETIREMENT');
 --> statement-breakpoint
@@ -112,8 +115,34 @@ CREATE TYPE penalty_source AS ENUM (
 	'GEARBOX_SWAP', 'ENGINE_ELEMENT_EXCEEDED', 'ON_TRACK_COLLISION', 'PARC_FERME_VIOLATION'
 );
 --> statement-breakpoint
+CREATE TYPE game_phase_enum AS ENUM ('PRE_SEASON', 'IN_SEASON', 'END_OF_SEASON', 'OFF_SEASON');
+--> statement-breakpoint
+CREATE TYPE player_status_enum AS ENUM ('EMPLOYED', 'UNEMPLOYED');
+--> statement-breakpoint
+CREATE TYPE sporting_regs_version_enum AS ENUM ('CURRENT', 'PENDING');
+--> statement-breakpoint
+CREATE TYPE qualifying_format_enum AS ENUM ('NONE_REVERSE_STANDINGS', 'SINGLE_SESSION', 'Q1_Q2_Q3');
+--> statement-breakpoint
+CREATE TYPE parc_ferme_after_enum AS ENUM ('NONE', 'AFTER_QUALIFYING', 'AFTER_SPRINT_QUALIFYING');
+--> statement-breakpoint
+CREATE TYPE grid_order_rule_enum AS ENUM ('QUALIFYING_RESULT', 'REVERSE_CHAMPIONSHIP_POINTS', 'PREVIOUS_RACE_RESULT');
+--> statement-breakpoint
+CREATE TYPE red_flag_restart_mode_enum AS ENUM ('STANDING', 'ROLLING', 'COUNT_BACK');
+--> statement-breakpoint
+CREATE TYPE loan_status_enum AS ENUM ('ACTIVE', 'COMPLETED', 'RECALLED', 'CANCELLED');
+--> statement-breakpoint
+CREATE TYPE affiliation_status_enum AS ENUM ('ACTIVE', 'ENDED');
+--> statement-breakpoint
+CREATE TYPE part_transfer_offer_status_enum AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED', 'EXPIRED', 'CANCELLED');
+--> statement-breakpoint
+CREATE TYPE driver_career_stage_enum AS ENUM ('KARTING', 'SINGLE_SEATER', 'RETIRED');
+--> statement-breakpoint
+CREATE TYPE standing_entity_enum AS ENUM ('DRIVER', 'CONSTRUCTOR');
+--> statement-breakpoint
+CREATE TYPE regulation_proposal_status_enum AS ENUM ('ACTIVE', 'PASSED', 'FAILED', 'REPLACED', 'EXPIRED');
 CREATE TABLE points_systems (
 	id INTEGER PRIMARY KEY,
+	code VARCHAR(32) NOT NULL UNIQUE,
 	name VARCHAR(100) NOT NULL,
 	main_race_payouts INT[] NOT NULL,
 	sprint_race_payouts INT[] NOT NULL,
@@ -133,13 +162,11 @@ CREATE TABLE series (
 	base_entry_fee BIGINT NOT NULL DEFAULT 0,
 	season_prize_pool BIGINT NOT NULL,
 	technical_regulations JSON NOT NULL,
-	points_system_matrix JSON NOT NULL,
 	CONSTRAINT check_slots CHECK (promotion_slots >= 0 AND relegation_slots >= 0),
 	CONSTRAINT check_pyramid_bounds CHECK (tier_level BETWEEN 1 AND 10)
 );
 --> statement-breakpoint
 CREATE INDEX idx_series_pyramid_hierarchy ON series(tier_level);
---> statement-breakpoint
 CREATE TABLE facility_types (
 	id UTINYINT PRIMARY KEY,
 	name VARCHAR(100) NOT NULL UNIQUE,
@@ -220,6 +247,7 @@ CREATE TABLE drivers (
 	weight_kg UTINYINT NOT NULL,
 	portrait_id VARCHAR(100),
 	generation_season USMALLINT NOT NULL,
+	career_stage driver_career_stage_enum NOT NULL DEFAULT 'SINGLE_SEATER',
 	is_retired BOOLEAN NOT NULL DEFAULT FALSE
 );
 --> statement-breakpoint
@@ -431,10 +459,14 @@ CREATE TABLE car_components (
 	reliability_rating UTINYINT NOT NULL,
 	weight_g UINTEGER NOT NULL,
 	current_wear DECIMAL(5, 2) NOT NULL DEFAULT 0.00,
-	is_scrapped BOOLEAN NOT NULL DEFAULT FALSE
+	status component_status_enum NOT NULL DEFAULT 'IN_INVENTORY',
+	CONSTRAINT check_component_wear CHECK (current_wear BETWEEN 0.00 AND 100.00),
+	CONSTRAINT check_component_ratings CHECK (
+		performance_rating BETWEEN 1 AND 100 AND reliability_rating BETWEEN 1 AND 100
+	)
 );
 --> statement-breakpoint
-CREATE INDEX idx_team_component_inventory ON car_components(team_id, component_type, is_scrapped);
+CREATE INDEX idx_team_component_inventory ON car_components(team_id, component_type, status);
 --> statement-breakpoint
 CREATE TABLE component_expertise (
 	id INTEGER PRIMARY KEY,
@@ -600,14 +632,20 @@ CREATE INDEX idx_tier_value_lookup ON sponsor_tier_values(series_id);
 CREATE TABLE team_sponsors (
 	id INTEGER PRIMARY KEY,
 	team_id INTEGER NOT NULL REFERENCES teams(id),
-	sponsor_id INTEGER NOT NULL REFERENCES sponsors(id),
+	sponsor_id INTEGER REFERENCES sponsors(id),
 	assigned_slot sponsor_tier_enum NOT NULL,
 	start_season_id USMALLINT NOT NULL,
 	duration_seasons UTINYINT NOT NULL,
 	seasons_remaining UTINYINT NOT NULL,
 	actual_per_race_payout BIGINT NOT NULL,
+	is_ownership_affiliate BOOLEAN NOT NULL DEFAULT FALSE,
+	parent_team_id INTEGER REFERENCES teams(id),
 	CONSTRAINT unique_slot_per_team UNIQUE (team_id, assigned_slot),
-	CONSTRAINT check_contract_lifespan CHECK (duration_seasons > 0 AND seasons_remaining <= duration_seasons)
+	CONSTRAINT check_contract_lifespan CHECK (duration_seasons > 0 AND seasons_remaining <= duration_seasons),
+	CONSTRAINT check_affiliate_title CHECK (
+		(is_ownership_affiliate = FALSE AND sponsor_id IS NOT NULL AND parent_team_id IS NULL) OR
+		(is_ownership_affiliate = TRUE AND assigned_slot = 'TITLE_SPONSOR' AND parent_team_id IS NOT NULL)
+	)
 );
 --> statement-breakpoint
 CREATE INDEX idx_team_active_sponsors ON team_sponsors(team_id);
@@ -667,7 +705,7 @@ CREATE TABLE series_standings (
 	id INTEGER PRIMARY KEY,
 	series_id UTINYINT NOT NULL REFERENCES series(id),
 	season_id USMALLINT NOT NULL,
-	entity_type employee_type_enum NOT NULL,
+	entity_type standing_entity_enum NOT NULL,
 	driver_id INTEGER REFERENCES drivers(id),
 	team_id INTEGER REFERENCES teams(id),
 	points INTEGER NOT NULL DEFAULT 0,
@@ -677,7 +715,7 @@ CREATE TABLE series_standings (
 	poles_count UTINYINT NOT NULL DEFAULT 0,
 	CONSTRAINT check_standings_entity CHECK (
 		(entity_type = 'DRIVER' AND driver_id IS NOT NULL AND team_id IS NULL) OR
-		(entity_type = 'STAFF' AND team_id IS NOT NULL AND driver_id IS NULL)
+		(entity_type = 'CONSTRUCTOR' AND team_id IS NOT NULL AND driver_id IS NULL)
 	),
 	CONSTRAINT check_rank_floor CHECK (current_rank > 0)
 );
@@ -694,6 +732,7 @@ CREATE TABLE weekend_tire_sets (
 	driver_id INTEGER NOT NULL REFERENCES drivers(id),
 	set_number UTINYINT NOT NULL,
 	functional_label tire_compound NOT NULL,
+	actual_physical_core physical_compound_type,
 	state tire_availability_state NOT NULL DEFAULT 'FRESH',
 	current_wear_percent UTINYINT NOT NULL DEFAULT 0,
 	peak_thermal_damage UTINYINT NOT NULL DEFAULT 0,
@@ -806,11 +845,221 @@ CREATE INDEX idx_telemetry_driver_stints ON lap_telemetry_logs(calendar_event_id
 --> statement-breakpoint
 CREATE INDEX idx_telemetry_compound_degradation ON lap_telemetry_logs(actual_physical_core, tire_health_percent);
 --> statement-breakpoint
-INSERT INTO series (
-	id, name, short_name, tier_level, total_rounds, promotion_slots, relegation_slots,
-	base_entry_fee, season_prize_pool, technical_regulations, points_system_matrix
-) VALUES (
-	1, 'Formula Premier', 'FP1', 1, 10, 0, 0, 0, 100000000,
-	'{"CHASSIS":"OPEN_DEVELOPMENT","ENGINE":"OPEN_DEVELOPMENT"}',
-	'{"finishing_points":[25,18,15,12,10,8,6,4,2,1],"fastest_lap_bonus":1,"pole_position_bonus":0}'
+CREATE TABLE game_state (
+	id UTINYINT PRIMARY KEY DEFAULT 1,
+	season_year USMALLINT NOT NULL DEFAULT 2026,
+	current_week UTINYINT NOT NULL DEFAULT 1,
+	phase game_phase_enum NOT NULL DEFAULT 'PRE_SEASON',
+	player_display_name VARCHAR(100) NOT NULL DEFAULT 'Player',
+	player_team_id INTEGER REFERENCES teams(id),
+	player_status player_status_enum NOT NULL DEFAULT 'UNEMPLOYED',
+	CONSTRAINT check_singleton_game_state CHECK (id = 1),
+	CONSTRAINT check_game_week CHECK (current_week BETWEEN 1 AND 52)
 );
+--> statement-breakpoint
+CREATE TABLE player_tenures (
+	id INTEGER PRIMARY KEY,
+	team_id INTEGER NOT NULL REFERENCES teams(id),
+	board_confidence UTINYINT NOT NULL DEFAULT 55,
+	target_constructors_position UTINYINT NOT NULL DEFAULT 5,
+	warning_issued BOOLEAN NOT NULL DEFAULT FALSE,
+	consecutive_low_checks UTINYINT NOT NULL DEFAULT 0,
+	hire_season USMALLINT NOT NULL,
+	hire_week UTINYINT NOT NULL,
+	ended_season USMALLINT,
+	ended_week UTINYINT,
+	is_active BOOLEAN NOT NULL DEFAULT TRUE,
+	CONSTRAINT check_board_confidence CHECK (board_confidence BETWEEN 0 AND 100),
+	CONSTRAINT check_target_position CHECK (target_constructors_position BETWEEN 1 AND 10)
+);
+--> statement-breakpoint
+CREATE INDEX idx_active_player_tenure ON player_tenures(team_id, is_active);
+--> statement-breakpoint
+CREATE TABLE series_sporting_regulations (
+	series_id UTINYINT NOT NULL REFERENCES series(id),
+	version sporting_regs_version_enum NOT NULL,
+	practice_session_count UTINYINT NOT NULL,
+	qualifying_format qualifying_format_enum NOT NULL,
+	sprint_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+	sprint_qualifying_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+	main_race_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+	parc_ferme_after parc_ferme_after_enum NOT NULL,
+	main_race_target_distance_meters UINTEGER NOT NULL,
+	main_race_time_limit_minutes USMALLINT NOT NULL,
+	sprint_target_distance_meters UINTEGER,
+	formation_lap_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+	standing_start BOOLEAN NOT NULL DEFAULT TRUE,
+	grid_order_rule grid_order_rule_enum NOT NULL DEFAULT 'QUALIFYING_RESULT',
+	reverse_grid_top_n UTINYINT NOT NULL DEFAULT 0,
+	safety_car_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+	vsc_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+	red_flag_restart_mode red_flag_restart_mode_enum NOT NULL DEFAULT 'STANDING',
+	drs_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+	drs_activation_lap UTINYINT,
+	wet_weather_tyre_rules_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+	dry_compounds_available UTINYINT NOT NULL DEFAULT 3,
+	mandatory_pit_stop BOOLEAN NOT NULL DEFAULT FALSE,
+	mandatory_different_dry_compounds BOOLEAN NOT NULL DEFAULT FALSE,
+	tyre_sets_soft UTINYINT NOT NULL DEFAULT 2,
+	tyre_sets_medium UTINYINT NOT NULL DEFAULT 2,
+	tyre_sets_hard UTINYINT NOT NULL DEFAULT 2,
+	tyre_sets_inter UTINYINT NOT NULL DEFAULT 2,
+	tyre_sets_wet UTINYINT NOT NULL DEFAULT 2,
+	engine_allocation_per_season UTINYINT NOT NULL DEFAULT 4,
+	turbo_allocation_per_season UTINYINT NOT NULL DEFAULT 4,
+	hybrid_allocation_per_season UTINYINT NOT NULL DEFAULT 0,
+	gearbox_allocation_per_season UTINYINT NOT NULL DEFAULT 4,
+	grid_penalty_per_extra_element UTINYINT NOT NULL DEFAULT 5,
+	main_points_system_id INTEGER NOT NULL REFERENCES points_systems(id),
+	sprint_points_system_id INTEGER NOT NULL REFERENCES points_systems(id),
+	track_limits_strictness UTINYINT NOT NULL DEFAULT 5,
+	collision_penalty_severity UTINYINT NOT NULL DEFAULT 5,
+	unsafe_release_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+	PRIMARY KEY (series_id, version),
+	CONSTRAINT check_practice_count CHECK (practice_session_count BETWEEN 0 AND 3),
+	CONSTRAINT check_dry_compounds CHECK (dry_compounds_available BETWEEN 2 AND 3),
+	CONSTRAINT check_steward_scales CHECK (
+		track_limits_strictness BETWEEN 1 AND 10 AND collision_penalty_severity BETWEEN 1 AND 10
+	)
+);
+--> statement-breakpoint
+CREATE TABLE series_regulation_proposals (
+	id INTEGER PRIMARY KEY,
+	series_id UTINYINT NOT NULL REFERENCES series(id),
+	open_week UTINYINT NOT NULL,
+	close_week UTINYINT NOT NULL,
+	status regulation_proposal_status_enum NOT NULL DEFAULT 'ACTIVE',
+	proposed_regs JSON NOT NULL,
+	CONSTRAINT check_proposal_weeks CHECK (
+		open_week BETWEEN 1 AND 52 AND close_week BETWEEN 1 AND 52 AND close_week >= open_week
+	)
+);
+--> statement-breakpoint
+CREATE INDEX idx_active_proposals_by_series ON series_regulation_proposals(series_id, status);
+--> statement-breakpoint
+CREATE TABLE series_regulation_votes (
+	proposal_id INTEGER NOT NULL REFERENCES series_regulation_proposals(id),
+	team_id INTEGER NOT NULL REFERENCES teams(id),
+	vote BOOLEAN,
+	PRIMARY KEY (proposal_id, team_id)
+);
+--> statement-breakpoint
+CREATE TABLE loans (
+	id INTEGER PRIMARY KEY,
+	contract_id INTEGER NOT NULL REFERENCES contracts(id),
+	from_team_id INTEGER NOT NULL REFERENCES teams(id),
+	to_team_id INTEGER NOT NULL REFERENCES teams(id),
+	start_season USMALLINT NOT NULL,
+	start_week UTINYINT NOT NULL,
+	end_season USMALLINT NOT NULL,
+	end_week UTINYINT NOT NULL,
+	recalled BOOLEAN NOT NULL DEFAULT FALSE,
+	recall_season USMALLINT,
+	recall_week UTINYINT,
+	status loan_status_enum NOT NULL DEFAULT 'ACTIVE',
+	CONSTRAINT check_loan_weeks CHECK (start_week BETWEEN 1 AND 52 AND end_week BETWEEN 1 AND 52)
+);
+--> statement-breakpoint
+CREATE INDEX idx_active_loans ON loans(status, to_team_id);
+--> statement-breakpoint
+CREATE INDEX idx_loans_by_contract ON loans(contract_id, status);
+--> statement-breakpoint
+CREATE TABLE team_affiliations (
+	id INTEGER PRIMARY KEY,
+	parent_team_id INTEGER NOT NULL REFERENCES teams(id),
+	child_team_id INTEGER NOT NULL UNIQUE REFERENCES teams(id),
+	start_season USMALLINT NOT NULL,
+	end_season USMALLINT,
+	status affiliation_status_enum NOT NULL DEFAULT 'ACTIVE',
+	fixed_base_subsidy BIGINT NOT NULL,
+	top_up_amount BIGINT NOT NULL DEFAULT 0,
+	CONSTRAINT check_affiliation_funding CHECK (fixed_base_subsidy >= 0 AND top_up_amount >= 0)
+);
+--> statement-breakpoint
+CREATE INDEX idx_parent_affiliates ON team_affiliations(parent_team_id, status);
+--> statement-breakpoint
+CREATE TABLE part_transfer_offers (
+	id INTEGER PRIMARY KEY,
+	component_id INTEGER NOT NULL REFERENCES car_components(id),
+	from_team_id INTEGER NOT NULL REFERENCES teams(id),
+	to_team_id INTEGER NOT NULL REFERENCES teams(id),
+	offered_price BIGINT NOT NULL,
+	status part_transfer_offer_status_enum NOT NULL DEFAULT 'PENDING',
+	created_week UTINYINT NOT NULL,
+	expires_week UTINYINT NOT NULL,
+	season_year USMALLINT NOT NULL,
+	CONSTRAINT check_offer_price CHECK (offered_price > 0),
+	CONSTRAINT check_offer_weeks CHECK (created_week BETWEEN 1 AND 52 AND expires_week BETWEEN 1 AND 52)
+);
+--> statement-breakpoint
+CREATE INDEX idx_pending_part_offers ON part_transfer_offers(to_team_id, status);
+--> statement-breakpoint
+CREATE TABLE circuit_compound_maps (
+	circuit_id INTEGER NOT NULL REFERENCES circuits(id),
+	series_id UTINYINT NOT NULL REFERENCES series(id),
+	soft_core physical_compound_type NOT NULL,
+	medium_core physical_compound_type NOT NULL,
+	hard_core physical_compound_type NOT NULL,
+	is_override BOOLEAN NOT NULL DEFAULT FALSE,
+	PRIMARY KEY (circuit_id, series_id)
+);
+--> statement-breakpoint
+CREATE INDEX idx_compound_maps_by_series ON circuit_compound_maps(series_id);
+--> statement-breakpoint
+CREATE TABLE team_loan_relationships (
+	from_team_id INTEGER NOT NULL REFERENCES teams(id),
+	to_team_id INTEGER NOT NULL REFERENCES teams(id),
+	relationship_score TINYINT NOT NULL DEFAULT 0,
+	penalty_expires_season USMALLINT,
+	PRIMARY KEY (from_team_id, to_team_id)
+);
+--> statement-breakpoint
+INSERT INTO points_systems (id, code, name, main_race_payouts, sprint_race_payouts, points_fastest_lap, fastest_lap_requires_top_10, points_pole_position) VALUES
+	(1, 'F1_MODERN', 'F1 Modern Top 10', ARRAY[25,18,15,12,10,8,6,4,2,1], ARRAY[]::INT[], 1, TRUE, 0),
+	(2, 'F1_CLASSIC_TOP8', 'F1 Classic Top 8', ARRAY[10,8,6,5,4,3,2,1], ARRAY[]::INT[], 0, TRUE, 0),
+	(3, 'F1_CLASSIC_TOP6', 'F1 Classic Top 6', ARRAY[9,6,4,3,2,1], ARRAY[]::INT[], 0, TRUE, 0),
+	(4, 'MODERN_TOP10_FLAT', 'Modern Top 10 Flat', ARRAY[25,20,16,12,10,8,6,4,2,1], ARRAY[]::INT[], 0, TRUE, 0),
+	(5, 'MODERN_TOP12', 'Modern Top 12', ARRAY[25,20,16,14,12,10,8,6,4,3,2,1], ARRAY[]::INT[], 0, TRUE, 0),
+	(6, 'WINNERS_HEAVY', 'Winners Heavy', ARRAY[50,25,15,10,8,6,4,2,1], ARRAY[]::INT[], 0, TRUE, 0),
+	(7, 'FULL_FIELD_20', 'Full Field 20', ARRAY[20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1], ARRAY[]::INT[], 0, TRUE, 0),
+	(8, 'FULL_FIELD_LINEAR_15', 'Full Field Linear Soft', ARRAY[20,18,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,2,1,1], ARRAY[]::INT[], 0, TRUE, 0),
+	(9, 'JUNIOR_TOP10', 'Junior Top 10', ARRAY[20,15,12,10,8,6,4,3,2,1], ARRAY[]::INT[], 0, TRUE, 0),
+	(10, 'JUNIOR_TOP8', 'Junior Top 8', ARRAY[15,12,10,8,6,4,2,1], ARRAY[]::INT[], 0, TRUE, 0),
+	(11, 'JUNIOR_TOP15', 'Junior Top 15', ARRAY[25,20,16,14,12,10,8,7,6,5,4,3,2,1,1], ARRAY[]::INT[], 0, TRUE, 0),
+	(12, 'REVERSE_INCENTIVE', 'Reverse Incentive', ARRAY[12,10,9,8,7,6,5,4,3,2,1,1,1,1,1,1,1,1,1,1], ARRAY[]::INT[], 0, TRUE, 0),
+	(13, 'SPRINT_F1', 'Sprint F1', ARRAY[]::INT[], ARRAY[8,7,6,5,4,3,2,1], 0, TRUE, 0),
+	(14, 'SPRINT_TOP6', 'Sprint Top 6', ARRAY[]::INT[], ARRAY[6,5,4,3,2,1], 0, TRUE, 0),
+	(15, 'SPRINT_TOP10', 'Sprint Top 10', ARRAY[]::INT[], ARRAY[10,9,8,7,6,5,4,3,2,1], 0, TRUE, 0),
+	(16, 'SPRINT_NONE', 'Sprint None', ARRAY[]::INT[], ARRAY[]::INT[], 0, TRUE, 0);
+--> statement-breakpoint
+INSERT INTO series (id, name, short_name, tier_level, total_rounds, promotion_slots, relegation_slots, base_entry_fee, season_prize_pool, technical_regulations) VALUES
+	(1, 'Formula Premier', 'FP', 1, 22, 0, 2, 0, 100000000, '{"CHASSIS":"OPEN_DEVELOPMENT","FRONT_WING":"OPEN_DEVELOPMENT","REAR_WING":"OPEN_DEVELOPMENT","UNDERBODY":"OPEN_DEVELOPMENT","SUSPENSION":"OPEN_DEVELOPMENT","BRAKES":"OPEN_DEVELOPMENT","ENGINE":"OPEN_DEVELOPMENT","TURBOCHARGER":"OPEN_DEVELOPMENT","HYBRID_SYSTEM":"OPEN_DEVELOPMENT","GEARBOX":"OPEN_DEVELOPMENT","COOLING_SYSTEM":"OPEN_DEVELOPMENT"}'),
+	(2, 'Intercontinental Super Cup', 'ISC', 2, 18, 2, 2, 0, 50000000, '{"CHASSIS":"OPEN_DEVELOPMENT","FRONT_WING":"OPEN_DEVELOPMENT","REAR_WING":"OPEN_DEVELOPMENT","UNDERBODY":"OPEN_DEVELOPMENT","SUSPENSION":"OPEN_DEVELOPMENT","BRAKES":"OPEN_DEVELOPMENT","ENGINE":"SPEC_PART","TURBOCHARGER":"SPEC_PART","HYBRID_SYSTEM":"SPEC_PART","GEARBOX":"OPEN_DEVELOPMENT","COOLING_SYSTEM":"OPEN_DEVELOPMENT"}'),
+	(3, 'Atlantic Open Championship', 'AOC', 3, 14, 2, 2, 0, 25000000, '{"CHASSIS":"SPEC_PART","FRONT_WING":"OPEN_DEVELOPMENT","REAR_WING":"OPEN_DEVELOPMENT","UNDERBODY":"OPEN_DEVELOPMENT","SUSPENSION":"OPEN_DEVELOPMENT","BRAKES":"OPEN_DEVELOPMENT","ENGINE":"SPEC_PART","TURBOCHARGER":"SPEC_PART","HYBRID_SYSTEM":"SPEC_PART","GEARBOX":"OPEN_DEVELOPMENT","COOLING_SYSTEM":"OPEN_DEVELOPMENT"}'),
+	(4, 'Continental Racing Series', 'CRS', 4, 12, 2, 2, 0, 12000000, '{"CHASSIS":"SPEC_PART","FRONT_WING":"OPEN_DEVELOPMENT","REAR_WING":"OPEN_DEVELOPMENT","UNDERBODY":"SPEC_PART","SUSPENSION":"OPEN_DEVELOPMENT","BRAKES":"SPEC_PART","ENGINE":"SPEC_PART","TURBOCHARGER":"SPEC_PART","HYBRID_SYSTEM":"BANNED","GEARBOX":"SPEC_PART","COOLING_SYSTEM":"SPEC_PART"}'),
+	(5, 'National Development Cup', 'NDC', 5, 10, 2, 0, 0, 5000000, '{"CHASSIS":"SPEC_PART","FRONT_WING":"SPEC_PART","REAR_WING":"SPEC_PART","UNDERBODY":"SPEC_PART","SUSPENSION":"SPEC_PART","BRAKES":"SPEC_PART","ENGINE":"SPEC_PART","TURBOCHARGER":"SPEC_PART","HYBRID_SYSTEM":"BANNED","GEARBOX":"SPEC_PART","COOLING_SYSTEM":"SPEC_PART"}');
+--> statement-breakpoint
+INSERT INTO series_sporting_regulations (
+	series_id, version, practice_session_count, qualifying_format, sprint_enabled, sprint_qualifying_enabled,
+	main_race_enabled, parc_ferme_after, main_race_target_distance_meters, main_race_time_limit_minutes,
+	sprint_target_distance_meters, formation_lap_enabled, standing_start, grid_order_rule, reverse_grid_top_n,
+	safety_car_enabled, vsc_enabled, red_flag_restart_mode, drs_enabled, drs_activation_lap,
+	wet_weather_tyre_rules_enabled, dry_compounds_available, mandatory_pit_stop, mandatory_different_dry_compounds,
+	tyre_sets_soft, tyre_sets_medium, tyre_sets_hard, tyre_sets_inter, tyre_sets_wet,
+	engine_allocation_per_season, turbo_allocation_per_season, hybrid_allocation_per_season, gearbox_allocation_per_season,
+	grid_penalty_per_extra_element, main_points_system_id, sprint_points_system_id,
+	track_limits_strictness, collision_penalty_severity, unsafe_release_enabled
+) VALUES
+	(1, 'CURRENT', 3, 'Q1_Q2_Q3', TRUE, TRUE, TRUE, 'AFTER_SPRINT_QUALIFYING', 305000, 120, 100000, TRUE, TRUE, 'QUALIFYING_RESULT', 0, TRUE, TRUE, 'STANDING', TRUE, 3, TRUE, 3, TRUE, TRUE, 6, 3, 2, 4, 3, 4, 4, 3, 4, 10, 1, 13, 8, 8, TRUE),
+	(2, 'CURRENT', 3, 'Q1_Q2_Q3', TRUE, TRUE, TRUE, 'AFTER_SPRINT_QUALIFYING', 250000, 120, 100000, TRUE, TRUE, 'QUALIFYING_RESULT', 0, TRUE, TRUE, 'STANDING', TRUE, 3, TRUE, 3, TRUE, TRUE, 5, 3, 2, 3, 2, 4, 4, 3, 3, 10, 5, 15, 7, 7, TRUE),
+	(3, 'CURRENT', 2, 'Q1_Q2_Q3', TRUE, FALSE, TRUE, 'AFTER_QUALIFYING', 200000, 90, 80000, TRUE, TRUE, 'QUALIFYING_RESULT', 0, TRUE, TRUE, 'STANDING', TRUE, 3, TRUE, 3, TRUE, TRUE, 4, 3, 2, 3, 2, 4, 4, 3, 4, 5, 9, 14, 6, 6, TRUE),
+	(4, 'CURRENT', 2, 'SINGLE_SESSION', FALSE, FALSE, TRUE, 'AFTER_QUALIFYING', 150000, 75, NULL, TRUE, TRUE, 'QUALIFYING_RESULT', 0, TRUE, TRUE, 'STANDING', FALSE, NULL, TRUE, 2, TRUE, FALSE, 3, 3, 2, 2, 2, 5, 5, 0, 4, 5, 11, 16, 5, 5, TRUE),
+	(5, 'CURRENT', 1, 'SINGLE_SESSION', FALSE, FALSE, TRUE, 'AFTER_QUALIFYING', 100000, 60, NULL, TRUE, TRUE, 'QUALIFYING_RESULT', 0, TRUE, FALSE, 'STANDING', FALSE, NULL, TRUE, 2, FALSE, FALSE, 2, 2, 2, 2, 2, 5, 5, 0, 5, 5, 7, 16, 4, 4, TRUE),
+	(1, 'PENDING', 3, 'Q1_Q2_Q3', TRUE, TRUE, TRUE, 'AFTER_SPRINT_QUALIFYING', 305000, 120, 100000, TRUE, TRUE, 'QUALIFYING_RESULT', 0, TRUE, TRUE, 'STANDING', TRUE, 3, TRUE, 3, TRUE, TRUE, 6, 3, 2, 4, 3, 4, 4, 3, 4, 10, 1, 13, 8, 8, TRUE),
+	(2, 'PENDING', 3, 'Q1_Q2_Q3', TRUE, TRUE, TRUE, 'AFTER_SPRINT_QUALIFYING', 250000, 120, 100000, TRUE, TRUE, 'QUALIFYING_RESULT', 0, TRUE, TRUE, 'STANDING', TRUE, 3, TRUE, 3, TRUE, TRUE, 5, 3, 2, 3, 2, 4, 4, 3, 3, 10, 5, 15, 7, 7, TRUE),
+	(3, 'PENDING', 2, 'Q1_Q2_Q3', TRUE, FALSE, TRUE, 'AFTER_QUALIFYING', 200000, 90, 80000, TRUE, TRUE, 'QUALIFYING_RESULT', 0, TRUE, TRUE, 'STANDING', TRUE, 3, TRUE, 3, TRUE, TRUE, 4, 3, 2, 3, 2, 4, 4, 3, 4, 5, 9, 14, 6, 6, TRUE),
+	(4, 'PENDING', 2, 'SINGLE_SESSION', FALSE, FALSE, TRUE, 'AFTER_QUALIFYING', 150000, 75, NULL, TRUE, TRUE, 'QUALIFYING_RESULT', 0, TRUE, TRUE, 'STANDING', FALSE, NULL, TRUE, 2, TRUE, FALSE, 3, 3, 2, 2, 2, 5, 5, 0, 4, 5, 11, 16, 5, 5, TRUE),
+	(5, 'PENDING', 1, 'SINGLE_SESSION', FALSE, FALSE, TRUE, 'AFTER_QUALIFYING', 100000, 60, NULL, TRUE, TRUE, 'QUALIFYING_RESULT', 0, TRUE, FALSE, 'STANDING', FALSE, NULL, TRUE, 2, FALSE, FALSE, 2, 2, 2, 2, 2, 5, 5, 0, 5, 5, 7, 16, 4, 4, TRUE);
+--> statement-breakpoint
+INSERT INTO game_state (id, season_year, current_week, phase, player_display_name, player_team_id, player_status) VALUES
+	(1, 2026, 1, 'PRE_SEASON', 'Player', NULL, 'UNEMPLOYED');

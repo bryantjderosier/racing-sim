@@ -8,39 +8,46 @@ Desktop app built with Electron, SvelteKit, Vite, DuckDB, and Drizzle ORM.
 - **Desktop:** Electron
 - **Database:** DuckDB via `@duckdb/node-api`
 - **ORM:** Drizzle via `@duckdbfan/drizzle-duckdb`
+- **Package manager:** pnpm
 - **Tooling:** TypeScript, ESLint, Prettier
+
+## Setup
+
+```sh
+pnpm install
+```
 
 ## Development
 
 Browser-only SvelteKit dev server:
 
 ```sh
-npm run dev
+pnpm dev
 ```
 
 Full Electron app with DuckDB (recommended):
 
 ```sh
-npm run dev:electron
+pnpm dev:electron
 ```
 
 ## Build
 
 ```sh
-npm run build
-npm run start
+pnpm build
+pnpm start
 ```
 
 ## Database
 
 - Schema: `electron/db/schema.ts`
-- Migrations: `drizzle/` (applied on app startup)
+- Migrations: `drizzle/` (applied on app startup or via `pnpm db:migrate`)
 - DB file: `{userData}/racing-manager.duckdb`
 
-Generate a new migration after schema changes:
-
 ```sh
-npm run db:generate
+pnpm db:generate   # after schema changes
+pnpm db:reset      # delete local DuckDB file
+pnpm db:migrate    # apply drizzle/ migrations
 ```
 
 ## Project layout
@@ -55,12 +62,16 @@ build/             Built SvelteKit static output (gitignored)
 
 ## Scripts
 
-| Script                 | Description                              |
-| ---------------------- | ---------------------------------------- |
-| `npm run dev`          | SvelteKit dev server only                |
-| `npm run dev:electron` | SvelteKit + Electron with live reload    |
-| `npm run build`        | Build frontend and Electron main/preload |
-| `npm run start`        | Run production Electron app              |
-| `npm run lint`         | ESLint + Prettier check                  |
-| `npm run format`       | Format with Prettier                     |
-| `npm run check`        | Svelte/TS type check                     |
+| Script              | Description                              |
+| ------------------- | ---------------------------------------- |
+| `pnpm dev`          | SvelteKit dev server only                |
+| `pnpm dev:electron` | SvelteKit + Electron with live reload    |
+| `pnpm build`        | Build frontend and Electron main/preload |
+| `pnpm start`        | Run production Electron app              |
+| `pnpm lint`         | ESLint + Prettier check                  |
+| `pnpm format`       | Format with Prettier                     |
+| `pnpm check`        | Svelte/TS type check                     |
+| `pnpm db:reset`     | Delete local DuckDB file                 |
+| `pnpm db:migrate`   | Apply migrations                         |
+| `pnpm db:studio`    | Open DuckDB UI for the local DB file     |
+| `pnpm db:generate`  | Generate Drizzle migration               |
