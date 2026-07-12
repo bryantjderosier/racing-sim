@@ -48,7 +48,33 @@ CREATE TYPE staff_attr_name AS ENUM (
 CREATE TYPE potential_tier AS ENUM ('bronze', 'silver', 'gold', 'elite');
 
 -- Race weekend
-CREATE TYPE session_type AS ENUM ('practice', 'qualifying_q1', 'qualifying_q2', 'qualifying_q3', 'race');
+-- Div1: practice + q1/q2/q3 + race; Div2: practice + qualifying_single + race; Div3: practice + race (grid from reverse points)
+CREATE TYPE session_type AS ENUM (
+  'practice',
+  'qualifying_q1',
+  'qualifying_q2',
+  'qualifying_q3',
+  'qualifying_single',
+  'race'
+);
+
+CREATE TYPE points_scheme_id AS ENUM (
+  'classic',
+  'top_8',
+  'flat_field',
+  'win_heavy',
+  'double_points_finale',
+  'sprint_weekend',
+  'fastest_lap_pole_bonus',
+  'all_finishers'
+);
+
+CREATE TYPE part_flaw_type AS ENUM (
+  'pitch_sensitivity',
+  'dirty_air_collapse',
+  'curb_fragility',
+  'thermal_tire_spike'
+);
 
 CREATE TYPE tire_compound AS ENUM ('soft', 'medium', 'hard', 'intermediate', 'wet');
 
@@ -355,6 +381,7 @@ CREATE TABLE facilities (
   team_id INTEGER NOT NULL,
   facility_type facility_type NOT NULL,
   tier INTEGER DEFAULT 0 CHECK (tier BETWEEN 0 AND 5),
+  condition_pct REAL DEFAULT 100.0, -- degrades; bonus scales with this; maintenance restores
   construction_finish_date INTEGER,
   is_under_construction BOOLEAN DEFAULT FALSE,
   operational_cost_annual REAL DEFAULT 0,
@@ -406,13 +433,24 @@ CREATE TABLE blueprints (
   team_id INTEGER NOT NULL,
   slot part_slot NOT NULL,
   name TEXT NOT NULL,
-  performance_points INTEGER NOT NULL,
+  performance_points INTEGER NOT NULL, -- true hidden value
+  performance_known_min INTEGER,       -- uncertainty band (NULL until first estimate)
+  performance_known_max INTEGER,
+  scout_confidence INTEGER DEFAULT 0,  -- 0–100; rises with WT/CFD correlation + mileage
   base_reliability INTEGER NOT NULL,
   pitch_sensitivity REAL DEFAULT 0,
   drag_coefficient REAL DEFAULT 0,
   weight_kg REAL,
   season_year INTEGER NOT NULL,
-  is_invalidated BOOLEAN DEFAULT FALSE -- post regulation overhaul
+  is_invalidated BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE blueprint_flaws (
+  id INTEGER PRIMARY KEY,
+  blueprint_id INTEGER NOT NULL,
+  flaw_type part_flaw_type NOT NULL,
+  severity REAL NOT NULL, -- 0–1
+  is_revealed BOOLEAN DEFAULT FALSE
 );
 ```
 
@@ -484,6 +522,23 @@ CREATE TABLE tracks (
 ```
 
 ```sql
+CREATE TABLE seasons (
+  season_year INTEGER PRIMARY KEY,
+  division INTEGER NOT NULL CHECK (division IN (1, 2, 3)),
+  points_scheme points_scheme_id NOT NULL DEFAULT 'classic',
+  rd_pivot_race_index INTEGER NOT NULL DEFAULT 11, -- gate after this race_index
+  rd_pivot_locked BOOLEAN DEFAULT FALSE,
+  wt_hours_weekly_cap REAL NOT NULL,
+  cfd_hours_weekly_cap REAL NOT NULL
+);
+
+CREATE TABLE points_scheme_rows (
+  scheme_id points_scheme_id NOT NULL,
+  finishing_position INTEGER NOT NULL,
+  points INTEGER NOT NULL,
+  PRIMARY KEY (scheme_id, finishing_position)
+);
+
 CREATE TABLE season_calendar (
   id INTEGER PRIMARY KEY,
   season_year INTEGER NOT NULL,
@@ -570,3 +625,6 @@ WHERE mounted_on_car_id IS NOT NULL AND is_scrapped = FALSE;
 
 - **Attr names:** `attributes.attr_name` is TEXT because driver vs staff enums differ; validate in app layer against `driver_attr_name` / `staff_attr_name` based on `entity_type` (+ `staff.role`).
 - **Championship entity_type:** Prefer adding `'team'` to `entity_type` or splitting `driver_standings` / `constructor_standings` before implementation.
+- **Facility bonus:** effective_efficiency = tier_bonus × (condition_pct / 100).
+- **Design rules:** See `docs/design-decisions.md` (canonical over pillar prose on conflict).
+- **Qualifying sessions:** Emit session rows per division rules in design-decisions (Div3 has no qualifying session).

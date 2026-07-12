@@ -1,6 +1,8 @@
 # Product Steering Document: Project Apex Management
 **A Deep-Simulation Motorsports Management Strategy Game**
 
+> **Locked rules:** [`design-decisions.md`](./design-decisions.md) is canonical when it conflicts with pillar prose below.
+
 ---
 
 ## 1. Executive Summary & Core Philosophy
