@@ -7,7 +7,11 @@ import type {
 	EnsureSeasonResult,
 	GetStandingsArgs,
 	HqHubSnapshot,
+	MarketHubSnapshot,
 	NextRoundView,
+	RdHubSnapshot,
+	ScoutingHubSnapshot,
+	SponsorsHubSnapshot,
 	PracticeCreateResult,
 	PracticeStintView,
 	RaceCommand,
@@ -73,6 +77,65 @@ const electronAPI = {
 		args: import('./sim/game/types.js').SetRdPivotArgs
 	): Promise<{ currentFraction: number; locked: boolean; hq: HqHubSnapshot }> =>
 		ipcRenderer.invoke('game:setRdPivot', args),
+	getRdSnapshot: (): Promise<RdHubSnapshot> => ipcRenderer.invoke('game:getRdSnapshot'),
+	startRdProject: (
+		args: import('./sim/game/types.js').StartRdProjectArgs
+	): Promise<{ result: unknown; rd: RdHubSnapshot }> =>
+		ipcRenderer.invoke('game:startRdProject', args),
+	allocateRdHours: (
+		args: import('./sim/game/types.js').AllocateRdHoursArgs
+	): Promise<{ result: unknown; rd: RdHubSnapshot }> =>
+		ipcRenderer.invoke('game:allocateRdHours', args),
+	queueManufacture: (
+		args: import('./sim/game/types.js').QueueManufactureArgs
+	): Promise<{ result: unknown; rd: RdHubSnapshot }> =>
+		ipcRenderer.invoke('game:queueManufacture', args),
+	getMarketSnapshot: (): Promise<MarketHubSnapshot> =>
+		ipcRenderer.invoke('game:getMarketSnapshot'),
+	previewDriverOffer: (
+		args: import('./sim/game/types.js').PreviewDriverOfferArgs
+	): Promise<import('./sim/game/types.js').MarketAcceptPreviewView> =>
+		ipcRenderer.invoke('game:previewDriverOffer', args),
+	previewStaffOffer: (
+		args: import('./sim/game/types.js').PreviewStaffOfferArgs
+	): Promise<import('./sim/game/types.js').MarketAcceptPreviewView> =>
+		ipcRenderer.invoke('game:previewStaffOffer', args),
+	signDriverOffer: (
+		args: import('./sim/game/types.js').SignDriverOfferArgs
+	): Promise<{ result: unknown; market: MarketHubSnapshot }> =>
+		ipcRenderer.invoke('game:signDriverOffer', args),
+	signStaffOffer: (
+		args: import('./sim/game/types.js').SignStaffOfferArgs
+	): Promise<{ result: unknown; market: MarketHubSnapshot }> =>
+		ipcRenderer.invoke('game:signStaffOffer', args),
+	buyoutDriver: (
+		args: import('./sim/game/types.js').BuyoutDriverArgs
+	): Promise<{ result: { fee: number }; market: MarketHubSnapshot }> =>
+		ipcRenderer.invoke('game:buyoutDriver', args),
+	buyoutStaff: (
+		args: import('./sim/game/types.js').BuyoutStaffArgs
+	): Promise<{ result: { fee: number }; market: MarketHubSnapshot }> =>
+		ipcRenderer.invoke('game:buyoutStaff', args),
+	getScoutingSnapshot: (): Promise<ScoutingHubSnapshot> =>
+		ipcRenderer.invoke('game:getScoutingSnapshot'),
+	assignScoutTarget: (
+		args: import('./sim/game/types.js').ScoutAssignArgs
+	): Promise<{ result: unknown; scouting: ScoutingHubSnapshot }> =>
+		ipcRenderer.invoke('game:assignScoutTarget', args),
+	unassignScoutTarget: (
+		args: import('./sim/game/types.js').ScoutUnassignArgs
+	): Promise<{ result: boolean; scouting: ScoutingHubSnapshot }> =>
+		ipcRenderer.invoke('game:unassignScoutTarget', args),
+	getFoggedProfile: (
+		args: import('./sim/game/types.js').ScoutFoggedProfileArgs
+	): Promise<import('./sim/game/types.js').ScoutFoggedProfileView> =>
+		ipcRenderer.invoke('game:getFoggedProfile', args),
+	getSponsorsSnapshot: (): Promise<SponsorsHubSnapshot> =>
+		ipcRenderer.invoke('game:getSponsorsSnapshot'),
+	signSponsorDeal: (
+		args: import('./sim/game/types.js').SignSponsorDealArgs
+	): Promise<{ result: unknown; sponsors: SponsorsHubSnapshot }> =>
+		ipcRenderer.invoke('game:signSponsorDeal', args),
 
 	weekendBegin: (args?: WeekendBeginArgs): Promise<WeekendBeginResult> =>
 		ipcRenderer.invoke('weekend:begin', args ?? {}),

@@ -264,6 +264,304 @@ export type WeekendRunQualifyingArgs = {
 export type WeekendCommitArgs = { weeksAfterRace?: number };
 export type UpgradeFacilityArgs = { facilityType: string };
 export type SetRdPivotArgs = { currentFraction: number; lockSeason?: boolean };
+export type RdProjectView = {
+	id: number;
+	slot: string;
+	focus: string;
+	progress: number;
+	allocatedWtHours: number;
+	allocatedCfdHours: number;
+	leadDesignerId: number | null;
+	leadDesignerName: string | null;
+	resultingBlueprintId: number | null;
+	status: string;
+	hoursToComplete: number;
+};
+export type RdBlueprintFlawView = {
+	flawType: string;
+	severity: number;
+};
+export type RdBlueprintView = {
+	id: number;
+	name: string;
+	slot: string;
+	seasonYear: number;
+	knownMin: number | null;
+	knownMax: number | null;
+	scoutConfidence: number;
+	baseReliability: number;
+	isInvalidated: boolean;
+	revealedFlaws: RdBlueprintFlawView[];
+	queued: boolean;
+};
+export type RdQueueView = {
+	id: number;
+	blueprintId: number;
+	blueprintName: string;
+	slot: string;
+	isLightweight: boolean;
+	completionDate: number;
+	status: string;
+};
+export type RdDesignerView = {
+	id: number;
+	name: string;
+	role: string;
+};
+export type RdHubSnapshot = {
+	career: {
+		id: string;
+		displayName: string;
+		playerTeamId: number;
+	};
+	clock: ClockView;
+	team: TeamHubView;
+	pivot: PivotView;
+	projects: RdProjectView[];
+	blueprints: RdBlueprintView[];
+	queue: RdQueueView[];
+	designers: RdDesignerView[];
+	openSlots: string[];
+};
+export type StartRdProjectArgs = {
+	slot: string;
+	focus?: 'current_car' | 'next_year';
+	leadDesignerId?: number;
+};
+export type AllocateRdHoursArgs = {
+	projectId: number;
+	wtHours?: number;
+	cfdHours?: number;
+};
+export type QueueManufactureArgs = {
+	blueprintId: number;
+	isLightweight?: boolean;
+};
+export type MarketContractOfferView = {
+	salaryAnnual: number;
+	years: number;
+	isNumberOne?: boolean;
+	buyoutFee?: number;
+	releaseClause?: number;
+	performanceBonus?: number;
+};
+export type MarketRosterDriverView = {
+	driverId: number;
+	name: string;
+	age: number;
+	salaryAnnual: number | null;
+	yearsRemaining: number | null;
+	buyoutFee: number | null;
+	isNumberOne: boolean;
+	contractId: number | null;
+};
+export type MarketRosterStaffView = {
+	staffId: number;
+	name: string;
+	role: string;
+	salaryAnnual: number | null;
+	yearsRemaining: number | null;
+	buyoutFee: number | null;
+	contractId: number | null;
+};
+export type MarketHotDriverView = {
+	driverId: number;
+	name: string;
+	teamId: number | null;
+	teamName: string | null;
+	age: number;
+	reasons: string[];
+	yearsRemaining: number | null;
+	salaryAnnual: number | null;
+	buyoutFee: number | null;
+	releaseClause: number | null;
+	marketRate: number;
+	onPlayerTeam: boolean;
+};
+export type MarketHotStaffView = {
+	staffId: number;
+	name: string;
+	role: string;
+	teamId: number | null;
+	teamName: string | null;
+	reasons: string[];
+	yearsRemaining: number | null;
+	salaryAnnual: number | null;
+	buyoutFee: number | null;
+	marketRate: number;
+	onPlayerTeam: boolean;
+};
+export type MarketAcceptPreviewView = {
+	score: number;
+	threshold: number;
+	accepted: boolean;
+	marketRate: number;
+};
+export type MarketHubSnapshot = {
+	career: {
+		id: string;
+		displayName: string;
+		playerTeamId: number;
+	};
+	clock: ClockView;
+	team: TeamHubView;
+	rosterDrivers: MarketRosterDriverView[];
+	rosterStaff: MarketRosterStaffView[];
+	hotDrivers: MarketHotDriverView[];
+	hotStaff: MarketHotStaffView[];
+	openDriverSeats: number;
+	missingStaffRoles: string[];
+};
+export type SignDriverOfferArgs = {
+	driverId: number;
+	offer: MarketContractOfferView;
+	buyoutPaid?: number;
+};
+export type SignStaffOfferArgs = {
+	staffId: number;
+	offer: MarketContractOfferView;
+	buyoutPaid?: number;
+};
+export type PreviewDriverOfferArgs = {
+	driverId: number;
+	offer: MarketContractOfferView;
+};
+export type PreviewStaffOfferArgs = {
+	staffId: number;
+	offer: MarketContractOfferView;
+};
+export type BuyoutDriverArgs = {
+	driverId: number;
+	fee?: number;
+};
+export type BuyoutStaffArgs = {
+	staffId: number;
+	fee?: number;
+};
+export type ScoutNetworkView = {
+	slotsUsed: number;
+	slotsMax: number;
+	detection: number;
+	accuracy: number;
+	appraisal: number;
+	coverage: number;
+	leverage: number;
+	hqTier: number;
+	weeklyGainEstimate: number;
+};
+export type ScoutAssignmentView = {
+	entityId: number;
+	entityType: 'driver' | 'staff';
+	name: string;
+	teamId: number | null;
+	teamName: string | null;
+	role: string | null;
+	confidenceLevel: number;
+	isAssigned: boolean;
+};
+export type ScoutCandidateView = {
+	entityId: number;
+	entityType: 'driver' | 'staff';
+	name: string;
+	teamId: number | null;
+	teamName: string | null;
+	role: string | null;
+	confidenceLevel: number;
+	isAssigned: boolean;
+	reasons: string[];
+};
+export type ScoutAttrBandView = {
+	attrName: string;
+	knownMin: number;
+	knownMax: number;
+	trueValue?: number;
+};
+export type ScoutFoggedProfileView = {
+	entityId: number;
+	entityType: 'driver' | 'staff';
+	name: string;
+	confidenceLevel: number;
+	fullyRevealed: boolean;
+	attrs: ScoutAttrBandView[];
+	meta: ScoutAttrBandView[];
+};
+export type ScoutingHubSnapshot = {
+	career: {
+		id: string;
+		displayName: string;
+		playerTeamId: number;
+	};
+	clock: ClockView;
+	team: TeamHubView;
+	network: ScoutNetworkView;
+	assignments: ScoutAssignmentView[];
+	candidates: ScoutCandidateView[];
+};
+export type ScoutAssignArgs = {
+	entityId: number;
+	entityType: 'driver' | 'staff';
+};
+export type ScoutUnassignArgs = {
+	entityId: number;
+	entityType: 'driver' | 'staff';
+};
+export type ScoutFoggedProfileArgs = {
+	entityId: number;
+	entityType: 'driver' | 'staff';
+};
+export type SponsorDealStreamView = {
+	payoutType: string;
+	amount: number;
+	bonusTargetPosition: number | null;
+};
+export type SponsorActiveDealView = {
+	sponsorId: number;
+	sponsorName: string;
+	slotType: string;
+	yearsRemaining: number | null;
+	remainingRaces: number | null;
+	streams: SponsorDealStreamView[];
+};
+export type SponsorCatalogView = {
+	sponsorId: number;
+	name: string;
+	nationalityCode: string | null;
+	minMarketability: number;
+	minTeamStanding: number | null;
+	ethicsSensitivity: number;
+	eligibility: Record<
+		string,
+		{ eligible: boolean; blockReasons: string[]; payoutMultiplier: number }
+	>;
+	alreadySigned: boolean;
+};
+export type SponsorSlotInventoryView = {
+	slotType: string;
+	used: number;
+	cap: number;
+};
+export type SponsorsHubSnapshot = {
+	career: {
+		id: string;
+		displayName: string;
+		playerTeamId: number;
+	};
+	clock: ClockView;
+	team: TeamHubView;
+	profile: {
+		reputation: number;
+		standing: number | null;
+		driverMarketability: number;
+		nationalityCode: string | null;
+	};
+	slots: SponsorSlotInventoryView[];
+	deals: SponsorActiveDealView[];
+	catalog: SponsorCatalogView[];
+};
+export type SignSponsorDealArgs = {
+	sponsorId: number;
+	slotType: 'title' | 'major' | 'minor';
+};
 export type QualifyingGridRowView = {
 	position: number;
 	entrantId: number;

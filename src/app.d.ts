@@ -8,7 +8,11 @@ import type {
 	EnsureSeasonResult,
 	GetStandingsArgs,
 	HqHubSnapshot,
+	MarketHubSnapshot,
 	NewCareerTeamOption,
+	RdHubSnapshot,
+	ScoutingHubSnapshot,
+	SponsorsHubSnapshot,
 	NextRoundView,
 	PracticeCreateResult,
 	PracticeStintView,
@@ -67,6 +71,49 @@ declare global {
 			setRdPivot: (
 				args: import('$lib/types').SetRdPivotArgs
 			) => Promise<{ currentFraction: number; locked: boolean; hq: HqHubSnapshot }>;
+			getRdSnapshot: () => Promise<RdHubSnapshot>;
+			startRdProject: (
+				args: import('$lib/types').StartRdProjectArgs
+			) => Promise<{ result: unknown; rd: RdHubSnapshot }>;
+			allocateRdHours: (
+				args: import('$lib/types').AllocateRdHoursArgs
+			) => Promise<{ result: unknown; rd: RdHubSnapshot }>;
+			queueManufacture: (
+				args: import('$lib/types').QueueManufactureArgs
+			) => Promise<{ result: unknown; rd: RdHubSnapshot }>;
+			getMarketSnapshot: () => Promise<MarketHubSnapshot>;
+			previewDriverOffer: (
+				args: import('$lib/types').PreviewDriverOfferArgs
+			) => Promise<import('$lib/types').MarketAcceptPreviewView>;
+			previewStaffOffer: (
+				args: import('$lib/types').PreviewStaffOfferArgs
+			) => Promise<import('$lib/types').MarketAcceptPreviewView>;
+			signDriverOffer: (
+				args: import('$lib/types').SignDriverOfferArgs
+			) => Promise<{ result: unknown; market: MarketHubSnapshot }>;
+			signStaffOffer: (
+				args: import('$lib/types').SignStaffOfferArgs
+			) => Promise<{ result: unknown; market: MarketHubSnapshot }>;
+			buyoutDriver: (
+				args: import('$lib/types').BuyoutDriverArgs
+			) => Promise<{ result: { fee: number }; market: MarketHubSnapshot }>;
+			buyoutStaff: (
+				args: import('$lib/types').BuyoutStaffArgs
+			) => Promise<{ result: { fee: number }; market: MarketHubSnapshot }>;
+			getScoutingSnapshot: () => Promise<ScoutingHubSnapshot>;
+			assignScoutTarget: (
+				args: import('$lib/types').ScoutAssignArgs
+			) => Promise<{ result: unknown; scouting: ScoutingHubSnapshot }>;
+			unassignScoutTarget: (
+				args: import('$lib/types').ScoutUnassignArgs
+			) => Promise<{ result: boolean; scouting: ScoutingHubSnapshot }>;
+			getFoggedProfile: (
+				args: import('$lib/types').ScoutFoggedProfileArgs
+			) => Promise<import('$lib/types').ScoutFoggedProfileView>;
+			getSponsorsSnapshot: () => Promise<SponsorsHubSnapshot>;
+			signSponsorDeal: (
+				args: import('$lib/types').SignSponsorDealArgs
+			) => Promise<{ result: unknown; sponsors: SponsorsHubSnapshot }>;
 			weekendBegin: (args?: WeekendBeginArgs) => Promise<WeekendBeginResult>;
 			weekendClear: () => Promise<void>;
 			weekendRunQualifying: (args?: WeekendRunQualifyingArgs) => Promise<QualifyingView>;

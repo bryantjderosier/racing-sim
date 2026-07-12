@@ -8,7 +8,11 @@ import type {
 	EnsureSeasonResult,
 	GetStandingsArgs,
 	HqHubSnapshot,
+	MarketHubSnapshot,
 	NewCareerTeamOption,
+	RdHubSnapshot,
+	ScoutingHubSnapshot,
+	SponsorsHubSnapshot,
 	NextRoundView,
 	PracticeCreateResult,
 	PracticeStintView,
@@ -144,6 +148,117 @@ export async function setRdPivot(
 ): Promise<{ currentFraction: number; locked: boolean; hq: HqHubSnapshot } | null> {
 	if (!isElectron()) return null;
 	return window.electronAPI.setRdPivot(args);
+}
+
+export async function getRdSnapshot(): Promise<RdHubSnapshot | null> {
+	if (!isElectron()) return null;
+	return window.electronAPI.getRdSnapshot();
+}
+
+export async function startRdProject(
+	args: import('$lib/types').StartRdProjectArgs
+): Promise<{ result: unknown; rd: RdHubSnapshot } | null> {
+	if (!isElectron()) return null;
+	return window.electronAPI.startRdProject(args);
+}
+
+export async function allocateRdHours(
+	args: import('$lib/types').AllocateRdHoursArgs
+): Promise<{ result: unknown; rd: RdHubSnapshot } | null> {
+	if (!isElectron()) return null;
+	return window.electronAPI.allocateRdHours(args);
+}
+
+export async function queueManufacture(
+	args: import('$lib/types').QueueManufactureArgs
+): Promise<{ result: unknown; rd: RdHubSnapshot } | null> {
+	if (!isElectron()) return null;
+	return window.electronAPI.queueManufacture(args);
+}
+
+export async function getMarketSnapshot(): Promise<MarketHubSnapshot | null> {
+	if (!isElectron()) return null;
+	return window.electronAPI.getMarketSnapshot();
+}
+
+export async function previewDriverOffer(
+	args: import('$lib/types').PreviewDriverOfferArgs
+): Promise<import('$lib/types').MarketAcceptPreviewView | null> {
+	if (!isElectron()) return null;
+	return window.electronAPI.previewDriverOffer(args);
+}
+
+export async function previewStaffOffer(
+	args: import('$lib/types').PreviewStaffOfferArgs
+): Promise<import('$lib/types').MarketAcceptPreviewView | null> {
+	if (!isElectron()) return null;
+	return window.electronAPI.previewStaffOffer(args);
+}
+
+export async function signDriverOffer(
+	args: import('$lib/types').SignDriverOfferArgs
+): Promise<{ result: unknown; market: MarketHubSnapshot } | null> {
+	if (!isElectron()) return null;
+	return window.electronAPI.signDriverOffer(args);
+}
+
+export async function signStaffOffer(
+	args: import('$lib/types').SignStaffOfferArgs
+): Promise<{ result: unknown; market: MarketHubSnapshot } | null> {
+	if (!isElectron()) return null;
+	return window.electronAPI.signStaffOffer(args);
+}
+
+export async function buyoutDriver(
+	args: import('$lib/types').BuyoutDriverArgs
+): Promise<{ result: { fee: number }; market: MarketHubSnapshot } | null> {
+	if (!isElectron()) return null;
+	return window.electronAPI.buyoutDriver(args);
+}
+
+export async function buyoutStaff(
+	args: import('$lib/types').BuyoutStaffArgs
+): Promise<{ result: { fee: number }; market: MarketHubSnapshot } | null> {
+	if (!isElectron()) return null;
+	return window.electronAPI.buyoutStaff(args);
+}
+
+export async function getScoutingSnapshot(): Promise<ScoutingHubSnapshot | null> {
+	if (!isElectron()) return null;
+	return window.electronAPI.getScoutingSnapshot();
+}
+
+export async function assignScoutTarget(
+	args: import('$lib/types').ScoutAssignArgs
+): Promise<{ result: unknown; scouting: ScoutingHubSnapshot } | null> {
+	if (!isElectron()) return null;
+	return window.electronAPI.assignScoutTarget(args);
+}
+
+export async function unassignScoutTarget(
+	args: import('$lib/types').ScoutUnassignArgs
+): Promise<{ result: boolean; scouting: ScoutingHubSnapshot } | null> {
+	if (!isElectron()) return null;
+	return window.electronAPI.unassignScoutTarget(args);
+}
+
+export async function getFoggedProfile(
+	args: import('$lib/types').ScoutFoggedProfileArgs
+): Promise<import('$lib/types').ScoutFoggedProfileView | null> {
+	if (!isElectron()) return null;
+	return window.electronAPI.getFoggedProfile(args);
+}
+
+export async function getSponsorsSnapshot(): Promise<SponsorsHubSnapshot | null> {
+	if (!isElectron()) return null;
+	return window.electronAPI.getSponsorsSnapshot();
+}
+
+export async function signSponsorDeal(
+	args: import('$lib/types').SignSponsorDealArgs
+): Promise<{ result: unknown; sponsors: SponsorsHubSnapshot } | null> {
+	if (!isElectron()) return null;
+	return window.electronAPI.signSponsorDeal(args);
 }
 
 export async function weekendBegin(args?: WeekendBeginArgs): Promise<WeekendBeginResult | null> {

@@ -19,7 +19,10 @@
 
 	const pivotPct = $derived(pivotDraft ?? Math.round(hq.pivot.currentFraction * 100));
 	const utilPct = $derived(Math.min(100, Math.round(hq.costCap.utilization * 100)));
+	const remainingPct = $derived(Math.max(0, 100 - utilPct));
+	const completedRounds = $derived(hq.calendar.filter((round) => round.isCompleted).length);
 	const weekendHref = resolve('/weekend');
+	const rdHref = resolve('/rd');
 
 	function money(n: number) {
 		if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -74,54 +77,29 @@
 	}
 </script>
 
-<section class="ops-panel">
+<section class="hq-hero">
 	<div class="ops-row spread">
 		<div>
-			<p class="ops-eyebrow">Headquarters</p>
-			<h2 style="margin: 0; font-size: 1.35rem; text-transform: uppercase">{hq.team.name}</h2>
-			<p class="ops-mono ops-muted" style="margin: 0.35rem 0 0">
-				W{hq.clock.week} · {hq.clock.seasonYear} · Div {hq.team.division} · cash {money(
-					hq.team.cash
-				)}
-			</p>
+			<p class="ops-eyebrow">Team HQ · season {hq.clock.seasonYear}</p>
+			<h1 class="ops-brand">{hq.team.name}</h1>
+			<p class="hq-hero-subtitle">Week {hq.clock.week} · Division {hq.team.division} · {completedRounds}/{hq.calendar.length} rounds complete</p>
 		</div>
 		<div class="ops-row">
-			<label class="ops-label" style="flex-direction: row; align-items: center; gap: 0.4rem">
-				<input type="checkbox" bind:checked={maintain} />
-				Maintain
-			</label>
+			<label class="ops-label" style="flex-direction: row; align-items: center; gap: 0.4rem"><input type="checkbox" bind:checked={maintain} /> Maintain</label>
 			<button class="ops-btn ghost" disabled={busy} onclick={onClose}>Close</button>
+			<a class="ops-btn ghost" href={rdHref}>Engineering</a>
 			<button class="ops-btn" disabled={busy} onclick={onTick}>Tick week</button>
-			<a class="ops-btn primary" href={weekendHref}>
-				{hq.nextRound ? 'Next race' : 'Weekend'}
-			</a>
-		</div>
-	</div>
-
-	<div class="ops-grid-2" style="margin-top: 1rem">
-		<div>
-			<p class="ops-eyebrow">Cost cap</p>
-			<div class="ops-meter">
-				<div class="ops-meter-fill" style="width: {utilPct}%"></div>
-			</div>
-			<p class="ops-mono" style="margin: 0.35rem 0 0">
-				{money(hq.costCap.spent)} / {money(hq.costCap.limit)} · {utilPct}% · {hq.costCap.breach}
-			</p>
-		</div>
-		<div>
-			<p class="ops-eyebrow">Weekly hours</p>
-			<p class="ops-mono" style="margin: 0.35rem 0 0">
-				WT {hq.team.wtHours.toFixed(0)} / {hq.team.wtHoursCap.toFixed(0)} · CFD
-				{hq.team.cfdHours.toFixed(0)} / {hq.team.cfdHoursCap.toFixed(0)}
-			</p>
-			{#if hq.nextRound}
-				<p class="ops-mono ops-muted" style="margin: 0.35rem 0 0">
-					Next: R{hq.nextRound.raceIndex} {hq.nextRound.trackName}
-				</p>
-			{/if}
+			<a class="ops-btn primary" href={weekendHref}>{hq.nextRound ? 'Next race' : 'Weekend'}</a>
 		</div>
 	</div>
 </section>
+
+<div class="hq-stat-grid">
+	<article class="hq-stat-card"><span>Available cash</span><strong>{money(hq.team.cash)}</strong><small>Operating balance</small></article>
+	<article class="hq-stat-card" class:warning={utilPct >= 85}><span>Cost cap</span><strong>{remainingPct}%</strong><small>{money(hq.costCap.remaining)} headroom · {hq.costCap.breach}</small></article>
+	<article class="hq-stat-card"><span>Wind tunnel</span><strong>{hq.team.wtHours.toFixed(0)}h</strong><small>of {hq.team.wtHoursCap.toFixed(0)}h remaining</small></article>
+	<article class="hq-stat-card"><span>Next event</span><strong>{hq.nextRound ? `R${hq.nextRound.raceIndex}` : 'Season complete'}</strong><small>{hq.nextRound?.trackName ?? 'Review results and plan ahead'}</small></article>
+</div>
 
 <section class="ops-panel">
 	<p class="ops-eyebrow">R&amp;D pivot</p>
