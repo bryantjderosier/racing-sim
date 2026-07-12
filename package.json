@@ -35,7 +35,9 @@
 		"test:regs": "tsx scripts/regs-harness.ts",
 		"test:promo": "tsx scripts/promo-harness.ts",
 		"test:offseason": "tsx scripts/offseason-harness.ts",
-		"test:karting": "tsx scripts/karting-harness.ts"
+		"test:karting": "tsx scripts/karting-harness.ts",
+		"test:race-commands": "tsx scripts/race-commands-harness.ts",
+		"test:balance": "tsx scripts/balance-harness.ts"
 	},
 	"devDependencies": {
 		"@duckdb/node-api": "^1.4.4-r.4",

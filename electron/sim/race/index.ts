@@ -18,6 +18,15 @@ export type {
 	RacePitEvent,
 	RaceResult
 } from './feature.js';
+export { createRaceSession } from './session.js';
+export type {
+	RaceCommand,
+	RaceSession,
+	RaceTelemetry,
+	RunnerTelemetry
+} from './session.js';
+export { createCombat, resolveCombatLap } from './combat.js';
+export type { ActiveCombat, CombatLapResult, CombatOrder } from './combat.js';
 export {
 	driverIncidentChance,
 	resolveChaosLap,

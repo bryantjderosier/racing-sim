@@ -1,5 +1,11 @@
 import { setupDistance } from '../lap/math.js';
 import { TIRE_CLIFF, TIRE_OPT_TEMP } from '../lap/constants.js';
+import {
+	PACE_RISK,
+	SAFETY_DURATION_LAPS,
+	SAFETY_LAP_MULT,
+	SAFETY_PIT_FACTOR
+} from '../balance/race.js';
 import type {
 	CarPerformance,
 	CarRuntimeState,
@@ -54,13 +60,6 @@ export type ChaosLapOutcome = {
 	triggeredSafety: SafetyCarState;
 	/** Force pace override while VSC/SC active (caller applies). */
 	paceOverride: PaceDirective | null;
-};
-
-const PACE_RISK: Record<PaceDirective, number> = {
-	conserve: 0.35,
-	balanced: 1,
-	push: 1.55,
-	maximum: 2.2
 };
 
 function clamp01(n: number) {
@@ -304,21 +303,15 @@ export function resolveChaosLap(
 
 /** SC/VSC duration defaults (laps remaining including current). */
 export function safetyDuration(state: SafetyCarState): number {
-	if (state === 'vsc') return 2;
-	if (state === 'safety_car') return 3;
-	return 0;
+	return SAFETY_DURATION_LAPS[state] ?? 0;
 }
 
 /** Lap time multiplier under SC/VSC (racing pace suppressed). */
 export function safetyLapMult(state: SafetyCarState): number {
-	if (state === 'vsc') return 1.12;
-	if (state === 'safety_car') return 1.38;
-	return 1;
+	return SAFETY_LAP_MULT[state] ?? 1;
 }
 
 /** Pit lane loss factor under SC/VSC (cheaper to pit). */
 export function safetyPitFactor(state: SafetyCarState): number {
-	if (state === 'vsc') return 0.6;
-	if (state === 'safety_car') return 0.45;
-	return 1;
+	return SAFETY_PIT_FACTOR[state] ?? 1;
 }
