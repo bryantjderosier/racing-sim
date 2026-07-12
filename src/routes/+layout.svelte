@@ -7,6 +7,7 @@
 	let { children } = $props();
 
 	const path = $derived(page.url.pathname);
+	const isLanding = $derived(path === '/');
 </script>
 
 <svelte:head>
@@ -19,19 +20,30 @@
 	/>
 </svelte:head>
 
-<div class="ops-shell">
-	<nav class="ops-nav" aria-label="Primary">
-		<a class="ops-nav-brand" href={resolve('/')}>Apex</a>
-		<div class="ops-nav-links">
-			<a class="ops-nav-link" class:active={path === '/'} href={resolve('/')}>HQ</a>
-			<a
-				class="ops-nav-link"
-				class:active={path.startsWith('/weekend')}
-				href={resolve('/weekend')}
-			>
-				Weekend
-			</a>
-		</div>
-	</nav>
+{#if isLanding}
 	{@render children()}
-</div>
+{:else}
+	<div class="ops-shell">
+		<nav class="ops-nav" aria-label="Primary">
+			<a class="ops-nav-brand" href={resolve('/')}>Apex</a>
+			<div class="ops-nav-links">
+				<a class="ops-nav-link" class:active={path === '/'} href={resolve('/')}>Home</a>
+				<a
+					class="ops-nav-link"
+					class:active={path.startsWith('/hq')}
+					href={resolve('/hq')}
+				>
+					HQ
+				</a>
+				<a
+					class="ops-nav-link"
+					class:active={path.startsWith('/weekend')}
+					href={resolve('/weekend')}
+				>
+					Weekend
+				</a>
+			</div>
+		</nav>
+		{@render children()}
+	</div>
+{/if}

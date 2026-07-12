@@ -5,10 +5,13 @@ import { fileURLToPath } from 'node:url';
 import { registerDbIpc } from './db/ipc.js';
 import { shutdownDb } from './db/migrate.js';
 
-const isDev = !app.isPackaged && process.env.ELECTRON_DEV === '1';
+const DEV_URL = process.env.VITE_DEV_SERVER_URL ?? 'http://localhost:5180';
+/** Prefer Vite when a dev server URL is set — ELECTRON_DEV alone can fail under WSL/cross-env. */
+const isDev =
+	Boolean(process.env.VITE_DEV_SERVER_URL) ||
+	(!app.isPackaged && process.env.ELECTRON_DEV === '1');
 const loadURL = serve({ directory: 'build' });
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
-const DEV_URL = process.env.VITE_DEV_SERVER_URL ?? 'http://localhost:5180';
 
 async function createWindow() {
 	const mainWindow = new BrowserWindow({
@@ -23,9 +26,11 @@ async function createWindow() {
 	});
 
 	if (isDev) {
+		console.log(`[electron] loading Vite dev UI: ${DEV_URL}`);
 		await mainWindow.loadURL(DEV_URL);
 		mainWindow.webContents.openDevTools({ mode: 'detach' });
 	} else {
+		console.log('[electron] loading packaged build/ UI');
 		await loadURL(mainWindow);
 	}
 }

@@ -2,43 +2,40 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import HqDesk from '$lib/components/hq/HqDesk.svelte';
 	import {
 		bootstrapCareer,
-		closeCareer,
-		getHqSnapshot,
+		deleteCareer,
+		getCareerSummary,
 		isElectron,
 		listCareers,
 		listTeamOptions,
 		openCareer
 	} from '$lib/electron';
-	import type {
-		CareerSummary,
-		HqHubSnapshot,
-		NewCareerTeamOption
-	} from '$lib/types';
+	import type { CareerSummary, NewCareerTeamOption } from '$lib/types';
+	import '$lib/styles/landing.css';
 
+	type Mode = 'menu' | 'new' | 'load' | 'delete';
+
+	let mode = $state<Mode>('menu');
 	let careers = $state.raw<CareerSummary[]>([]);
 	let teams = $state.raw<NewCareerTeamOption[]>([]);
-	let hq = $state.raw<HqHubSnapshot | null>(null);
+	let activeId = $state<string | null>(null);
 	let busy = $state(false);
 	let error = $state('');
+	let electron = $state(false);
 	let displayName = $state('New Career');
 	let teamId = $state(1);
-	let electron = $state(false);
+	let confirmDeleteId = $state<string | null>(null);
 
-	const weekendHref = resolve('/weekend');
+	const hqHref = resolve('/hq');
 
 	async function refresh() {
 		if (!isElectron()) return;
 		careers = await listCareers();
 		teams = await listTeamOptions();
-		const active = careers.find((c) => c.active);
-		if (active) {
-			hq = await getHqSnapshot();
-		} else {
-			hq = null;
-		}
+		if (teams[0] && !teams.some((t) => t.id === teamId)) teamId = teams[0].id;
+		const summary = await getCareerSummary();
+		activeId = summary?.id ?? null;
 	}
 
 	onMount(() => {
@@ -46,21 +43,27 @@
 		void refresh();
 	});
 
-	function goWeekend() {
-		void goto(weekendHref);
+	function setMode(next: Mode) {
+		mode = next;
+		error = '';
+		confirmDeleteId = null;
 	}
 
-	async function onBootstrap() {
+	async function goHq() {
+		await goto(hqHref);
+	}
+
+	async function onStart() {
+		if (!electron) return;
 		busy = true;
 		error = '';
 		try {
-			const res = await bootstrapCareer({
+			await bootstrapCareer({
 				displayName: displayName.trim() || 'New Career',
 				playerTeamId: teamId,
 				raceCount: 22
 			});
-			if (res) hq = res.hq;
-			await refresh();
+			await goHq();
 		} catch (e) {
 			error = e instanceof Error ? e.message : String(e);
 		} finally {
@@ -68,12 +71,12 @@
 		}
 	}
 
-	async function onOpen(id: string) {
+	async function onLoad(id: string) {
 		busy = true;
 		error = '';
 		try {
 			await openCareer(id);
-			await refresh();
+			await goHq();
 		} catch (e) {
 			error = e instanceof Error ? e.message : String(e);
 		} finally {
@@ -81,106 +84,159 @@
 		}
 	}
 
-	async function onClose() {
+	async function onDelete(id: string) {
+		if (confirmDeleteId !== id) {
+			confirmDeleteId = id;
+			return;
+		}
 		busy = true;
+		error = '';
 		try {
-			await closeCareer();
-			hq = null;
+			await deleteCareer(id);
+			confirmDeleteId = null;
 			await refresh();
+			if (careers.length === 0) mode = 'menu';
+		} catch (e) {
+			error = e instanceof Error ? e.message : String(e);
 		} finally {
 			busy = false;
 		}
 	}
 </script>
 
-<p class="ops-eyebrow">Project Apex</p>
-<h1 class="ops-brand">Racing Manager</h1>
+<div class="landing">
+	<div class="landing-bg" aria-hidden="true"></div>
+	<div class="landing-glow" aria-hidden="true"></div>
 
-<section class="ops-panel" style="margin-top: 1rem; border-color: var(--ops-accent)">
-	<p class="ops-eyebrow">Race weekend</p>
-	<p class="ops-muted" style="margin: 0.35rem 0 0.85rem">
-		Practice → quali → pit wall → commit.
-	</p>
-	<div class="ops-row">
-		<button type="button" class="ops-btn primary" onclick={goWeekend}>Enter weekend</button>
-		<a class="ops-btn" href={weekendHref}>Open /weekend</a>
-	</div>
-</section>
+	<div class="landing-inner">
+		<p
+			class="landing-tag"
+			style="margin: 0 0 0.35rem; letter-spacing: 0.22em; text-transform: uppercase"
+		>
+			Project Apex
+		</p>
+		<h1 class="landing-brand">Apex</h1>
+		<p class="landing-tag">Manage the garage. Own the weekend.</p>
 
-{#if !electron}
-	<p class="ops-muted" style="margin-top: 1rem">
-		Open in the Electron shell to load careers and run weekends.
-	</p>
-{:else if hq}
-	<div style="margin-top: 1rem">
-		<HqDesk
-			{hq}
-			{busy}
-			onHq={(next) => {
-				hq = next;
-			}}
-			onClose={onClose}
-			onError={(msg) => {
-				error = msg;
-			}}
-			onBusy={(v) => {
-				busy = v;
-			}}
-		/>
-	</div>
-{:else}
-	<section class="ops-panel" style="margin-top: 1.25rem">
-		<p class="ops-eyebrow">Careers</p>
-		{#if careers.length === 0}
-			<p class="ops-muted">No saves yet.</p>
-		{:else}
-			<table class="ops-table">
-				<thead>
-					<tr>
-						<th>Name</th>
-						<th>Team</th>
-						<th>Week</th>
-						<th></th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each careers as c (c.id)}
-						<tr>
-							<td>{c.displayName}</td>
-							<td>{c.playerTeamName ?? c.playerTeamId}</td>
-							<td class="ops-mono">{c.week ?? '—'}</td>
-							<td>
-								<button class="ops-btn" disabled={busy} onclick={() => onOpen(c.id)}>
+		{#if mode === 'menu'}
+			<div class="landing-ctas">
+				{#if activeId}
+					<button class="landing-btn primary" disabled={busy} onclick={goHq}>Continue</button>
+				{/if}
+				<button
+					class="landing-btn"
+					class:primary={!activeId}
+					disabled={busy || !electron}
+					onclick={() => setMode('new')}
+				>
+					New career
+				</button>
+				<button
+					class="landing-btn ghost"
+					disabled={busy || !electron || careers.length === 0}
+					onclick={() => setMode('load')}
+				>
+					Load career
+				</button>
+				<button
+					class="landing-btn ghost"
+					disabled={busy || !electron || careers.length === 0}
+					onclick={() => setMode('delete')}
+				>
+					Delete
+				</button>
+			</div>
+		{/if}
+
+		{#if mode === 'new'}
+			<div class="landing-panel">
+				<h2>New career</h2>
+				<div class="ops-row">
+					<label class="ops-label">
+						Display name
+						<input class="ops-input" bind:value={displayName} />
+					</label>
+					<label class="ops-label">
+						Team
+						<select class="ops-select" bind:value={teamId}>
+							{#each teams as t (t.id)}
+								<option value={t.id}>{t.name}</option>
+							{/each}
+						</select>
+					</label>
+				</div>
+				<div class="ops-row" style="margin-top: 1rem">
+					<button class="landing-btn primary" disabled={busy} onclick={onStart}>Start</button>
+					<button class="landing-btn ghost" disabled={busy} onclick={() => setMode('menu')}
+						>Back</button
+					>
+				</div>
+			</div>
+		{/if}
+
+		{#if mode === 'load'}
+			<div class="landing-panel">
+				<h2>Load career</h2>
+				{#if careers.length === 0}
+					<p class="landing-note">No saves yet.</p>
+				{:else}
+					<ul class="landing-list">
+						{#each careers as c (c.id)}
+							<li class="landing-item">
+								<div>
+									<div class="landing-item-name">{c.displayName}</div>
+									<div class="landing-item-meta">
+										{c.playerTeamName ?? `Team ${c.playerTeamId}`} · W{c.week ?? '—'} · {c.seasonYear ??
+											'—'}
+									</div>
+								</div>
+								<button class="landing-btn primary" disabled={busy} onclick={() => onLoad(c.id)}>
 									Open
 								</button>
-							</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+				<div class="ops-row" style="margin-top: 1rem">
+					<button class="landing-btn ghost" disabled={busy} onclick={() => setMode('menu')}
+						>Back</button
+					>
+				</div>
+			</div>
 		{/if}
-	</section>
 
-	<section class="ops-panel">
-		<p class="ops-eyebrow">New career</p>
-		<div class="ops-row" style="margin-top: 0.5rem">
-			<label class="ops-label">
-				Display name
-				<input class="ops-input" bind:value={displayName} />
-			</label>
-			<label class="ops-label">
-				Team
-				<select class="ops-select" bind:value={teamId}>
-					{#each teams as t (t.id)}
-						<option value={t.id}>{t.name}</option>
+		{#if mode === 'delete'}
+			<div class="landing-panel">
+				<h2>Delete career</h2>
+				<p class="landing-note" style="margin-top: 0">Click twice to confirm permanent delete.</p>
+				<ul class="landing-list" style="margin-top: 0.85rem">
+					{#each careers as c (c.id)}
+						<li class="landing-item">
+							<div>
+								<div class="landing-item-name">{c.displayName}</div>
+								<div class="landing-item-meta">
+									{c.playerTeamName ?? `Team ${c.playerTeamId}`} · W{c.week ?? '—'}
+								</div>
+							</div>
+							<button class="landing-btn danger" disabled={busy} onclick={() => onDelete(c.id)}>
+								{confirmDeleteId === c.id ? 'Confirm delete' : 'Delete'}
+							</button>
+						</li>
 					{/each}
-				</select>
-			</label>
-			<button class="ops-btn primary" disabled={busy} onclick={onBootstrap}>Bootstrap</button>
-		</div>
-	</section>
-{/if}
+				</ul>
+				<div class="ops-row" style="margin-top: 1rem">
+					<button class="landing-btn ghost" disabled={busy} onclick={() => setMode('menu')}
+						>Back</button
+					>
+				</div>
+			</div>
+		{/if}
 
-{#if error}
-	<p class="ops-error" style="margin-top: 1rem">{error}</p>
-{/if}
+		{#if !electron}
+			<p class="landing-note">Run `pnpm dev:electron` to manage careers.</p>
+		{/if}
+		{#if error}
+			<p class="landing-error">{error}</p>
+		{/if}
+	</div>
+</div>
