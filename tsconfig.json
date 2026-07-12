@@ -12,5 +12,11 @@
 		"strict": true,
 		"moduleResolution": "bundler"
 	},
-	"include": ["src/**/*.ts", "src/**/*.svelte", "electron/**/*.ts", "drizzle.config.ts"]
+	"include": [
+		"src/**/*.ts",
+		"src/**/*.svelte",
+		"electron/**/*.ts",
+		"scripts/**/*.ts",
+		"drizzle.config.ts"
+	]
 }

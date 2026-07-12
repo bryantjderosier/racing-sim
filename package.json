@@ -18,7 +18,10 @@
 		"format": "prettier --write .",
 		"db:generate": "drizzle-kit generate && node scripts/strip-pg-schema.mjs",
 		"db:reset": "bash scripts/db-reset.sh",
-		"db:migrate": "node scripts/db-migrate.mjs"
+		"db:migrate": "node scripts/db-migrate.mjs",
+		"test:lap": "tsx scripts/lap-harness.ts",
+		"test:practice": "tsx scripts/practice-harness.ts",
+		"test:db-practice": "tsx scripts/db-practice-harness.ts"
 	},
 	"devDependencies": {
 		"@duckdb/node-api": "^1.4.4-r.4",
@@ -38,6 +41,7 @@
 		"prettier-plugin-svelte": "^4.1.0",
 		"svelte": "^5.56.1",
 		"svelte-check": "^4.6.0",
+		"tsx": "^4.23.0",
 		"typescript": "^6.0.3",
 		"typescript-eslint": "^8.60.1",
 		"vite": "^8.0.16",

@@ -10,6 +10,7 @@ package-lock.json
 /build
 /dist-electron
 *.duckdb
+.tmp/
 
 # OS
 .DS_Store
