@@ -3,12 +3,11 @@ import type { AppDb } from '../../db/node.js';
 import {
 	blueprintFlaws,
 	blueprints,
-	financialLedger,
 	manufacturingQueue,
 	parts,
-	teams,
 	worldClock
 } from '../../db/schema.js';
+import { spendCash } from '../finance/index.js';
 import {
 	FABRICATION_COST_BASE,
 	FABRICATION_DAYS_BASE,
@@ -20,20 +19,13 @@ import {
 import { applyMileageToFog, flawsRevealedByConfidence } from './fog.js';
 import type { DevelopableSlot } from './types.js';
 
-async function nextId(
-	db: AppDb,
-	table: 'parts' | 'manufacturing_queue' | 'financial_ledger'
-): Promise<number> {
+async function nextId(db: AppDb, table: 'parts' | 'manufacturing_queue'): Promise<number> {
 	const q =
 		table === 'parts'
 			? db.select({ m: sql<number>`coalesce(max(${parts.id}), 0)` }).from(parts)
-			: table === 'manufacturing_queue'
-				? db
-						.select({ m: sql<number>`coalesce(max(${manufacturingQueue.id}), 0)` })
-						.from(manufacturingQueue)
-				: db
-						.select({ m: sql<number>`coalesce(max(${financialLedger.id}), 0)` })
-						.from(financialLedger);
+			: db
+					.select({ m: sql<number>`coalesce(max(${manufacturingQueue.id}), 0)` })
+					.from(manufacturingQueue);
 	const [row] = await q;
 	return Number(row?.m ?? 0) + 1;
 }
@@ -68,31 +60,15 @@ export async function queueManufacture(
 	const lightweight = input.isLightweight === true;
 	const cost = FABRICATION_COST_BASE * (lightweight ? LIGHTWEIGHT_COST_MULT : 1);
 
-	const [team] = await db.select().from(teams).where(eq(teams.id, input.teamId)).limit(1);
-	if (!team) throw new Error(`Team ${input.teamId} not found`);
-	if (team.liquidCash < cost) throw new Error('Insufficient cash for fabrication');
-
 	const [clock] = await db.select().from(worldClock).where(eq(worldClock.id, 1)).limit(1);
 	const completionDate =
 		input.completionDate ?? (clock?.tickIndex ?? 0) + FABRICATION_DAYS_BASE;
 
-	await db
-		.update(teams)
-		.set({
-			liquidCash: team.liquidCash - cost,
-			costCapSpent: team.costCapSpent + cost
-		})
-		.where(eq(teams.id, team.id));
-
-	const ledgerId = await nextId(db, 'financial_ledger');
-	await db.insert(financialLedger).values({
-		id: ledgerId,
+	await spendCash(db, {
 		teamId: input.teamId,
-		amount: -cost,
+		amount: cost,
 		transactionType: 'part_fabrication',
-		isCostCapApplicable: true,
-		seasonIndex: clock?.seasonYear ?? 2026,
-		timestamp: clock?.tickIndex ?? 0
+		isCostCapApplicable: true
 	});
 
 	const queueId = await nextId(db, 'manufacturing_queue');
@@ -166,6 +142,29 @@ export async function completeManufacture(
 		.where(eq(manufacturingQueue.id, queueId));
 
 	return { partId, weightKg, currentReliability, maxConditionCeiling };
+}
+
+export type DueManufactureResult = {
+	queueId: number;
+	teamId: number;
+	partId: number;
+};
+
+/** Complete any fabricating jobs whose completionDate ≤ current tick. */
+export async function completeDueManufactures(db: AppDb): Promise<DueManufactureResult[]> {
+	const [clock] = await db.select().from(worldClock).where(eq(worldClock.id, 1)).limit(1);
+	const tick = clock?.tickIndex ?? 0;
+	const jobs = await db
+		.select()
+		.from(manufacturingQueue)
+		.where(eq(manufacturingQueue.status, 'fabricating'));
+	const out: DueManufactureResult[] = [];
+	for (const j of jobs) {
+		if (j.completionDate > tick) continue;
+		const done = await completeManufacture(db, j.id);
+		out.push({ queueId: j.id, teamId: j.teamId, partId: done.partId });
+	}
+	return out;
 }
 
 export type MileageRevealResult = {

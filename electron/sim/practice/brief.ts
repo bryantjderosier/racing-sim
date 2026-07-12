@@ -1,4 +1,5 @@
 import { setupDistance } from '../lap/math.js';
+import { moraleFeedbackMult } from '../morale/index.js';
 import type { SetupVector } from '../lap/types.js';
 import type { BriefClarity, EngineeringBrief, PracticePersonnel } from './types.js';
 
@@ -69,8 +70,11 @@ export function generateEngineeringBrief(
 	personnel: PracticePersonnel,
 	rng: () => number = Math.random
 ): EngineeringBrief {
+	const feedbackEff = Math.round(
+		personnel.driverFeedback * moraleFeedbackMult(personnel.driverMorale ?? 50)
+	);
 	const qualityScore = Math.round(
-		(personnel.driverFeedback + personnel.engineerSetup + personnel.engineerAnalysis) / 3
+		(feedbackEff + personnel.engineerSetup + personnel.engineerAnalysis) / 3
 	);
 	const clarity = clarityFromScore(qualityScore);
 	const dist = setupDistance(current, target);

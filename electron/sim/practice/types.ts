@@ -8,6 +8,8 @@ export type PracticePersonnel = {
 	engineerSetup: number;
 	/** Race Engineer Analysis 0–99. */
 	engineerAnalysis: number;
+	/** Driver morale 0–100; scales feedback clarity. */
+	driverMorale?: number;
 };
 
 export type TrimKind = 'qualifying_trim' | 'race_trim' | 'compound_knowledge' | 'wet_weather_trim';

@@ -1,9 +1,5 @@
 /** Cost cap ceilings by division (Promotion Financial Shock). */
-export const DIVISION_COST_CAP: Record<number, number> = {
-	1: 140_000_000,
-	2: 75_000_000,
-	3: 35_000_000
-};
+export { DIVISION_COST_CAP } from '../finance/constants.js';
 
 /** Default how many constructors move each way between adjacent divisions. */
 export const DEFAULT_PROMOTE_COUNT = 2;

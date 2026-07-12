@@ -7,7 +7,19 @@ import {
 	type FeederTickResult,
 	type GraduationResult
 } from '../feeder/index.js';
-import { tickDriverMarket, type MarketTickResult } from '../market/index.js';
+import {
+	payChampionshipPrizeMoney,
+	settleAllCostCaps,
+	type CostCapSettlement,
+	type PrizePayout
+} from '../finance/index.js';
+import { ageSponsorContractsOneYear } from '../sponsors/index.js';
+import {
+	tickDriverMarket,
+	tickStaffMarket,
+	type MarketTickResult,
+	type StaffMarketTickResult
+} from '../market/index.js';
 import { runWinterRegulations, type PlayerVote, type WinterRegsResult } from '../regs/index.js';
 import { ensureClock } from '../world/index.js';
 import { initSeason, nextIncompleteRound } from './calendar.js';
@@ -40,12 +52,16 @@ export type OffSeasonOptions = {
 export type OffSeasonResult = {
 	fromSeasonYear: number;
 	toSeasonYear: number;
+	costCapSettlements: CostCapSettlement[];
+	prizePayouts: PrizePayout[];
 	promotion: PromotionRelegationResult | null;
 	winter: WinterRegsResult | null;
 	feederTicks: FeederTickResult[];
 	graduations: GraduationResult[];
 	contractsAged: number;
+	sponsorsAged: { aged: number; expired: number };
 	market: MarketTickResult | null;
+	staffMarket: StaffMarketTickResult | null;
 	seasonsInitialized: number[];
 	standingsChampions: { division: number; teamId: number; points: number }[];
 };
@@ -155,6 +171,9 @@ export async function runOffSeason(
 
 	await assertSeasonsComplete(db, from);
 
+	const costCapSettlements = await settleAllCostCaps(db, from);
+	const prizePayouts = await payChampionshipPrizeMoney(db, from);
+
 	const standingsChampions: OffSeasonResult['standingsChampions'] = [];
 	for (const d of divisions) {
 		const constructors = await getStandingsTable(db, from, d, 'team');
@@ -195,6 +214,7 @@ export async function runOffSeason(
 	}
 
 	const contractsAged = await ageContractsOneYear(db);
+	const sponsorsAged = await ageSponsorContractsOneYear(db);
 	await ageDriversOneYear(db);
 
 	if (!options.skipFeeder) {
@@ -202,9 +222,15 @@ export async function runOffSeason(
 	}
 
 	let market: MarketTickResult | null = null;
+	let staffMarket: StaffMarketTickResult | null = null;
 	if (!options.skipMarket) {
 		await db.update(worldClock).set({ week: 48 }).where(eq(worldClock.id, 1));
 		market = await tickDriverMarket(db, {
+			playerTeamId: options.playerTeamId,
+			rng,
+			maxSignings: options.marketMaxSignings ?? 4
+		});
+		staffMarket = await tickStaffMarket(db, {
 			playerTeamId: options.playerTeamId,
 			rng,
 			maxSignings: options.marketMaxSignings ?? 4
@@ -218,12 +244,16 @@ export async function runOffSeason(
 	return {
 		fromSeasonYear: from,
 		toSeasonYear: to,
+		costCapSettlements,
+		prizePayouts,
 		promotion,
 		winter,
 		feederTicks,
 		graduations,
 		contractsAged,
+		sponsorsAged,
 		market,
+		staffMarket,
 		seasonsInitialized,
 		standingsChampions
 	};

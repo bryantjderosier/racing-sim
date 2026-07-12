@@ -1,13 +1,7 @@
 import { and, eq, sql } from 'drizzle-orm';
 import type { AppDb } from '../../db/node.js';
-import {
-	attributes,
-	drivers,
-	facilities,
-	scoutingReports,
-	staff,
-	worldClock
-} from '../../db/schema.js';
+import { drivers, scoutingReports, worldClock } from '../../db/schema.js';
+import { getScoutNetworkStats } from '../scouting/stats.js';
 import { DETECTION_BASE_CHANCE, type PotentialTier } from './constants.js';
 
 async function nextReportId(db: AppDb): Promise<number> {
@@ -15,37 +9,6 @@ async function nextReportId(db: AppDb): Promise<number> {
 		.select({ m: sql<number>`coalesce(max(${scoutingReports.id}), 0)` })
 		.from(scoutingReports);
 	return Number(row?.m ?? 0) + 1;
-}
-
-async function getScoutStats(db: AppDb, teamId: number) {
-	const [scout] = await db
-		.select()
-		.from(staff)
-		.where(and(eq(staff.teamId, teamId), eq(staff.role, 'scout')))
-		.limit(1);
-	const attrs = scout
-		? await db
-				.select()
-				.from(attributes)
-				.where(
-					and(eq(attributes.entityId, scout.id), eq(attributes.entityType, 'staff'))
-				)
-		: [];
-	const map: Record<string, number> = {};
-	for (const a of attrs) map[a.attrName] = a.currentValue;
-
-	const [hq] = await db
-		.select()
-		.from(facilities)
-		.where(and(eq(facilities.teamId, teamId), eq(facilities.facilityType, 'scouting_hq')))
-		.limit(1);
-
-	return {
-		detection: map.detection ?? 40,
-		accuracy: map.accuracy ?? 40,
-		appraisal: map.appraisal ?? 40,
-		hqTier: hq?.tier ?? 0
-	};
 }
 
 export type ScoutDiscovery = {
@@ -77,7 +40,7 @@ export async function scoutKartingPool(
 ): Promise<ScoutDiscovery[]> {
 	const rng = options.rng ?? Math.random;
 	const maxTargets = options.maxTargets ?? 5;
-	const stats = await getScoutStats(db, teamId);
+	const stats = await getScoutNetworkStats(db, teamId);
 	const [clock] = await db.select().from(worldClock).where(eq(worldClock.id, 1)).limit(1);
 	const tick = clock?.tickIndex ?? 0;
 
@@ -123,7 +86,8 @@ export async function scoutKartingPool(
 				entityId: d.id,
 				entityType: 'driver',
 				confidenceLevel: confidence,
-				lastScoutDate: tick
+				lastScoutDate: tick,
+				isAssigned: false
 			});
 		}
 

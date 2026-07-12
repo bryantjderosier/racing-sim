@@ -1,6 +1,7 @@
 import { eq, sql } from 'drizzle-orm';
 import type { AppDb } from '../../db/node.js';
 import {
+	aiTeamProfiles,
 	attributes,
 	blueprints,
 	cars,
@@ -161,6 +162,8 @@ function engineerAttrSet(teamIndex: number): Record<string, number> {
  */
 export async function seedFullGrid(db: AppDb): Promise<{ trackId: number; teamIds: number[] }> {
 	// Wipe sim tables used by fixtures (full reset of seeded world)
+	await db.execute(sql`DELETE FROM sponsor_contracts`);
+	await db.execute(sql`DELETE FROM sponsors`);
 	await db.execute(sql`DELETE FROM scouting_reports`);
 	await db.execute(sql`DELETE FROM regulation_votes`);
 	await db.execute(sql`DELETE FROM regulatory_history`);
@@ -397,6 +400,27 @@ export async function seedFullGrid(db: AppDb): Promise<{ trackId: number; teamId
 		);
 	}
 	await db.insert(facilities).values(facilityRows);
+
+	const archetypes = [
+		'aggressive_spender',
+		'long_term_builder',
+		'pragmatic_pivot'
+	] as const;
+	const profileRows = [];
+	for (let i = 1; i < GRID_SIZE; i++) {
+		const teamId = i + 1;
+		const arch = archetypes[i % 3]!;
+		profileRows.push({
+			teamId,
+			archetype: arch,
+			rAndDFocusBias: 0.35 + hash01(i + 200) * 0.4,
+			facilityInvestmentRate:
+				arch === 'long_term_builder' ? 0.65 + hash01(i) * 0.2 : 0.3 + hash01(i) * 0.25,
+			costCapRiskTolerance:
+				arch === 'aggressive_spender' ? 0.98 + hash01(i) * 0.04 : 0.75 + hash01(i) * 0.15
+		});
+	}
+	if (profileRows.length) await db.insert(aiTeamProfiles).values(profileRows);
 
 	await db.insert(worldClock).values({
 		id: 1,

@@ -22,3 +22,24 @@ export {
 export type { SignContractInput, SignContractResult, SeedContractRow } from './contracts.js';
 export { tickDriverMarket, previewDriverOffer } from './tick.js';
 export type { MarketTickOptions, MarketTickResult, MarketTickSigning } from './tick.js';
+
+export {
+	tickStaffMarket,
+	previewStaffOffer,
+	signStaffContract,
+	buyoutStaff,
+	seedStaffContracts,
+	scanStaffMarketHeat,
+	teamsMissingStaffRoles,
+	evaluateStaffOffer,
+	staffMarketRateAnnual,
+	buildStaffProfile
+} from './staff/index.js';
+export type {
+	StaffRole,
+	StaffMarketProfile,
+	HotStaff,
+	StaffMarketTickResult,
+	StaffMarketTickSigning,
+	SignStaffContractResult
+} from './staff/index.js';

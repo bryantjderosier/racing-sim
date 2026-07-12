@@ -42,13 +42,16 @@ export function applyWeeklyXp(args: {
 	mileageLaps?: number;
 	age?: number;
 	longevity?: number;
+	/** Morale XP multiplier (default 1). */
+	moraleMult?: number;
 	rng: () => number;
 }): { attrs: AttrRow[]; events: XpGainEvent[] } {
 	const base =
 		args.entityType === 'driver' ? DRIVER_WEEKLY_XP_BASE : STAFF_WEEKLY_XP_BASE;
 	const growth = 0.6 + (args.growthAttr / 99) * 0.8;
 	const mileage = (args.mileageLaps ?? 0) * XP_PER_MILEAGE_LAP;
-	let budget = (base * growth + mileage) * args.facilityMult;
+	const moraleMult = args.moraleMult ?? 1;
+	let budget = (base * growth + mileage) * args.facilityMult * moraleMult;
 
 	// Soft age decay pressure: reduce XP and slight drain on physical attrs yearly-ish via week
 	const overAge =

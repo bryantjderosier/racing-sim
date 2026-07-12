@@ -17,6 +17,17 @@ import {
 } from './constants.js';
 import { applyFacilityDecay, facilityEfficiencyMult } from './facilities.js';
 import { applyWeeklyXp, type XpGainEvent } from './xp.js';
+import { completeFacilityBuilds, type CompletedFacility } from '../facilities/index.js';
+import { payAllTeamsWeeklyPayroll, spendCash } from '../finance/index.js';
+import { tickAllTeamsScouting, type ScoutTickResult } from '../scouting/index.js';
+import {
+	moraleXpMult,
+	tickMorale,
+	type MoraleTickOptions,
+	type MoraleTickResult
+} from '../morale/index.js';
+import { tickAllAiManagers, type AiManagersTickResult } from '../ai/index.js';
+import { completeDueManufactures } from '../rd/index.js';
 
 export type WorldTickOptions = {
 	/** Optional mileage from last race weekend: driverId → laps. */
@@ -25,6 +36,18 @@ export type WorldTickOptions = {
 	maintainTeamIds?: number[];
 	/** Maintenance cash per facility restored (liquid cash). */
 	maintenanceCostPerFacility?: number;
+	/** Skip weekly salary payroll (default false). */
+	skipPayroll?: boolean;
+	/** Skip personnel scouting assignment progress (default false). */
+	skipScouting?: boolean;
+	/** Skip morale / ego / loyalty tick (default false). */
+	skipMorale?: boolean;
+	/** Skip AI manager weekly decisions (default false). */
+	skipAi?: boolean;
+	/** Race results feeding morale this week. */
+	raceResultsByDriverId?: MoraleTickOptions['raceResultsByDriverId'];
+	/** Team-order outcomes feeding morale this week. */
+	teamOrdersByDriverId?: MoraleTickOptions['teamOrdersByDriverId'];
 	rng?: () => number;
 };
 
@@ -36,6 +59,11 @@ export type WorldTickResult = {
 	teamsUpdated: number;
 	facilitiesDecayed: number;
 	facilitiesMaintained: number;
+	facilitiesCompleted: CompletedFacility[];
+	scoutingTicks: ScoutTickResult[];
+	morale: MoraleTickResult | null;
+	ai: AiManagersTickResult | null;
+	manufacturesCompleted: number;
 	xpEvents: XpGainEvent[];
 	levelsGained: number;
 };
@@ -104,8 +132,9 @@ export async function advanceWorldWeek(
 	const maintCost = options.maintenanceCostPerFacility ?? 250_000;
 
 	for (const team of teamRows) {
-		const wtCap = WEEKLY_WT_CAP[team.division] ?? WEEKLY_WT_CAP[1];
+		const wtBase = WEEKLY_WT_CAP[team.division] ?? WEEKLY_WT_CAP[1];
 		const cfdCap = WEEKLY_CFD_CAP[team.division] ?? WEEKLY_CFD_CAP[1];
+		const wtCap = wtBase * (team.wtHoursCapMult ?? 1);
 		await db
 			.update(teams)
 			.set({
@@ -116,6 +145,7 @@ export async function advanceWorldWeek(
 
 		const facs = await db.select().from(facilities).where(eq(facilities.teamId, team.id));
 		for (const f of facs) {
+			if (f.isUnderConstruction) continue;
 			if (maintain.has(team.id)) {
 				const next = 100;
 				await db
@@ -123,10 +153,12 @@ export async function advanceWorldWeek(
 					.set({ conditionPct: next })
 					.where(eq(facilities.id, f.id));
 				facilitiesMaintained += 1;
-				await db
-					.update(teams)
-					.set({ liquidCash: sql`${teams.liquidCash} - ${maintCost}` })
-					.where(eq(teams.id, team.id));
+				await spendCash(db, {
+					teamId: team.id,
+					amount: maintCost,
+					transactionType: 'freight_travel',
+					isCostCapApplicable: false
+				});
 			} else if (f.tier > 0) {
 				const next = applyFacilityDecay(f.conditionPct, FACILITY_WEEKLY_DECAY);
 				await db
@@ -137,6 +169,26 @@ export async function advanceWorldWeek(
 			}
 		}
 	}
+
+	if (!options.skipPayroll) {
+		await payAllTeamsWeeklyPayroll(db);
+	}
+
+	const scoutingTicks = options.skipScouting
+		? []
+		: await tickAllTeamsScouting(db);
+
+	const morale = options.skipMorale
+		? null
+		: await tickMorale(db, {
+				raceResultsByDriverId: options.raceResultsByDriverId,
+				teamOrdersByDriverId: options.teamOrdersByDriverId
+			});
+
+	const facilitiesCompleted = await completeFacilityBuilds(db);
+	const dueMfg = await completeDueManufactures(db);
+
+	const ai = options.skipAi ? null : await tickAllAiManagers(db, { rng });
 
 	const progressMap = await loadProgressMap(db);
 	const xpEvents: XpGainEvent[] = [];
@@ -179,6 +231,7 @@ export async function advanceWorldWeek(
 			mileageLaps: options.mileageByDriverId?.[d.id] ?? 0,
 			age: d.age,
 			longevity: d.longevity,
+			moraleMult: moraleXpMult(d.morale),
 			rng
 		});
 
@@ -257,6 +310,7 @@ export async function advanceWorldWeek(
 			attrs: withXp,
 			facilityMult: academyMult,
 			growthAttr: growth,
+			moraleMult: moraleXpMult(s.morale),
 			rng
 		});
 
@@ -302,6 +356,11 @@ export async function advanceWorldWeek(
 		teamsUpdated: teamRows.length,
 		facilitiesDecayed,
 		facilitiesMaintained,
+		facilitiesCompleted,
+		scoutingTicks,
+		morale,
+		ai,
+		manufacturesCompleted: dueMfg.length,
 		xpEvents,
 		levelsGained
 	};

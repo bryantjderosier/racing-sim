@@ -1,9 +1,15 @@
 import { and, eq } from 'drizzle-orm';
 import type { AppDb } from '../../db/node.js';
 import { attributes, contracts, drivers, teams, worldClock } from '../../db/schema.js';
+import { quitRiskScore } from '../morale/index.js';
 import { HEAT_WEEK_THRESHOLD } from './constants.js';
 
-export type MarketHeatReason = 'final_window' | 'free_agent' | 'retirement' | 'open_seat';
+export type MarketHeatReason =
+	| 'final_window'
+	| 'free_agent'
+	| 'retirement'
+	| 'open_seat'
+	| 'morale_quit';
 
 export type HotDriver = {
 	driverId: number;
@@ -61,6 +67,11 @@ export async function scanMarketHeat(db: AppDb): Promise<HotDriver[]> {
 
 		if (d.age >= d.longevity) {
 			reasons.push('retirement');
+		}
+
+		const quit = quitRiskScore({ morale: d.morale });
+		if (quit >= 0.45 && d.teamId != null) {
+			reasons.push('morale_quit');
 		}
 
 		if (reasons.length === 0) continue;

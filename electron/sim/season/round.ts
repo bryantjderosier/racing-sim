@@ -9,6 +9,7 @@ import { getSeason, nextIncompleteRound } from './calendar.js';
 import { pointsForResult, type PointsSchemeId } from './points.js';
 import { applyPivotGate } from './pivot.js';
 import { applyPointsAwards, type PointsAward } from './standings.js';
+import { payAllRaceSponsors } from '../sponsors/index.js';
 
 async function nextRaceEventId(db: AppDb): Promise<number> {
 	const [row] = await db
@@ -155,6 +156,19 @@ export async function advanceSeasonRound(
 	}
 
 	await applyPointsAwards(db, options.seasonYear, division, awards);
+
+	const bestFinishByTeam: Record<number, number | null> = {};
+	for (const c of weekend.race.classification) {
+		const teamId = driverToTeam.get(c.entrantId);
+		if (teamId == null) continue;
+		if (c.status !== 'finished') {
+			if (bestFinishByTeam[teamId] === undefined) bestFinishByTeam[teamId] = null;
+			continue;
+		}
+		const prev = bestFinishByTeam[teamId];
+		if (prev == null || c.position < prev) bestFinishByTeam[teamId] = c.position;
+	}
+	await payAllRaceSponsors(db, bestFinishByTeam);
 
 	await db
 		.update(seasonCalendar)

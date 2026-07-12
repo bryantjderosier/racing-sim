@@ -17,3 +17,11 @@ export type {
 	PitCrewSquadStats,
 	ResolvePitStopResult
 } from './stop.js';
+export {
+	loadPitCrewRoster,
+	setPitCrewLineup,
+	autoRotatePitCrew,
+	applyPitStopFatigue,
+	seedDefaultPitCrew
+} from './roster.js';
+export type { PitCrewRoster } from './roster.js';

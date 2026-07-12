@@ -122,7 +122,9 @@ try {
 		`── Allocate W1: WT25/CFD30 → progress ${a1.progress.toFixed(1)}%  completed=${a1.completed}`
 	);
 
-	await advanceWorldWeek(db, { rng: () => 0.4 });
+	await advanceWorldWeek(db, { rng: () => 0.4,
+		skipAi: true
+	});
 	const [team1] = await db.select().from(teams).where(eq(teams.id, 1)).limit(1);
 	console.log(`── World tick → hours refreshed WT ${team1.wtHoursRemaining}/CFD ${team1.cfdHoursRemaining}`);
 

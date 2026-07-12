@@ -10,6 +10,7 @@ import {
 	teams,
 	worldClock
 } from '../../db/schema.js';
+import { rdTestingCashCost, spendCash } from '../finance/index.js';
 import { HOURS_TO_COMPLETE, DESIGNER_ROLE_BY_SLOT } from './constants.js';
 import { bandFromConfidence, rollFlaws } from './fog.js';
 import { computeBlueprintQuality, effectiveTestingHours } from './quality.js';
@@ -163,6 +164,16 @@ export async function allocateTestingHours(
 		throw new Error(
 			`Insufficient hours (have WT ${team.wtHoursRemaining}/CFD ${team.cfdHoursRemaining}, need ${wtReq}/${cfdReq})`
 		);
+	}
+
+	const testingCost = rdTestingCashCost(wtSpend, cfdSpend);
+	if (testingCost > 0) {
+		await spendCash(db, {
+			teamId: team.id,
+			amount: testingCost,
+			transactionType: 'rd_testing',
+			isCostCapApplicable: true
+		});
 	}
 
 	await db

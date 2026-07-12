@@ -28,13 +28,15 @@ export type {
 export {
 	queueManufacture,
 	completeManufacture,
+	completeDueManufactures,
 	applyBlueprintMileage
 } from './manufacture.js';
 export type {
 	QueueManufactureInput,
 	QueueManufactureResult,
 	CompleteManufactureResult,
-	MileageRevealResult
+	MileageRevealResult,
+	DueManufactureResult
 } from './manufacture.js';
 export { applyWinterRegression } from './winter.js';
 export type { WinterRegressionInput, WinterRegressionResult } from './winter.js';

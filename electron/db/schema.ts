@@ -215,7 +215,9 @@ export const teams = pgTable('teams', {
 	reputation: doublePrecision('reputation').notNull().default(50),
 	rdPivotCurrent: doublePrecision('rd_pivot_current').notNull().default(1),
 	wtHoursRemaining: doublePrecision('wt_hours_remaining').notNull().default(0),
-	cfdHoursRemaining: doublePrecision('cfd_hours_remaining').notNull().default(0)
+	cfdHoursRemaining: doublePrecision('cfd_hours_remaining').notNull().default(0),
+	/** Multiplier on weekly WT refresh after cost-cap breach (1 = full, 0.85 = −15%). */
+	wtHoursCapMult: doublePrecision('wt_hours_cap_mult').notNull().default(1)
 });
 
 export const cars = pgTable(
@@ -266,7 +268,9 @@ export const staff = pgTable('staff', {
 	morale: doublePrecision('morale').notNull().default(50),
 	ego: doublePrecision('ego').notNull().default(50),
 	loyalty: doublePrecision('loyalty').notNull().default(50),
-	fatiguePct: doublePrecision('fatigue_pct').notNull().default(0)
+	fatiguePct: doublePrecision('fatigue_pct').notNull().default(0),
+	/** Starter lineup slot 0..N-1; null = bench / not pit crew starter. */
+	pitCrewSlot: integer('pit_crew_slot')
 });
 
 export const attributes = pgTable(
@@ -288,7 +292,9 @@ export const scoutingReports = pgTable('scouting_reports', {
 	entityId: integer('entity_id').notNull(),
 	entityType: entityTypeEnum('entity_type').notNull(),
 	confidenceLevel: integer('confidence_level').notNull().default(0),
-	lastScoutDate: integer('last_scout_date')
+	lastScoutDate: integer('last_scout_date'),
+	/** Active weekly scouting assignment for this viewing team. */
+	isAssigned: boolean('is_assigned').notNull().default(false)
 });
 
 export const contracts = pgTable('contracts', {
