@@ -523,13 +523,14 @@ CREATE TABLE tracks (
 
 ```sql
 CREATE TABLE seasons (
-  season_year INTEGER PRIMARY KEY,
+  season_year INTEGER NOT NULL,
   division INTEGER NOT NULL CHECK (division IN (1, 2, 3)),
   points_scheme points_scheme_id NOT NULL DEFAULT 'classic',
-  rd_pivot_race_index INTEGER NOT NULL DEFAULT 11, -- gate after this race_index
+  rd_pivot_race_index INTEGER NOT NULL DEFAULT 11,
   rd_pivot_locked BOOLEAN DEFAULT FALSE,
   wt_hours_weekly_cap REAL NOT NULL,
-  cfd_hours_weekly_cap REAL NOT NULL
+  cfd_hours_weekly_cap REAL NOT NULL,
+  PRIMARY KEY (season_year, division)
 );
 
 CREATE TABLE points_scheme_rows (

@@ -3,6 +3,9 @@ import { desc, sql } from 'drizzle-orm';
 import { getDb } from './index.js';
 import { teams, type Team } from './schema.js';
 
+const DIV1_COST_CAP = 140_000_000;
+const STARTER_CASH = 50_000_000;
+
 export function registerDbIpc() {
 	ipcMain.handle('app:ping', () => 'pong');
 
@@ -15,7 +18,9 @@ export function registerDbIpc() {
 		const db = await getDb();
 		const trimmed = name.trim();
 		const shortName = trimmed.slice(0, 3).toUpperCase().padEnd(3, 'X');
-		const [{ nextId }] = await db.select({ nextId: sql<number>`coalesce(max(${teams.id}), 0) + 1` }).from(teams);
+		const [{ nextId }] = await db
+			.select({ nextId: sql<number>`coalesce(max(${teams.id}), 0) + 1` })
+			.from(teams);
 
 		const [team] = await db
 			.insert(teams)
@@ -23,14 +28,18 @@ export function registerDbIpc() {
 				id: nextId,
 				name: trimmed,
 				shortName,
-				nationality: 'GBR',
+				nationalityCode: 'GBR',
 				primaryColor: '#FFFFFF',
 				secondaryColor: '#000000',
 				status: 'PLAYER_MANAGED',
-				tierId: 1,
-				windTunnelHours: 40,
-				cfdCapacityFlops: 0n,
-				hqLevel: 1
+				liquidCash: STARTER_CASH,
+				costCapLimit: DIV1_COST_CAP,
+				costCapSpent: 0,
+				division: 1,
+				reputation: 50,
+				rdPivotCurrent: 1,
+				wtHoursRemaining: 0,
+				cfdHoursRemaining: 0
 			})
 			.returning();
 

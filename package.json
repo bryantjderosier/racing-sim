@@ -16,7 +16,7 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
-		"db:generate": "drizzle-kit generate",
+		"db:generate": "drizzle-kit generate && node scripts/strip-pg-schema.mjs",
 		"db:reset": "bash scripts/db-reset.sh",
 		"db:migrate": "node scripts/db-migrate.mjs"
 	},
