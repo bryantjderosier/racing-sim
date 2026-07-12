@@ -21,7 +21,10 @@
 		"db:migrate": "node scripts/db-migrate.mjs",
 		"test:lap": "tsx scripts/lap-harness.ts",
 		"test:practice": "tsx scripts/practice-harness.ts",
-		"test:db-practice": "tsx scripts/db-practice-harness.ts"
+		"test:db-practice": "tsx scripts/db-practice-harness.ts",
+		"test:sprint": "tsx scripts/sprint-harness.ts",
+		"test:quali": "tsx scripts/quali-harness.ts",
+		"test:feature": "tsx scripts/feature-harness.ts"
 	},
 	"devDependencies": {
 		"@duckdb/node-api": "^1.4.4-r.4",
