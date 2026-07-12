@@ -2,5 +2,5 @@ export { attributesToDriverLapAttrs, attributesToPracticePersonnel } from './att
 export { partsToCarPerformance } from './car.js';
 export type { MountedPartView, PartSlot } from './car.js';
 export { defaultSetupTarget, trackToLapContext } from './track.js';
-export { loadPracticeEntrant } from './load.js';
+export { loadGridEntrants, loadPracticeEntrant } from './load.js';
 export type { LoadedPracticeEntrant } from './load.js';

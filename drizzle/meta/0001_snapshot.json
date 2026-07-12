@@ -1,0 +1,2561 @@
+{
+  "id": "e7a564c2-41fb-48b5-b50b-b17de5ee32d0",
+  "prevId": "f0166d37-6433-483a-a7ae-a86d3d7b9ade",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.ai_team_profiles": {
+      "name": "ai_team_profiles",
+      "schema": "",
+      "columns": {
+        "team_id": {
+          "name": "team_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "archetype": {
+          "name": "archetype",
+          "type": "ai_archetype",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "r_and_d_focus_bias": {
+          "name": "r_and_d_focus_bias",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "facility_investment_rate": {
+          "name": "facility_investment_rate",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cost_cap_risk_tolerance": {
+          "name": "cost_cap_risk_tolerance",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.attribute_progress": {
+      "name": "attribute_progress",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "entity_id": {
+          "name": "entity_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entity_type": {
+          "name": "entity_type",
+          "type": "entity_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "attr_name": {
+          "name": "attr_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "xp": {
+          "name": "xp",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "attribute_progress_unique": {
+          "name": "attribute_progress_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "entity_id",
+            "entity_type",
+            "attr_name"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.attributes": {
+      "name": "attributes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "entity_id": {
+          "name": "entity_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entity_type": {
+          "name": "entity_type",
+          "type": "entity_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "attr_name": {
+          "name": "attr_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "current_value": {
+          "name": "current_value",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ceiling": {
+          "name": "ceiling",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "attributes_entity_attr": {
+          "name": "attributes_entity_attr",
+          "nullsNotDistinct": false,
+          "columns": [
+            "entity_id",
+            "entity_type",
+            "attr_name"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.blueprint_flaws": {
+      "name": "blueprint_flaws",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "blueprint_id": {
+          "name": "blueprint_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "flaw_type": {
+          "name": "flaw_type",
+          "type": "part_flaw_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "severity": {
+          "name": "severity",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_revealed": {
+          "name": "is_revealed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.blueprints": {
+      "name": "blueprints",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "slot": {
+          "name": "slot",
+          "type": "part_slot",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "performance_points": {
+          "name": "performance_points",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "performance_known_min": {
+          "name": "performance_known_min",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "performance_known_max": {
+          "name": "performance_known_max",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "scout_confidence": {
+          "name": "scout_confidence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "base_reliability": {
+          "name": "base_reliability",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pitch_sensitivity": {
+          "name": "pitch_sensitivity",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "drag_coefficient": {
+          "name": "drag_coefficient",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "weight_kg": {
+          "name": "weight_kg",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "season_year": {
+          "name": "season_year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_invalidated": {
+          "name": "is_invalidated",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.car_setup_snapshots": {
+      "name": "car_setup_snapshots",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "race_event_id": {
+          "name": "race_event_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "driver_id": {
+          "name": "driver_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "front_wing_id": {
+          "name": "front_wing_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rear_wing_id": {
+          "name": "rear_wing_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "underfloor_id": {
+          "name": "underfloor_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sidepods_id": {
+          "name": "sidepods_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "front_wing_angle": {
+          "name": "front_wing_angle",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rear_wing_angle": {
+          "name": "rear_wing_angle",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "front_arb": {
+          "name": "front_arb",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rear_arb": {
+          "name": "rear_arb",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "front_ride_height_mm": {
+          "name": "front_ride_height_mm",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rear_ride_height_mm": {
+          "name": "rear_ride_height_mm",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "front_camber": {
+          "name": "front_camber",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rear_camber": {
+          "name": "rear_camber",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "front_toe": {
+          "name": "front_toe",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rear_toe": {
+          "name": "rear_toe",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "brake_bias": {
+          "name": "brake_bias",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "downforce_level": {
+          "name": "downforce_level",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "drag_level": {
+          "name": "drag_level",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "mechanical_balance": {
+          "name": "mechanical_balance",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.cars": {
+      "name": "cars",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "car_number": {
+          "name": "car_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "power_unit_id": {
+          "name": "power_unit_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "cars_team_number": {
+          "name": "cars_team_number",
+          "nullsNotDistinct": false,
+          "columns": [
+            "team_id",
+            "car_number"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.championship_standings": {
+      "name": "championship_standings",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "season_year": {
+          "name": "season_year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "division": {
+          "name": "division",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entity_id": {
+          "name": "entity_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entity_type": {
+          "name": "entity_type",
+          "type": "entity_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "points": {
+          "name": "points",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.contracts": {
+      "name": "contracts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "entity_id": {
+          "name": "entity_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entity_type": {
+          "name": "entity_type",
+          "type": "entity_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "salary_annual": {
+          "name": "salary_annual",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "years_remaining": {
+          "name": "years_remaining",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "buyout_fee": {
+          "name": "buyout_fee",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "release_clause": {
+          "name": "release_clause",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "performance_bonus": {
+          "name": "performance_bonus",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_number_one": {
+          "name": "is_number_one",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.drivers": {
+      "name": "drivers",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nationality_code": {
+          "name": "nationality_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "birthplace": {
+          "name": "birthplace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "age": {
+          "name": "age",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "car_id": {
+          "name": "car_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_karting": {
+          "name": "is_karting",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "potential_tier": {
+          "name": "potential_tier",
+          "type": "potential_tier",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "injury_proneness": {
+          "name": "injury_proneness",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "longevity": {
+          "name": "longevity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "morale": {
+          "name": "morale",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 50
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.facilities": {
+      "name": "facilities",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "facility_type": {
+          "name": "facility_type",
+          "type": "facility_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tier": {
+          "name": "tier",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "condition_pct": {
+          "name": "condition_pct",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 100
+        },
+        "construction_finish_date": {
+          "name": "construction_finish_date",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_under_construction": {
+          "name": "is_under_construction",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "operational_cost_annual": {
+          "name": "operational_cost_annual",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "facilities_team_type": {
+          "name": "facilities_team_type",
+          "nullsNotDistinct": false,
+          "columns": [
+            "team_id",
+            "facility_type"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.financial_ledger": {
+      "name": "financial_ledger",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transaction_type": {
+          "name": "transaction_type",
+          "type": "ledger_transaction_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_cost_cap_applicable": {
+          "name": "is_cost_cap_applicable",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "season_index": {
+          "name": "season_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.freight_inventory": {
+      "name": "freight_inventory",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "race_event_id": {
+          "name": "race_event_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "part_id": {
+          "name": "part_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_spare": {
+          "name": "is_spare",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.lap_data": {
+      "name": "lap_data",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "race_event_id": {
+          "name": "race_event_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "driver_id": {
+          "name": "driver_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lap_number": {
+          "name": "lap_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lap_time_ms": {
+          "name": "lap_time_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sector_1_ms": {
+          "name": "sector_1_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sector_2_ms": {
+          "name": "sector_2_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sector_3_ms": {
+          "name": "sector_3_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tire_compound": {
+          "name": "tire_compound",
+          "type": "tire_compound",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tire_wear_delta": {
+          "name": "tire_wear_delta",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tire_core_temp": {
+          "name": "tire_core_temp",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pace_directive": {
+          "name": "pace_directive",
+          "type": "pace_directive",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "energy_directive": {
+          "name": "energy_directive",
+          "type": "energy_directive",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fuel_remaining_kg": {
+          "name": "fuel_remaining_kg",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.manufacturing_queue": {
+      "name": "manufacturing_queue",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "blueprint_id": {
+          "name": "blueprint_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_lightweight": {
+          "name": "is_lightweight",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "completion_date": {
+          "name": "completion_date",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "manufacturing_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.parts": {
+      "name": "parts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "blueprint_id": {
+          "name": "blueprint_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "slot": {
+          "name": "slot",
+          "type": "part_slot",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "current_reliability": {
+          "name": "current_reliability",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "max_condition_ceiling": {
+          "name": "max_condition_ceiling",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "weight_kg": {
+          "name": "weight_kg",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_lightweight": {
+          "name": "is_lightweight",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "is_scrapped": {
+          "name": "is_scrapped",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "mounted_on_car_id": {
+          "name": "mounted_on_car_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.points_scheme_rows": {
+      "name": "points_scheme_rows",
+      "schema": "",
+      "columns": {
+        "scheme_id": {
+          "name": "scheme_id",
+          "type": "points_scheme_id",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "finishing_position": {
+          "name": "finishing_position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "points": {
+          "name": "points",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "points_scheme_rows_pk": {
+          "name": "points_scheme_rows_pk",
+          "columns": [
+            "scheme_id",
+            "finishing_position"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.race_events": {
+      "name": "race_events",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "calendar_id": {
+          "name": "calendar_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "track_id": {
+          "name": "track_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "session_type": {
+          "name": "session_type",
+          "type": "session_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ambient_temp_c": {
+          "name": "ambient_temp_c",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "track_temp_c": {
+          "name": "track_temp_c",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "moisture": {
+          "name": "moisture",
+          "type": "track_moisture",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'dry'"
+        },
+        "safety_car_state": {
+          "name": "safety_car_state",
+          "type": "safety_car_state",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'none'"
+        },
+        "track_grip_multiplier": {
+          "name": "track_grip_multiplier",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "is_completed": {
+          "name": "is_completed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.race_results": {
+      "name": "race_results",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "race_event_id": {
+          "name": "race_event_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "driver_id": {
+          "name": "driver_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "finishing_position": {
+          "name": "finishing_position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "points_earned": {
+          "name": "points_earned",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "grid_position": {
+          "name": "grid_position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "race_result_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.rd_projects": {
+      "name": "rd_projects",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "slot": {
+          "name": "slot",
+          "type": "part_slot",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "focus": {
+          "name": "focus",
+          "type": "r_and_d_focus",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "progress": {
+          "name": "progress",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "allocated_wt_hours": {
+          "name": "allocated_wt_hours",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "allocated_cfd_hours": {
+          "name": "allocated_cfd_hours",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "lead_designer_id": {
+          "name": "lead_designer_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "resulting_blueprint_id": {
+          "name": "resulting_blueprint_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "manufacturing_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.regulation_votes": {
+      "name": "regulation_votes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "season_year": {
+          "name": "season_year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "proposal_id": {
+          "name": "proposal_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "vote_for": {
+          "name": "vote_for",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "political_capital_spent": {
+          "name": "political_capital_spent",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.regulatory_history": {
+      "name": "regulatory_history",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "season_year": {
+          "name": "season_year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rule_description": {
+          "name": "rule_description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "impact_type": {
+          "name": "impact_type",
+          "type": "regulation_impact",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "affected_slot": {
+          "name": "affected_slot",
+          "type": "part_slot",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "performance_penalty_pct": {
+          "name": "performance_penalty_pct",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.scouting_reports": {
+      "name": "scouting_reports",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entity_id": {
+          "name": "entity_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entity_type": {
+          "name": "entity_type",
+          "type": "entity_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "confidence_level": {
+          "name": "confidence_level",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "last_scout_date": {
+          "name": "last_scout_date",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.season_calendar": {
+      "name": "season_calendar",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "season_year": {
+          "name": "season_year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "race_index": {
+          "name": "race_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "track_id": {
+          "name": "track_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_completed": {
+          "name": "is_completed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "season_calendar_year_index": {
+          "name": "season_calendar_year_index",
+          "nullsNotDistinct": false,
+          "columns": [
+            "season_year",
+            "race_index"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.seasons": {
+      "name": "seasons",
+      "schema": "",
+      "columns": {
+        "season_year": {
+          "name": "season_year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "division": {
+          "name": "division",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "points_scheme": {
+          "name": "points_scheme",
+          "type": "points_scheme_id",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'classic'"
+        },
+        "rd_pivot_race_index": {
+          "name": "rd_pivot_race_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 11
+        },
+        "rd_pivot_locked": {
+          "name": "rd_pivot_locked",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "wt_hours_weekly_cap": {
+          "name": "wt_hours_weekly_cap",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cfd_hours_weekly_cap": {
+          "name": "cfd_hours_weekly_cap",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "seasons_pk": {
+          "name": "seasons_pk",
+          "columns": [
+            "season_year",
+            "division"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.session_knowledge": {
+      "name": "session_knowledge",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "race_event_id": {
+          "name": "race_event_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "driver_id": {
+          "name": "driver_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "trim_type": {
+          "name": "trim_type",
+          "type": "knowledge_trim_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tire_compound": {
+          "name": "tire_compound",
+          "type": "tire_compound",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tier": {
+          "name": "tier",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "session_knowledge_unique": {
+          "name": "session_knowledge_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "race_event_id",
+            "team_id",
+            "driver_id",
+            "trim_type",
+            "tire_compound"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.sponsor_contracts": {
+      "name": "sponsor_contracts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sponsor_id": {
+          "name": "sponsor_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "slot_type": {
+          "name": "slot_type",
+          "type": "sponsor_slot_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "payout_type": {
+          "name": "payout_type",
+          "type": "sponsor_payout_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bonus_target_position": {
+          "name": "bonus_target_position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "remaining_races": {
+          "name": "remaining_races",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "years_remaining": {
+          "name": "years_remaining",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.sponsors": {
+      "name": "sponsors",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nationality_code": {
+          "name": "nationality_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "min_marketability": {
+          "name": "min_marketability",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "min_team_standing": {
+          "name": "min_team_standing",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ethics_sensitivity": {
+          "name": "ethics_sensitivity",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.staff": {
+      "name": "staff",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nationality_code": {
+          "name": "nationality_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "birthplace": {
+          "name": "birthplace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "staff_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "assigned_driver_id": {
+          "name": "assigned_driver_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_scouted": {
+          "name": "is_scouted",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "morale": {
+          "name": "morale",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 50
+        },
+        "ego": {
+          "name": "ego",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 50
+        },
+        "loyalty": {
+          "name": "loyalty",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 50
+        },
+        "fatigue_pct": {
+          "name": "fatigue_pct",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.suppliers": {
+      "name": "suppliers",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "power_ceiling": {
+          "name": "power_ceiling",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "annual_lease_fee": {
+          "name": "annual_lease_fee",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_works": {
+          "name": "is_works",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.teams": {
+      "name": "teams",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "short_name": {
+          "name": "short_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nationality_code": {
+          "name": "nationality_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "primary_color": {
+          "name": "primary_color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'#FFFFFF'"
+        },
+        "secondary_color": {
+          "name": "secondary_color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'#000000'"
+        },
+        "status": {
+          "name": "status",
+          "type": "team_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'UNMANAGED_AI'"
+        },
+        "liquid_cash": {
+          "name": "liquid_cash",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cost_cap_limit": {
+          "name": "cost_cap_limit",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cost_cap_spent": {
+          "name": "cost_cap_spent",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "engine_supplier_id": {
+          "name": "engine_supplier_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "division": {
+          "name": "division",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "constructors_standing": {
+          "name": "constructors_standing",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reputation": {
+          "name": "reputation",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 50
+        },
+        "rd_pivot_current": {
+          "name": "rd_pivot_current",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "wt_hours_remaining": {
+          "name": "wt_hours_remaining",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "cfd_hours_remaining": {
+          "name": "cfd_hours_remaining",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.tracks": {
+      "name": "tracks",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nationality_code": {
+          "name": "nationality_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "length_km": {
+          "name": "length_km",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sector_count": {
+          "name": "sector_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 3
+        },
+        "aero_efficiency_weight": {
+          "name": "aero_efficiency_weight",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mechanical_grip_weight": {
+          "name": "mechanical_grip_weight",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tire_abrasion_factor": {
+          "name": "tire_abrasion_factor",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pit_loss_seconds": {
+          "name": "pit_loss_seconds",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "base_grip": {
+          "name": "base_grip",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0.95
+        },
+        "max_grip": {
+          "name": "max_grip",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1.02
+        },
+        "climate_rain_probability": {
+          "name": "climate_rain_probability",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0.15
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.world_clock": {
+      "name": "world_clock",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "season_year": {
+          "name": "season_year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "week": {
+          "name": "week",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "day": {
+          "name": "day",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_index": {
+          "name": "tick_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.ai_archetype": {
+      "name": "ai_archetype",
+      "schema": "public",
+      "values": [
+        "aggressive_spender",
+        "long_term_builder",
+        "pragmatic_pivot"
+      ]
+    },
+    "public.combat_order": {
+      "name": "combat_order",
+      "schema": "public",
+      "values": [
+        "hold_traffic",
+        "do_not_fight_teammate",
+        "aggressive_overtake",
+        "defend_position",
+        "swap_positions"
+      ]
+    },
+    "public.cost_cap_breach": {
+      "name": "cost_cap_breach",
+      "schema": "public",
+      "values": [
+        "none",
+        "minor",
+        "major"
+      ]
+    },
+    "public.energy_directive": {
+      "name": "energy_directive",
+      "schema": "public",
+      "values": [
+        "harvest",
+        "balanced",
+        "overtake"
+      ]
+    },
+    "public.entity_type": {
+      "name": "entity_type",
+      "schema": "public",
+      "values": [
+        "driver",
+        "staff",
+        "team"
+      ]
+    },
+    "public.facility_type": {
+      "name": "facility_type",
+      "schema": "public",
+      "values": [
+        "wind_tunnel",
+        "cfd_lab",
+        "design_studio",
+        "weather_hub",
+        "scouting_hq",
+        "logistics_hub",
+        "simulator",
+        "fitness_center",
+        "staff_academy",
+        "foundry",
+        "rig_testing",
+        "powertrain_factory"
+      ]
+    },
+    "public.knowledge_trim_type": {
+      "name": "knowledge_trim_type",
+      "schema": "public",
+      "values": [
+        "qualifying_trim",
+        "race_trim",
+        "compound_knowledge",
+        "wet_weather_trim"
+      ]
+    },
+    "public.ledger_transaction_type": {
+      "name": "ledger_transaction_type",
+      "schema": "public",
+      "values": [
+        "sponsor_payout",
+        "sponsor_bonus",
+        "prize_money",
+        "part_fabrication",
+        "rd_testing",
+        "salary",
+        "staff_salary",
+        "buyout_fee",
+        "engine_lease",
+        "engine_supply_fee",
+        "facility_construction",
+        "freight_travel",
+        "marketing",
+        "fine",
+        "emergency_procurement",
+        "hospitality"
+      ]
+    },
+    "public.manufacturing_status": {
+      "name": "manufacturing_status",
+      "schema": "public",
+      "values": [
+        "queued",
+        "fabricating",
+        "completed",
+        "cancelled"
+      ]
+    },
+    "public.pace_directive": {
+      "name": "pace_directive",
+      "schema": "public",
+      "values": [
+        "conserve",
+        "balanced",
+        "push",
+        "maximum"
+      ]
+    },
+    "public.part_flaw_type": {
+      "name": "part_flaw_type",
+      "schema": "public",
+      "values": [
+        "pitch_sensitivity",
+        "dirty_air_collapse",
+        "curb_fragility",
+        "thermal_tire_spike"
+      ]
+    },
+    "public.part_slot": {
+      "name": "part_slot",
+      "schema": "public",
+      "values": [
+        "front_wing",
+        "rear_wing",
+        "underfloor",
+        "sidepods",
+        "power_unit",
+        "gearbox",
+        "suspension"
+      ]
+    },
+    "public.pit_error_type": {
+      "name": "pit_error_type",
+      "schema": "public",
+      "values": [
+        "none",
+        "jammed_wheel_nut",
+        "cross_threaded_hub",
+        "unsafe_release"
+      ]
+    },
+    "public.points_scheme_id": {
+      "name": "points_scheme_id",
+      "schema": "public",
+      "values": [
+        "classic",
+        "top_8",
+        "flat_field",
+        "win_heavy",
+        "double_points_finale",
+        "sprint_weekend",
+        "fastest_lap_pole_bonus",
+        "all_finishers"
+      ]
+    },
+    "public.potential_tier": {
+      "name": "potential_tier",
+      "schema": "public",
+      "values": [
+        "bronze",
+        "silver",
+        "gold",
+        "elite"
+      ]
+    },
+    "public.race_result_status": {
+      "name": "race_result_status",
+      "schema": "public",
+      "values": [
+        "finished",
+        "dnf",
+        "dsq",
+        "dns",
+        "retired"
+      ]
+    },
+    "public.r_and_d_focus": {
+      "name": "r_and_d_focus",
+      "schema": "public",
+      "values": [
+        "current_car",
+        "next_year"
+      ]
+    },
+    "public.regulation_impact": {
+      "name": "regulation_impact",
+      "schema": "public",
+      "values": [
+        "minor_tweak",
+        "major_overhaul",
+        "category_ban"
+      ]
+    },
+    "public.safety_car_state": {
+      "name": "safety_car_state",
+      "schema": "public",
+      "values": [
+        "none",
+        "vsc",
+        "safety_car"
+      ]
+    },
+    "public.session_type": {
+      "name": "session_type",
+      "schema": "public",
+      "values": [
+        "practice",
+        "qualifying_q1",
+        "qualifying_q2",
+        "qualifying_q3",
+        "qualifying_single",
+        "race"
+      ]
+    },
+    "public.sponsor_payout_type": {
+      "name": "sponsor_payout_type",
+      "schema": "public",
+      "values": [
+        "upfront",
+        "per_race",
+        "bonus"
+      ]
+    },
+    "public.sponsor_slot_type": {
+      "name": "sponsor_slot_type",
+      "schema": "public",
+      "values": [
+        "title",
+        "major",
+        "minor"
+      ]
+    },
+    "public.staff_role": {
+      "name": "staff_role",
+      "schema": "public",
+      "values": [
+        "aero",
+        "mechanical",
+        "powertrain",
+        "race_engineer",
+        "scout",
+        "pit_crew"
+      ]
+    },
+    "public.team_status": {
+      "name": "team_status",
+      "schema": "public",
+      "values": [
+        "ACTIVE",
+        "DEFUNCT",
+        "UNMANAGED_AI",
+        "PLAYER_MANAGED"
+      ]
+    },
+    "public.tire_compound": {
+      "name": "tire_compound",
+      "schema": "public",
+      "values": [
+        "soft",
+        "medium",
+        "hard",
+        "intermediate",
+        "wet"
+      ]
+    },
+    "public.track_moisture": {
+      "name": "track_moisture",
+      "schema": "public",
+      "values": [
+        "dry",
+        "damp",
+        "wet",
+        "flooded"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

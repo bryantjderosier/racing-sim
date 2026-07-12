@@ -9,7 +9,7 @@ export type {
 	QualifyingOptions,
 	QualifyingResult
 } from './qualifying.js';
-export { pitStationaryMs, simulateFeatureRace } from './feature.js';
+export { mulberry32, pitStationaryMs, simulateFeatureRace } from './feature.js';
 export type {
 	PitStopPlan,
 	RaceEntrant,
@@ -18,3 +18,17 @@ export type {
 	RacePitEvent,
 	RaceResult
 } from './feature.js';
+export {
+	driverIncidentChance,
+	resolveChaosLap,
+	safetyDuration,
+	safetyLapMult,
+	safetyPitFactor
+} from './chaos.js';
+export type {
+	ChaosIncident,
+	ChaosLapOutcome,
+	IncidentSeverity,
+	MechanicalFault,
+	SafetyCarState
+} from './chaos.js';

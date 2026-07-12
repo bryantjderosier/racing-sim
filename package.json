@@ -24,7 +24,18 @@
 		"test:db-practice": "tsx scripts/db-practice-harness.ts",
 		"test:sprint": "tsx scripts/sprint-harness.ts",
 		"test:quali": "tsx scripts/quali-harness.ts",
-		"test:feature": "tsx scripts/feature-harness.ts"
+		"test:feature": "tsx scripts/feature-harness.ts",
+		"test:chaos": "tsx scripts/chaos-harness.ts",
+		"test:weekend": "tsx scripts/weekend-harness.ts",
+		"test:grid": "tsx scripts/grid-weekend-harness.ts",
+		"test:world": "tsx scripts/world-tick-harness.ts",
+		"test:rd": "tsx scripts/rd-harness.ts",
+		"test:season": "tsx scripts/season-harness.ts",
+		"test:market": "tsx scripts/market-harness.ts",
+		"test:regs": "tsx scripts/regs-harness.ts",
+		"test:promo": "tsx scripts/promo-harness.ts",
+		"test:offseason": "tsx scripts/offseason-harness.ts",
+		"test:karting": "tsx scripts/karting-harness.ts"
 	},
 	"devDependencies": {
 		"@duckdb/node-api": "^1.4.4-r.4",

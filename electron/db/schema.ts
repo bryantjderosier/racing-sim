@@ -596,6 +596,30 @@ export const sessionKnowledge = pgTable(
 	]
 );
 
+// ─── World clock / progression ────────────────────────────────────────────────
+
+export const worldClock = pgTable('world_clock', {
+	id: integer('id').primaryKey(),
+	seasonYear: integer('season_year').notNull(),
+	week: integer('week').notNull(),
+	day: integer('day').notNull(),
+	/** Epoch-ish counter of weeks advanced (for ledger timestamps). */
+	tickIndex: integer('tick_index').notNull().default(0)
+});
+
+export const attributeProgress = pgTable(
+	'attribute_progress',
+	{
+		id: integer('id').primaryKey(),
+		entityId: integer('entity_id').notNull(),
+		entityType: entityTypeEnum('entity_type').notNull(),
+		attrName: text('attr_name').notNull(),
+		/** 0–100 toward next +1 current_value. */
+		xp: doublePrecision('xp').notNull().default(0)
+	},
+	(t) => [unique('attribute_progress_unique').on(t.entityId, t.entityType, t.attrName)]
+);
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type Team = typeof teams.$inferSelect;

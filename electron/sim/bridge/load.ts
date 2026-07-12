@@ -6,6 +6,7 @@ import {
 	drivers,
 	parts,
 	staff,
+	teams,
 	tracks
 } from '../../db/schema.js';
 import type { AppDb } from '../../db/node.js';
@@ -15,7 +16,7 @@ import {
 } from './attributes.js';
 import { partsToCarPerformance, type MountedPartView, type PartSlot } from './car.js';
 import { trackToLapContext, type TrackRow } from './track.js';
-import type { CarPerformance, DriverLapAttrs, SetupVector, TrackLapContext } from '../lap/types.js';
+import type { SetupVector, TrackLapContext } from '../lap/types.js';
 import type { PracticePersonnel } from '../practice/types.js';
 
 export type LoadedPracticeEntrant = {
@@ -129,3 +130,36 @@ export async function loadPracticeEntrant(
 		parts: mounted
 	};
 }
+
+/**
+ * Load all Div N car #1 seats for a track into sim-ready entrants.
+ */
+export async function loadGridEntrants(
+	db: AppDb,
+	args: { trackId: number; division?: number }
+): Promise<{ trackName: string; track: TrackLapContext; entrants: LoadedPracticeEntrant[] }> {
+	const division = args.division ?? 1;
+	const teamRows = await db
+		.select({ id: teams.id })
+		.from(teams)
+		.where(eq(teams.division, division))
+		.orderBy(teams.id);
+
+	const entrants: LoadedPracticeEntrant[] = [];
+	let trackName = '';
+	let trackCtx: TrackLapContext | null = null;
+
+	for (const t of teamRows) {
+		const e = await loadPracticeEntrant(db, {
+			teamId: t.id,
+			trackId: args.trackId
+		});
+		trackName = e.trackName;
+		trackCtx = e.track;
+		entrants.push(e);
+	}
+
+	if (!trackCtx) throw new Error('No teams found for grid load');
+	return { trackName, track: trackCtx, entrants };
+}
+
