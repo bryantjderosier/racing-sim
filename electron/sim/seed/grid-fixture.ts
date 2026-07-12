@@ -53,6 +53,27 @@ const TEAM_META: { name: string; short: string; nat: string }[] = [
 	{ name: 'Northwind Racing', short: 'NWR', nat: 'NOR' }
 ];
 
+export type NewCareerTeamOption = {
+	id: number;
+	name: string;
+	shortName: string;
+	nationalityCode: string;
+	division: number;
+};
+
+/** Static team picker for new-career UI (ids match seedFullGrid 1..20). */
+export const NEW_CAREER_TEAM_OPTIONS: NewCareerTeamOption[] = TEAM_META.map((m, i) => ({
+	id: i + 1,
+	name: m.name,
+	shortName: m.short,
+	nationalityCode: m.nat,
+	division: 1
+}));
+
+export function listNewCareerTeamOptions(): NewCareerTeamOption[] {
+	return NEW_CAREER_TEAM_OPTIONS.map((t) => ({ ...t }));
+}
+
 const DRIVER_NAMES = [
 	'Alex Rivera',
 	'Casey Okonkwo',

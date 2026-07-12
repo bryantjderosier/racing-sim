@@ -22,6 +22,9 @@ export { setTeamRdPivot, applyPivotGate, aiPivotFraction } from './pivot.js';
 export { advanceSeasonRound } from './round.js';
 export type { RoundOptions, RoundResult } from './round.js';
 
+export { commitWeekendRace } from './commit.js';
+export type { CommitWeekendRaceInput, CommitWeekendRaceResult } from './commit.js';
+
 export { runSeason } from './loop.js';
 export type { RunSeasonOptions, SeasonLoopResult } from './loop.js';
 

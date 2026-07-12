@@ -131,6 +131,14 @@ export async function advanceWorldWeek(
 	const maintain = new Set(options.maintainTeamIds ?? []);
 	const maintCost = options.maintenanceCostPerFacility ?? 250_000;
 
+	const allFacilitiesEarly = await db.select().from(facilities);
+	const facsByTeamEarly = new Map<number, typeof allFacilitiesEarly>();
+	for (const f of allFacilitiesEarly) {
+		const list = facsByTeamEarly.get(f.teamId) ?? [];
+		list.push(f);
+		facsByTeamEarly.set(f.teamId, list);
+	}
+
 	for (const team of teamRows) {
 		const wtBase = WEEKLY_WT_CAP[team.division] ?? WEEKLY_WT_CAP[1];
 		const cfdCap = WEEKLY_CFD_CAP[team.division] ?? WEEKLY_CFD_CAP[1];
@@ -143,11 +151,12 @@ export async function advanceWorldWeek(
 			})
 			.where(eq(teams.id, team.id));
 
-		const facs = await db.select().from(facilities).where(eq(facilities.teamId, team.id));
+		const facs = facsByTeamEarly.get(team.id) ?? [];
 		for (const f of facs) {
 			if (f.isUnderConstruction) continue;
 			if (maintain.has(team.id)) {
 				const next = 100;
+				f.conditionPct = next;
 				await db
 					.update(facilities)
 					.set({ conditionPct: next })
@@ -161,6 +170,7 @@ export async function advanceWorldWeek(
 				});
 			} else if (f.tier > 0) {
 				const next = applyFacilityDecay(f.conditionPct, FACILITY_WEEKLY_DECAY);
+				f.conditionPct = next;
 				await db
 					.update(facilities)
 					.set({ conditionPct: next })
@@ -197,20 +207,36 @@ export async function advanceWorldWeek(
 		(await db.select({ m: sql<number>`coalesce(max(${attributeProgress.id}), 0)` }).from(attributeProgress))[0]
 			?.m ?? 0;
 
+	// Reuse facilities loaded/updated at start of tick.
+	const facsByTeam = facsByTeamEarly;
+
+	const allAttrs = await db.select().from(attributes);
+	const attrsByKey = new Map<string, typeof allAttrs>();
+	for (const a of allAttrs) {
+		const key = `${a.entityType}:${a.entityId}`;
+		const list = attrsByKey.get(key) ?? [];
+		list.push(a);
+		attrsByKey.set(key, list);
+	}
+
+	const attrValueUpdates: { id: number; currentValue: number }[] = [];
+	const progressUpdates: { id: number; xp: number }[] = [];
+	const progressInserts: {
+		id: number;
+		entityId: number;
+		entityType: 'driver' | 'staff';
+		attrName: string;
+		xp: number;
+	}[] = [];
+
 	const driverRows = await db.select().from(drivers).where(sql`${drivers.teamId} is not null`);
 	for (const d of driverRows) {
 		if (d.teamId == null) continue;
-		const facs = await db.select().from(facilities).where(eq(facilities.teamId, d.teamId));
+		const facs = facsByTeam.get(d.teamId) ?? [];
 		const sim = facs.find((f) => f.facilityType === 'simulator');
-		const simMult = sim
-			? facilityEfficiencyMult(sim.tier, sim.conditionPct)
-			: 1;
+		const simMult = sim ? facilityEfficiencyMult(sim.tier, sim.conditionPct) : 1;
 
-		const attrs = await db
-			.select()
-			.from(attributes)
-			.where(and(eq(attributes.entityId, d.id), eq(attributes.entityType, 'driver')));
-
+		const attrs = attrsByKey.get(`driver:${d.id}`) ?? [];
 		const growth = attrs.find((a) => a.attrName === 'development')?.currentValue ?? 50;
 		const withXp = attrs.map((a) => {
 			const key = `driver:${d.id}:${a.attrName}`;
@@ -243,21 +269,15 @@ export async function advanceWorldWeek(
 		for (const a of updated) {
 			const orig = attrs.find((x) => x.attrName === a.attrName);
 			if (orig && orig.currentValue !== a.currentValue) {
-				await db
-					.update(attributes)
-					.set({ currentValue: a.currentValue })
-					.where(eq(attributes.id, orig.id));
+				attrValueUpdates.push({ id: orig.id, currentValue: a.currentValue });
 			}
 			const key = `driver:${d.id}:${a.attrName}`;
 			const existing = progressMap.get(key);
 			if (existing) {
-				await db
-					.update(attributeProgress)
-					.set({ xp: a.xp })
-					.where(eq(attributeProgress.id, existing.id));
+				if (existing.xp !== a.xp) progressUpdates.push({ id: existing.id, xp: a.xp });
 			} else if (a.xp > 0) {
 				nextProgressId += 1;
-				await db.insert(attributeProgress).values({
+				progressInserts.push({
 					id: nextProgressId,
 					entityId: d.id,
 					entityType: 'driver',
@@ -270,25 +290,22 @@ export async function advanceWorldWeek(
 	}
 
 	const staffRows = await db.select().from(staff).where(sql`${staff.teamId} is not null`);
+	const fatigueUpdates: { id: number; fatiguePct: number }[] = [];
 	for (const s of staffRows) {
 		if (s.teamId == null) continue;
 
-		// Fatigue recovery for pit crew (and mild for all staff)
 		const nextFatigue = Math.max(0, s.fatiguePct - FATIGUE_RECOVERY_PCT);
 		if (nextFatigue !== s.fatiguePct) {
-			await db.update(staff).set({ fatiguePct: nextFatigue }).where(eq(staff.id, s.id));
+			fatigueUpdates.push({ id: s.id, fatiguePct: nextFatigue });
 		}
 
-		const facs = await db.select().from(facilities).where(eq(facilities.teamId, s.teamId));
+		const facs = facsByTeam.get(s.teamId) ?? [];
 		const academy = facs.find((f) => f.facilityType === 'staff_academy');
 		const academyMult = academy
 			? facilityEfficiencyMult(academy.tier, academy.conditionPct)
 			: 1;
 
-		const attrs = await db
-			.select()
-			.from(attributes)
-			.where(and(eq(attributes.entityId, s.id), eq(attributes.entityType, 'staff')));
+		const attrs = attrsByKey.get(`staff:${s.id}`) ?? [];
 		if (attrs.length === 0) continue;
 
 		const growth =
@@ -322,21 +339,15 @@ export async function advanceWorldWeek(
 		for (const a of updated) {
 			const orig = attrs.find((x) => x.attrName === a.attrName);
 			if (orig && orig.currentValue !== a.currentValue) {
-				await db
-					.update(attributes)
-					.set({ currentValue: a.currentValue })
-					.where(eq(attributes.id, orig.id));
+				attrValueUpdates.push({ id: orig.id, currentValue: a.currentValue });
 			}
 			const key = `staff:${s.id}:${a.attrName}`;
 			const existing = progressMap.get(key);
 			if (existing) {
-				await db
-					.update(attributeProgress)
-					.set({ xp: a.xp })
-					.where(eq(attributeProgress.id, existing.id));
+				if (existing.xp !== a.xp) progressUpdates.push({ id: existing.id, xp: a.xp });
 			} else if (a.xp > 0) {
 				nextProgressId += 1;
-				await db.insert(attributeProgress).values({
+				progressInserts.push({
 					id: nextProgressId,
 					entityId: s.id,
 					entityType: 'staff',
@@ -345,6 +356,28 @@ export async function advanceWorldWeek(
 				});
 				progressMap.set(key, { id: nextProgressId, xp: a.xp });
 			}
+		}
+	}
+
+	const CHUNK = 40;
+	async function flush<T>(items: T[], fn: (item: T) => Promise<unknown>) {
+		for (let i = 0; i < items.length; i += CHUNK) {
+			await Promise.all(items.slice(i, i + CHUNK).map(fn));
+		}
+	}
+
+	await flush(fatigueUpdates, (u) =>
+		db.update(staff).set({ fatiguePct: u.fatiguePct }).where(eq(staff.id, u.id))
+	);
+	await flush(attrValueUpdates, (u) =>
+		db.update(attributes).set({ currentValue: u.currentValue }).where(eq(attributes.id, u.id))
+	);
+	await flush(progressUpdates, (u) =>
+		db.update(attributeProgress).set({ xp: u.xp }).where(eq(attributeProgress.id, u.id))
+	);
+	if (progressInserts.length > 0) {
+		for (let i = 0; i < progressInserts.length; i += CHUNK) {
+			await db.insert(attributeProgress).values(progressInserts.slice(i, i + CHUNK));
 		}
 	}
 

@@ -45,7 +45,13 @@
 		"test:ai": "tsx scripts/ai-harness.ts",
 		"test:pit-crew": "tsx scripts/pit-crew-harness.ts",
 		"test:race-commands": "tsx scripts/race-commands-harness.ts",
-		"test:balance": "tsx scripts/balance-harness.ts"
+		"test:balance": "tsx scripts/balance-harness.ts",
+		"test:career": "tsx scripts/career-harness.ts",
+		"test:bootstrap": "tsx scripts/bootstrap-harness.ts",
+		"test:hq-tick": "tsx scripts/hq-tick-harness.ts",
+		"test:game-api": "tsx scripts/game-api-harness.ts",
+		"test:weekend-flow": "tsx scripts/weekend-flow-harness.ts",
+		"test:hq-desk": "tsx scripts/hq-desk-harness.ts"
 	},
 	"devDependencies": {
 		"@duckdb/node-api": "^1.4.4-r.4",

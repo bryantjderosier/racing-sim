@@ -16,7 +16,12 @@ import {
 } from './attributes.js';
 import { partsToCarPerformance, type MountedPartView, type PartSlot } from './car.js';
 import { trackToLapContext, type TrackRow } from './track.js';
-import type { SetupVector, TrackLapContext } from '../lap/types.js';
+import type {
+	CarPerformance,
+	DriverLapAttrs,
+	SetupVector,
+	TrackLapContext
+} from '../lap/types.js';
 import type { PracticePersonnel } from '../practice/types.js';
 
 export type LoadedPracticeEntrant = {

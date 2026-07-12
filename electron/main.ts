@@ -3,7 +3,7 @@ import serve from 'electron-serve';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { registerDbIpc } from './db/ipc.js';
-import { runMigrations, shutdownDb } from './db/migrate.js';
+import { shutdownDb } from './db/migrate.js';
 
 const isDev = !app.isPackaged && process.env.ELECTRON_DEV === '1';
 const loadURL = serve({ directory: 'build' });
@@ -31,7 +31,6 @@ async function createWindow() {
 }
 
 app.whenReady().then(async () => {
-	await runMigrations();
 	registerDbIpc();
 	await createWindow();
 

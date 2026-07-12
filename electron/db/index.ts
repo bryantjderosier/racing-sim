@@ -1,38 +1,36 @@
 import { join } from 'node:path';
-import { unlink } from 'node:fs/promises';
 import { app } from 'electron';
-import { drizzle } from '@duckdbfan/drizzle-duckdb';
-import * as schema from './schema.js';
+import {
+	closeDb,
+	getActiveDbPath,
+	getDb,
+	resetActiveDbFiles,
+	setActiveDbPath,
+	type AppDb
+} from './connection.js';
 
-let db: Awaited<ReturnType<typeof drizzle<typeof schema>>> | null = null;
+export {
+	closeDb,
+	getActiveDbPath,
+	getDb,
+	setActiveDbPath,
+	type AppDb
+};
 
-export function getDbPath() {
-	return join(app.getPath('userData'), 'racing-manager.duckdb');
+/** Root folder for multi-career saves. */
+export function careersRoot(): string {
+	return join(app.getPath('userData'), 'careers');
 }
 
-export async function getDb() {
-	if (db) return db;
-
-	db = await drizzle(getDbPath(), { schema });
-	return db;
-}
-
-export async function closeDb() {
-	if (db) {
-		await db.close();
-		db = null;
+/** @deprecated Prefer getActiveDbPath — kept for call sites expecting a path helper. */
+export function getDbPath(): string {
+	const active = getActiveDbPath();
+	if (!active) {
+		throw new Error('No active career database path.');
 	}
+	return active;
 }
 
-export async function resetDb() {
-	await closeDb();
-
-	const dbPath = getDbPath();
-	for (const path of [dbPath, `${dbPath}.wal`]) {
-		try {
-			await unlink(path);
-		} catch {
-			// file may not exist
-		}
-	}
+export async function resetDb(): Promise<void> {
+	await resetActiveDbFiles();
 }
