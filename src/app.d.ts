@@ -1,5 +1,3 @@
-import type { Team } from '$lib/types';
-
 declare global {
 	namespace App {
 		// interface Error {}
@@ -12,8 +10,6 @@ declare global {
 	interface Window {
 		electronAPI: {
 			ping: () => Promise<string>;
-			getTeams: () => Promise<Team[]>;
-			createTeam: (name: string) => Promise<Team>;
 		};
 	}
 }

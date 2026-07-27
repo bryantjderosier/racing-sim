@@ -19,8 +19,7 @@ export default defineConfig({
 			external: [
 				'electron',
 				'electron-serve',
-				'@duckdb/node-api',
-				'@duckdbfan/drizzle-duckdb',
+				'@libsql/client',
 				'drizzle-orm',
 				/^node:/
 			]

@@ -1,4 +1,4 @@
-import { migrate } from '@duckdbfan/drizzle-duckdb';
+import { migrate } from 'drizzle-orm/libsql/migrator';
 import { app } from 'electron';
 import { join } from 'node:path';
 import { closeDb, getDb, resetDb } from './index.js';
@@ -6,7 +6,7 @@ import { closeDb, getDb, resetDb } from './index.js';
 const isDev = !app.isPackaged && process.env.ELECTRON_DEV === '1';
 
 async function applyMigrations() {
-	const db = await getDb();
+	const db = getDb();
 	const migrationsFolder = join(app.getAppPath(), 'drizzle');
 	await migrate(db, { migrationsFolder });
 }

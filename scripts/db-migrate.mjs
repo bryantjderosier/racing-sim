@@ -2,21 +2,24 @@
 import { mkdir } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { drizzle, migrate } from '@duckdbfan/drizzle-duckdb';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { createClient } from '@libsql/client';
+import { drizzle } from 'drizzle-orm/libsql';
+import { migrate } from 'drizzle-orm/libsql/migrator';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const dbDir = process.env.XDG_CONFIG_HOME
 	? join(process.env.XDG_CONFIG_HOME, 'racing-manager')
 	: join(homedir(), '.config', 'racing-manager');
-const dbPath = join(dbDir, 'racing-manager.duckdb');
+const dbPath = join(dbDir, 'racing-manager.sqlite');
 const migrationsFolder = join(root, 'drizzle');
 
 await mkdir(dbDir, { recursive: true });
-const db = await drizzle(dbPath);
+const client = createClient({ url: pathToFileURL(dbPath).href });
+const db = drizzle(client);
 try {
 	await migrate(db, { migrationsFolder });
 	console.log(`Migrated: ${dbPath}`);
 } finally {
-	await db.close();
+	client.close();
 }

@@ -1,19 +1,27 @@
 import { app, BrowserWindow } from 'electron';
 import serve from 'electron-serve';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { registerDbIpc } from './db/ipc.js';
 import { runMigrations, shutdownDb } from './db/migrate.js';
 
-const isDev = !app.isPackaged && process.env.ELECTRON_DEV === '1';
+const DEV_URL = process.env.VITE_DEV_SERVER_URL ?? 'http://127.0.0.1:5180';
+const hasBuildUi = existsSync(join(process.cwd(), 'build', 'index.html'));
+/** Unpackaged + no build/ → Vite. Env flags also force Vite (WSL often drops shell env). */
+const isDev =
+	Boolean(process.env.VITE_DEV_SERVER_URL) ||
+	process.env.ELECTRON_DEV === '1' ||
+	(!app.isPackaged && !hasBuildUi);
 const loadURL = serve({ directory: 'build' });
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
-const DEV_URL = process.env.VITE_DEV_SERVER_URL ?? 'http://localhost:5180';
 
 async function createWindow() {
 	const mainWindow = new BrowserWindow({
-		width: 1920,
-		height: 1080,
+		fullscreen: true,
+		autoHideMenuBar: true,
+		backgroundColor: '#0E0E0E',
+		show: false,
 		webPreferences: {
 			preload: join(__dirname, 'preload.js'),
 			contextIsolation: true,
@@ -22,10 +30,20 @@ async function createWindow() {
 		}
 	});
 
+	mainWindow.once('ready-to-show', () => {
+		mainWindow.show();
+		mainWindow.setFullScreen(true);
+	});
+
+	mainWindow.webContents.on('did-fail-load', (_event, code, desc, url) => {
+		console.error(`[electron] failed to load (${code}) ${url}: ${desc}`);
+	});
+
 	if (isDev) {
+		console.log(`[electron] loading Vite dev UI: ${DEV_URL}`);
 		await mainWindow.loadURL(DEV_URL);
-		mainWindow.webContents.openDevTools({ mode: 'detach' });
 	} else {
+		console.log('[electron] loading packaged build/ UI');
 		await loadURL(mainWindow);
 	}
 }

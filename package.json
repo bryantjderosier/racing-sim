@@ -6,7 +6,7 @@
 	"main": "dist-electron/main.js",
 	"scripts": {
 		"dev": "vite dev",
-		"dev:electron": "pnpm run build:electron && concurrently -k \"vite dev --port 5180 --strictPort\" \"wait-on http://localhost:5180 && cross-env ELECTRON_DEV=1 VITE_DEV_SERVER_URL=http://localhost:5180 electron .\"",
+		"dev:electron": "pnpm run build:electron && concurrently -k \"BROWSER=none vite dev --host 127.0.0.1 --port 5180 --strictPort\" \"wait-on http://127.0.0.1:5180 && node scripts/run-electron-dev.mjs\"",
 		"build": "vite build && pnpm run build:electron",
 		"build:electron": "vite build --config electron.vite.config.ts",
 		"start": "electron .",
@@ -21,7 +21,6 @@
 		"db:migrate": "node scripts/db-migrate.mjs"
 	},
 	"devDependencies": {
-		"@duckdb/node-api": "^1.4.4-r.4",
 		"@eslint/js": "^10.0.1",
 		"@sveltejs/adapter-static": "^3.0.10",
 		"@sveltejs/kit": "^2.63.0",
@@ -44,7 +43,8 @@
 		"wait-on": "^9.0.10"
 	},
 	"dependencies": {
-		"@duckdbfan/drizzle-duckdb": "^1.5.2-1",
+		"@libsql/client": "^0.15.15",
+		"@lucide/svelte": "^1.27.0",
 		"drizzle-orm": "^0.45.2",
 		"electron": "^43.0.0",
 		"electron-serve": "^3.0.1"

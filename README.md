@@ -1,13 +1,13 @@
 # Racing Manager
 
-Desktop app scaffold: Electron, SvelteKit, Vite, DuckDB, and Drizzle ORM.
+Desktop app scaffold: Electron, SvelteKit, Vite, SQLite, and Drizzle ORM.
 
 ## Stack
 
 - **Frontend:** SvelteKit (SPA) + Vite
 - **Desktop:** Electron
-- **Database:** DuckDB via `@duckdb/node-api`
-- **ORM:** Drizzle via `@duckdbfan/drizzle-duckdb`
+- **Database:** SQLite via `@libsql/client`
+- **ORM:** Drizzle
 - **Package manager:** pnpm
 
 ## Setup
@@ -20,14 +20,14 @@ pnpm install
 
 ```sh
 pnpm dev              # SvelteKit only
-pnpm dev:electron     # Electron + DuckDB (recommended)
+pnpm dev:electron     # Electron + SQLite (recommended)
 ```
 
 ## Database
 
 - Schema: `electron/db/schema.ts`
 - Migrations: `drizzle/` (applied on app startup or via `pnpm db:migrate`)
-- DB file: `~/.config/racing-manager/racing-manager.duckdb`
+- DB file: `~/.config/racing-manager/racing-manager.sqlite`
 
 ```sh
 pnpm db:generate
@@ -38,7 +38,7 @@ pnpm db:migrate
 ## Layout
 
 ```
-electron/     main process, preload, DuckDB + Drizzle
+electron/     main process, preload, SQLite + Drizzle
 src/          SvelteKit UI
 drizzle/      SQL migrations
 ```
