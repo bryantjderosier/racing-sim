@@ -5,6 +5,7 @@
 	import Settings from '@lucide/svelte/icons/settings';
 	import LogOut from '@lucide/svelte/icons/log-out';
 	import type { Component } from 'svelte';
+	import { quitApp } from '$lib/electron';
 
 	type MenuId = 'new' | 'load' | 'delete' | 'settings' | 'exit';
 
@@ -32,7 +33,7 @@
 	function activate(id: MenuId) {
 		selected = id;
 		if (id === 'exit') {
-			console.log('Exit requested');
+			void quitApp();
 			return;
 		}
 		console.log(`Selected: ${id}`);
