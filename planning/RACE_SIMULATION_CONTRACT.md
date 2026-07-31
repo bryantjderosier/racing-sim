@@ -159,7 +159,7 @@ Each entry contains:
 - Stable `sessionEntryId`, team ID, driver ID, car number, and grid position.
 - Driver ratings required by the current formula version.
 - A resolved car-performance snapshot.
-- Setup values or pre-resolved setup factors.
+- Setup values or pre-resolved peak-pace and tyre-wear factors.
 - Starting fuel.
 - Issued tyre sets and compound specifications.
 - Initial strategy mode.
@@ -533,7 +533,7 @@ All targets are distributions measured over batches, not guarantees for one seed
 
 After Stage C is stable:
 
-1. Static-to-changing weather
+1. Static-to-changing weather — see `WEATHER_SIMULATION_CONTRACT.md`
 2. Driver errors and contact
 3. Mechanical reliability and failures
 4. Safety car/VSC/red flag
@@ -587,6 +587,7 @@ After Stage C is stable:
 1. Contract review: interfaces, update order, units, and deferred scope.
 2. Stage A review: inspect generated timing sheets and degradation curves.
 3. Stage B review: inspect passes, traffic trains, and pit timing.
-4. Stage C review: approve batch distributions before adding incidents or weather.
+4. Stage C review: accepted for `academy-dry-v4` after batch, matched-strategy, tyre-management, and
+   setup-sweep review.
 
 No UI, persistence, or management-layer implementation begins until Stage C behavior is accepted.
