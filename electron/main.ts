@@ -16,9 +16,15 @@ const isDev =
 const loadURL = serve({ directory: 'build' });
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
+const isWsl = process.platform === 'linux' && Boolean(process.env.WSL_DISTRO_NAME || process.env.WSL_INTEROP);
+
+if (isWsl) app.disableHardwareAcceleration();
+
 async function createWindow() {
 	const mainWindow = new BrowserWindow({
-		fullscreen: true,
+		width: 1600,
+		height: 1000,
+		fullscreen: false,
 		autoHideMenuBar: true,
 		backgroundColor: '#0E0E0E',
 		show: false,
@@ -31,8 +37,13 @@ async function createWindow() {
 	});
 
 	mainWindow.once('ready-to-show', () => {
+		mainWindow.maximize();
 		mainWindow.show();
-		mainWindow.setFullScreen(true);
+		mainWindow.focus();
+		if (isWsl) {
+			mainWindow.webContents.invalidate();
+			setTimeout(() => mainWindow.webContents.invalidate(), 1000);
+		}
 	});
 
 	mainWindow.webContents.on('did-fail-load', (_event, code, desc, url) => {
