@@ -47,11 +47,11 @@ The fantasy is climbing (or rebuilding) a fully **fictional** three-tier ladder 
 
 Three championship tiers with team counts roughly aligned to F1 / F2 / F3. All teams, drivers, tracks, sponsors, and series names are **fully fictional**.
 
-| Tier | Calendar shape (v1 default) |
-|------|-----------------------------|
-| **Tier 1** | ~22–24 feature weekends; sprints optional / later |
-| **Tier 2** | ~14 dual-race weekends (~28 races) |
-| **Tier 3** | ~10 dual-race weekends (~20 races) |
+| Tier | Internal code | Championship | Calendar shape (v1 default) |
+|------|---------------|--------------|-----------------------------|
+| **Tier 1** | `apex` | World Formula Championship | ~22–24 feature weekends; sprints optional / later |
+| **Tier 2** | `challenger` | International Formula Championship | ~14 dual-race weekends (~28 races) |
+| **Tier 3** | `academy` | Formula Development Championship | ~10 dual-race weekends (~20 races) |
 
 ### 4.2 Promotion & relegation
 

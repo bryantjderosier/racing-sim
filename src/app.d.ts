@@ -1,3 +1,5 @@
+import type { ElectronAPI } from '../electron/preload';
+
 declare global {
 	namespace App {
 		// interface Error {}
@@ -8,10 +10,7 @@ declare global {
 	}
 
 	interface Window {
-		electronAPI: {
-			ping: () => Promise<string>;
-			quit: () => Promise<void>;
-		};
+		electronAPI: ElectronAPI;
 	}
 }
 

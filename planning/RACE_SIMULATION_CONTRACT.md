@@ -3,8 +3,8 @@
 **Status:** Draft implementation contract\
 **Scope:** Deterministic, headless, dry-race prototype\
 **Language:** TypeScript\
-**Primary fixture:** Provisional `academy` tier\
-**Tier naming:** `apex`, `challenger`, and `academy` are provisional internal codes; player-facing names require a later product review.
+**Primary fixture:** Formula Development Championship (`academy` internal code)\
+**Tier naming:** Persisted codes remain `apex`, `challenger`, and `academy`; player-facing names are World Formula Championship, International Formula Championship, and Formula Development Championship.
 
 ---
 
@@ -31,7 +31,6 @@ The prototype must:
 - Safety cars, VSC, red flags, mechanical failures, and crashes in the first baseline
 - Final game balance
 - Licensed teams, drivers, championships, or circuits
-- Final player-facing names for the three tiers
 
 These systems must fit the interfaces below but are added only after the dry baseline is stable.
 
@@ -44,7 +43,7 @@ These systems must fit the interfaces below but are added only after the dry bas
 | Resolution | Fixed `TrackSegment` steps |
 | Track structure | 12–20 segments grouped into three official timing sectors |
 | Baseline layout | 15 segments; five per official sector |
-| Baseline championship | Provisional `academy` |
+| Baseline championship | Formula Development Championship (`academy`) |
 | Baseline field | 10 teams × 3 cars = 30 entries |
 | Baseline distance | 50 laps |
 | Conditions | Dry and static |
@@ -150,7 +149,7 @@ Baseline fixture:
 - `drsActivationLap = 3`
 - `drsGapThresholdMs = 1_000`
 
-These are prototype fixture values, not permanent Academy rules.
+These are prototype fixture values, not permanent Formula Development Championship rules.
 
 ### 7.3 SimulationEntry
 
@@ -520,7 +519,7 @@ All targets are distributions measured over batches, not guarantees for one seed
 - Predefined strategy commands
 - Pit stops and tyre changes
 
-### Stage C — Academy calibration field
+### Stage C — Formula Development Championship calibration field
 
 - 10 fictional teams
 - 30 entries

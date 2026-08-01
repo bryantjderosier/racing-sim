@@ -1,9 +1,10 @@
 import { migrate } from 'drizzle-orm/libsql/migrator';
 import { app } from 'electron';
 import { join } from 'node:path';
+import { env } from 'node:process';
 import { closeDb, getDb, resetDb } from './index.js';
 
-const isDev = !app.isPackaged && process.env.ELECTRON_DEV === '1';
+const isDev = !app.isPackaged && env.ELECTRON_DEV === '1';
 
 async function applyMigrations() {
 	const db = getDb();
@@ -16,8 +17,7 @@ export async function runMigrations() {
 		await applyMigrations();
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
-		const isStaleSchema =
-			message.includes('already exists') || message.includes('Duplicate key');
+		const isStaleSchema = message.includes('already exists') || message.includes('Duplicate key');
 
 		if (!isDev || !isStaleSchema) {
 			throw error;

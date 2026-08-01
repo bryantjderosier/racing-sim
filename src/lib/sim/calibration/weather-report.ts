@@ -1,6 +1,10 @@
 import { canonicalStringify } from '../core/canonicalize';
 import { RaceSimulation } from '../core/engine';
 import {
+	WeatherStrategyController,
+	type WeatherStrategyControllerOptions
+} from '../core/weather-controller';
+import {
 	buildWeatherForecastSnapshot,
 	resolveWeatherForecastCapability,
 	scoreWeatherForecast
@@ -8,7 +12,10 @@ import {
 import {
 	applyWeatherStrategyPersistence,
 	createWeatherStrategyPersistenceState,
+	DEFAULT_WEATHER_STRATEGY_POLICY,
 	decideWeatherStrategy,
+	validateWeatherStrategyPolicy,
+	type WeatherStrategyPolicy,
 	type WeatherStrategyTarget
 } from '../core/weather-strategy';
 import { mean, roundHalfEven } from '../core/math';
@@ -36,6 +43,12 @@ export interface WeatherCalibrationOptions {
 	seedPrefix: string;
 	scenarios?: WeatherCalibrationScenarioId[];
 	checkpointStep?: number;
+	strategyPolicy?: WeatherStrategyPolicy;
+}
+
+export interface WeatherStrategySweepOptions extends WeatherCalibrationOptions {
+	downgradeConfirmations: number[];
+	minStintRefreshes: number[];
 }
 
 interface SurfaceHistorySample {
@@ -417,6 +430,186 @@ function strategyCommandValidation(
 	>;
 }
 
+function closedLoopStrategyReplay(
+	input: RaceInput,
+	entryId: string,
+	capability: 'low' | 'high',
+	mode: 'candidate' | 'effective',
+	sessionDurationMs: number,
+	policy: WeatherStrategyPolicy,
+	checkpointStep: number | null = 117
+) {
+	const replayInput = structuredClone(input);
+	replayInput.rules.mandatoryPitStops = 0;
+	replayInput.commands = [];
+	const entry = replayInput.entries.find((candidate) => candidate.sessionEntryId === entryId)!;
+	const capabilityConfig = resolveWeatherForecastCapability(
+		`forecast-${capability}`,
+		capability === 'low'
+			? { hqWeatherStationLevel: 1, weatherAnalystSkill: 1, tracksideToolsLevel: 1 }
+			: { hqWeatherStationLevel: 20, weatherAnalystSkill: 20, tracksideToolsLevel: 20 }
+	);
+	const pitEntry = replayInput.track.segments.find((segment) => segment.isPitEntry);
+	if (!pitEntry) throw new Error('Weather strategy validation requires a pit entry segment');
+	const maxRefreshes = Math.ceil(sessionDurationMs / capabilityConfig.refreshIntervalMs) + 1;
+	const tyreSetIdsByCompound: Partial<Record<CompoundName, string[]>> = {};
+	for (const compound of ['medium', 'intermediate', 'wet'] as const) {
+		const source = entry.tyreSets.find((set) => set.compound.name === compound);
+		if (!source) throw new Error(`Missing validation tyre set for ${compound}`);
+		const ids = Array.from({ length: maxRefreshes }, (_, index) => {
+			const id = `${entryId}-closed-loop-${mode}-${capability}-${compound}-${index}`;
+			const tyreSet: IssuedTyreSet = { id, compound: structuredClone(source.compound) };
+			entry.tyreSets.push(tyreSet);
+			return id;
+		});
+		tyreSetIdsByCompound[compound] = ids;
+	}
+	const controllerOptions: WeatherStrategyControllerOptions = {
+		targetEntryId: entryId,
+		capability: capabilityConfig,
+		mode,
+		sessionDurationMs,
+		pitEntrySegmentId: pitEntry.id,
+		pitEntrySegmentSequence: pitEntry.sequence,
+		lapCount: replayInput.rules.lapCount,
+		tyreSetIdsByCompound,
+		policy
+	};
+	const fullController = new WeatherStrategyController(controllerOptions);
+	const result = new RaceSimulation(replayInput, undefined, fullController).run();
+	let checkpointParity: boolean | null = null;
+	if (checkpointStep !== null) {
+		const checkpointSimulation = new RaceSimulation(
+			structuredClone(replayInput),
+			undefined,
+			new WeatherStrategyController(controllerOptions)
+		);
+		const resolvedCheckpointStep = Math.min(
+			checkpointStep,
+			replayInput.rules.lapCount * replayInput.track.segments.length - 1
+		);
+		for (let step = 0; step < resolvedCheckpointStep; step += 1) checkpointSimulation.step();
+		const resumed = new RaceSimulation(
+			structuredClone(replayInput),
+			checkpointSimulation.snapshot(),
+			new WeatherStrategyController(controllerOptions)
+		).run();
+		checkpointParity = canonicalStringify(resumed) === canonicalStringify(result);
+	}
+	const sessionResult = result.sessionResults.find(
+		(candidate) => candidate.sessionEntryId === entryId
+	)!;
+	const details = result.raceDetails.find((candidate) => candidate.sessionEntryId === entryId)!;
+	const appliedCommands = result.events.filter(
+		(event) => event.type === 'strategy_command_applied' && event.sessionEntryIds.includes(entryId)
+	);
+	return {
+		completed: result.events.some((event) => event.type === 'car_finished'),
+		checkpointParity,
+		totalTimeMs: sessionResult.totalTimeMs,
+		pitStops: details.pitStops,
+		stints: strategyStints(result, replayInput, entryId),
+		appliedStrategyCommands: appliedCommands.length,
+		triggerLaps: appliedCommands.map((event) => event.lap),
+		controllerState: fullController.snapshot()
+	};
+}
+
+function closedLoopStrategyValidation(
+	scenarioId: WeatherCalibrationScenarioId,
+	runs: readonly { input: RaceInput; sessionDurationMs: number; seed: string }[],
+	policy: WeatherStrategyPolicy = DEFAULT_WEATHER_STRATEGY_POLICY,
+	checkpointStep: number | null = 117,
+	rawReplayCache?: Partial<Record<'low' | 'high', ReturnType<typeof closedLoopStrategyReplay>[]>>
+) {
+	if (!['W2', 'W5', 'W9', 'W11'].includes(scenarioId)) return null;
+	const entryId = runs[0]?.input.entries[0]?.sessionEntryId;
+	if (!entryId || runs.length === 0) return null;
+	validateWeatherStrategyPolicy(policy);
+	const roundedMean = (values: number[]) => Math.round(mean(values) * 1000) / 1000;
+	const aggregate = (replays: ReturnType<typeof closedLoopStrategyReplay>[]) => {
+		const triggerLapsByRun = replays.map((replay) => replay.triggerLaps);
+		return {
+			runs: replays.length,
+			meanTotalTimeMs: Math.round(mean(replays.map((replay) => replay.totalTimeMs))),
+			meanPitStops: roundedMean(replays.map((replay) => replay.pitStops)),
+			meanAppliedStrategyCommands: roundedMean(
+				replays.map((replay) => replay.appliedStrategyCommands)
+			),
+			meanRefreshCount: roundedMean(replays.map((replay) => replay.controllerState.refreshCount)),
+			meanHeldDowngradeCount: roundedMean(
+				replays.map((replay) => replay.controllerState.heldDowngradeCount)
+			),
+			meanRejectedCommandCount: roundedMean(
+				replays.map((replay) => replay.controllerState.rejectedCommandCount)
+			),
+			completedRuns: replays.filter((replay) => replay.completed).length,
+			checkpointParityRuns: replays.filter((replay) => replay.checkpointParity).length,
+			zeroRejectedCommandRuns: replays.filter(
+				(replay) => replay.controllerState.rejectedCommandCount === 0
+			).length,
+			noAdjacentTriggerRuns: replays.filter((replay) =>
+				replay.triggerLaps.every(
+					(lap, index) => index === 0 || lap > replay.triggerLaps[index - 1] + 1
+				)
+			).length,
+			triggerLapsByRun,
+			triggerSpacingByRun: triggerLapsByRun.map((triggerLaps) =>
+				triggerLaps.slice(1).map((lap, index) => lap - triggerLaps[index])
+			),
+			stintSequencesByRun: replays.map((replay) => replay.stints),
+			seeds: runs.map((run) => run.seed)
+		};
+	};
+	return Object.fromEntries(
+		(['low', 'high'] as const).map((capability) => {
+			const rawReplays =
+				rawReplayCache?.[capability] ??
+				runs.map((run) =>
+					closedLoopStrategyReplay(
+						run.input,
+						entryId,
+						capability,
+						'candidate',
+						run.sessionDurationMs,
+						policy,
+						checkpointStep
+					)
+				);
+			const hysteresisReplays = runs.map((run) =>
+				closedLoopStrategyReplay(
+					run.input,
+					entryId,
+					capability,
+					'effective',
+					run.sessionDurationMs,
+					policy,
+					checkpointStep
+				)
+			);
+			const raw = aggregate(rawReplays);
+			const hysteresis = aggregate(hysteresisReplays);
+			return [
+				capability,
+				{
+					raw,
+					hysteresis,
+					deltaTotalTimeMs: hysteresis.meanTotalTimeMs - raw.meanTotalTimeMs,
+					deltaPitStops: roundedMean([hysteresis.meanPitStops - raw.meanPitStops])
+				}
+			];
+		})
+	) as Record<
+		'low' | 'high',
+		{
+			raw: ReturnType<typeof aggregate>;
+			hysteresis: ReturnType<typeof aggregate>;
+			deltaTotalTimeMs: number;
+			deltaPitStops: number;
+		}
+	>;
+}
+
 function controlledCompoundSweep(seed: string, lapCount: number) {
 	const sampleLapCount = Math.max(5, lapCount);
 	const freshLapCount = Math.min(5, sampleLapCount);
@@ -636,6 +829,7 @@ function analyzeWeatherScenario(
 	let firstFinalWeatherClockMs = 0;
 	let checkpointMatches = true;
 	let forecastSnapshots: Record<string, WeatherForecastSnapshot> | null = null;
+	const closedLoopRuns: { input: RaceInput; sessionDurationMs: number; seed: string }[] = [];
 	const forecastScores = new Map<string, WeatherForecastScore[]>();
 	const paceByBand = new Map<string, Map<CompoundName, number[]>>();
 	const finalWetnessBySegment = new Map<
@@ -681,6 +875,11 @@ function analyzeWeatherScenario(
 		allFinalTimes.push(...result.sessionResults.map((entry) => entry.totalTimeMs));
 		const finalState = simulation.snapshot().weatherState;
 		if (finalState) {
+			closedLoopRuns.push({
+				input: structuredClone(input),
+				sessionDurationMs: finalState.weatherClockMs,
+				seed
+			});
 			if (run === 0) firstFinalWeatherClockMs = finalState.weatherClockMs;
 			if (run === 0) {
 				const quality = forecastQuality(
@@ -844,8 +1043,131 @@ function analyzeWeatherScenario(
 			firstInput && firstResult && strategyRefreshTrace
 				? strategyCommandValidation(scenarioId, firstInput, firstResult, strategyRefreshTrace)
 				: null,
+		closedLoopStrategyValidation:
+			closedLoopRuns.length > 0
+				? closedLoopStrategyValidation(
+						scenarioId,
+						closedLoopRuns,
+						options.strategyPolicy ?? DEFAULT_WEATHER_STRATEGY_POLICY,
+						options.checkpointStep ?? 117
+					)
+				: null,
 		checkpointMatches,
 		allRunsHaveWeatherState: scenarioId !== 'W0' && Boolean(firstResult)
+	};
+}
+
+function collectClosedLoopRuns(
+	options: WeatherCalibrationOptions,
+	scenarioId: WeatherCalibrationScenarioId
+): { input: RaceInput; sessionDurationMs: number; seed: string }[] {
+	const runs: { input: RaceInput; sessionDurationMs: number; seed: string }[] = [];
+	for (let run = 0; run < options.runCount; run += 1) {
+		const seed = `${options.seedPrefix}:${scenarioId}:${String(run + 1).padStart(4, '0')}`;
+		const input = createWeatherCalibrationInput(
+			scenarioId,
+			seed,
+			options.entryCount,
+			options.lapCount
+		);
+		const simulation = new RaceSimulation(input);
+		simulation.run();
+		const weatherState = simulation.snapshot().weatherState;
+		if (weatherState) {
+			runs.push({
+				input: structuredClone(input),
+				sessionDurationMs: weatherState.weatherClockMs,
+				seed
+			});
+		}
+	}
+	return runs;
+}
+
+export function runWeatherStrategySweep(options: WeatherStrategySweepOptions) {
+	const confirmations = [...new Set(options.downgradeConfirmations)].sort((a, b) => a - b);
+	const minStintRefreshes = [...new Set(options.minStintRefreshes)].sort((a, b) => a - b);
+	if (confirmations.length === 0 || minStintRefreshes.length === 0) {
+		throw new Error('Weather strategy sweep requires at least one value for each policy dimension');
+	}
+	for (const value of [...confirmations, ...minStintRefreshes]) {
+		if (!Number.isInteger(value) || value < 1) {
+			throw new Error('Weather strategy sweep values must be positive integers');
+		}
+	}
+	const scenarioIds = ['W2', 'W5', 'W9', 'W11'] as const;
+	const policies = confirmations.flatMap((downgradeConfirmations) =>
+		minStintRefreshes.map((minStintRefreshes) => ({
+			downgradeConfirmations,
+			minStintRefreshes
+		}))
+	);
+	const sweepCheckpointStep = policies.length === 1 ? (options.checkpointStep ?? 117) : null;
+	const runsByScenario = Object.fromEntries(
+		scenarioIds.map((scenarioId) => [scenarioId, collectClosedLoopRuns(options, scenarioId)])
+	) as Record<(typeof scenarioIds)[number], ReturnType<typeof collectClosedLoopRuns>>;
+	const rawReplayCacheByScenario = Object.fromEntries(
+		scenarioIds.map((scenarioId) => {
+			const runs = runsByScenario[scenarioId];
+			const entryId = runs[0]?.input.entries[0]?.sessionEntryId;
+			if (!entryId) throw new Error(`Missing sweep input for ${scenarioId}`);
+			return [
+				scenarioId,
+				Object.fromEntries(
+					(['low', 'high'] as const).map((capability) => [
+						capability,
+						runs.map((run) =>
+							closedLoopStrategyReplay(
+								run.input,
+								entryId,
+								capability,
+								'candidate',
+								run.sessionDurationMs,
+								DEFAULT_WEATHER_STRATEGY_POLICY,
+								sweepCheckpointStep
+							)
+						)
+					])
+				)
+			];
+		})
+	) as Record<
+		(typeof scenarioIds)[number],
+		Partial<Record<'low' | 'high', ReturnType<typeof closedLoopStrategyReplay>[]>>
+	>;
+	return {
+		version: 'weather-strategy-sweep-v1',
+		seedPrefix: options.seedPrefix,
+		strategyValidation: {
+			mode: 'closed_loop_policy_sweep',
+			controllerVersion: 'weather-strategy-controller-v1',
+			baselinePolicy: DEFAULT_WEATHER_STRATEGY_POLICY,
+			checkpointValidation:
+				policies.length === 1 ? 'enabled_single_policy' : 'disabled_in_multi_policy_sweep'
+		},
+		runsPerScenario: options.runCount,
+		entriesPerRun: options.entryCount,
+		lapsPerRun: options.lapCount,
+		strategySweep: {
+			downgradeConfirmations: confirmations,
+			minStintRefreshes,
+			scenarios: scenarioIds,
+			policies: policies.map((policy) => ({
+				policy,
+				scenarios: Object.fromEntries(
+					scenarioIds.map((scenarioId) => [
+						scenarioId,
+						closedLoopStrategyValidation(
+							scenarioId,
+							runsByScenario[scenarioId],
+							policy,
+							sweepCheckpointStep,
+							rawReplayCacheByScenario[scenarioId]
+						)
+					])
+				)
+			}))
+		}
 	};
 }
 
@@ -853,7 +1175,13 @@ export function runWeatherCalibration(options: WeatherCalibrationOptions) {
 	const scenarioIds =
 		options.scenarios ?? WEATHER_CALIBRATION_SCENARIOS.map((scenario) => scenario.id);
 	return {
-		version: 'weather-calibration-v9',
+		version: 'weather-calibration-v11',
+		seedPrefix: options.seedPrefix,
+		strategyValidation: {
+			mode: 'closed_loop',
+			controllerVersion: 'weather-strategy-controller-v1',
+			policy: options.strategyPolicy ?? DEFAULT_WEATHER_STRATEGY_POLICY
+		},
 		runsPerScenario: options.runCount,
 		entriesPerRun: options.entryCount,
 		lapsPerRun: options.lapCount,

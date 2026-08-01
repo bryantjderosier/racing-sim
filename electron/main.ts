@@ -2,21 +2,21 @@ import { app, BrowserWindow } from 'electron';
 import serve from 'electron-serve';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { env } from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { registerDbIpc } from './db/ipc.js';
 import { runMigrations, shutdownDb } from './db/migrate.js';
+import { SessionFactory } from './db/session-factory.js';
+import { createPersistedSessionDefinitionResolver } from './db/session-input-resolver.js';
 
-const DEV_URL = process.env.VITE_DEV_SERVER_URL ?? 'http://127.0.0.1:5180';
+const DEV_URL = env.VITE_DEV_SERVER_URL ?? 'http://127.0.0.1:5180';
+const isWsl = process.platform === 'linux' && Boolean(env.WSL_DISTRO_NAME || env.WSL_INTEROP);
 const hasBuildUi = existsSync(join(process.cwd(), 'build', 'index.html'));
 /** Unpackaged + no build/ → Vite. Env flags also force Vite (WSL often drops shell env). */
 const isDev =
-	Boolean(process.env.VITE_DEV_SERVER_URL) ||
-	process.env.ELECTRON_DEV === '1' ||
-	(!app.isPackaged && !hasBuildUi);
+	Boolean(env.VITE_DEV_SERVER_URL) || env.ELECTRON_DEV === '1' || (!app.isPackaged && !hasBuildUi);
 const loadURL = serve({ directory: 'build' });
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
-
-const isWsl = process.platform === 'linux' && Boolean(process.env.WSL_DISTRO_NAME || process.env.WSL_INTEROP);
 
 if (isWsl) app.disableHardwareAcceleration();
 
@@ -61,7 +61,9 @@ async function createWindow() {
 
 app.whenReady().then(async () => {
 	await runMigrations();
-	registerDbIpc();
+	registerDbIpc({
+		sessionFactory: new SessionFactory(createPersistedSessionDefinitionResolver())
+	});
 	await createWindow();
 
 	app.on('activate', async () => {

@@ -11,6 +11,16 @@ const FORECAST_WET_INTENSITY_TRIGGER_BP = 6_000;
 export const WEATHER_STRATEGY_DOWNGRADE_CONFIRMATIONS = 2;
 export const WEATHER_STRATEGY_MIN_STINT_REFRESHES = 3;
 
+export interface WeatherStrategyPolicy {
+	downgradeConfirmations: number;
+	minStintRefreshes: number;
+}
+
+export const DEFAULT_WEATHER_STRATEGY_POLICY: WeatherStrategyPolicy = {
+	downgradeConfirmations: WEATHER_STRATEGY_DOWNGRADE_CONFIRMATIONS,
+	minStintRefreshes: WEATHER_STRATEGY_MIN_STINT_REFRESHES
+};
+
 export type WeatherStrategyTarget = 'slicks' | 'intermediate' | 'wet';
 export type WeatherStrategyUrgency = 'none' | 'planned' | 'urgent';
 
@@ -48,6 +58,17 @@ export interface WeatherStrategyPersistenceResult {
 	state: WeatherStrategyPersistenceState;
 }
 
+export function validateWeatherStrategyPolicy(policy: WeatherStrategyPolicy): void {
+	if (
+		!Number.isInteger(policy.downgradeConfirmations) ||
+		policy.downgradeConfirmations < 1 ||
+		!Number.isInteger(policy.minStintRefreshes) ||
+		policy.minStintRefreshes < 1
+	) {
+		throw new Error('Invalid weather strategy policy');
+	}
+}
+
 function targetCompound(compound: CompoundName): WeatherStrategyTarget {
 	return compound === 'intermediate' ? 'intermediate' : compound === 'wet' ? 'wet' : 'slicks';
 }
@@ -79,8 +100,10 @@ function nextRefreshAge(refreshesSinceCompoundChange: number | null): number | n
 export function applyWeatherStrategyPersistence(
 	candidateDecision: WeatherStrategyDecision,
 	currentCompound: CompoundName,
-	state: WeatherStrategyPersistenceState
+	state: WeatherStrategyPersistenceState,
+	policy: WeatherStrategyPolicy = DEFAULT_WEATHER_STRATEGY_POLICY
 ): WeatherStrategyPersistenceResult {
+	validateWeatherStrategyPolicy(policy);
 	const currentTarget = targetCompound(currentCompound);
 	if (!isDowngrade(candidateDecision.target, currentCompound)) {
 		return {
@@ -100,8 +123,8 @@ export function applyWeatherStrategyPersistence(
 		state.pendingTarget === candidateDecision.target ? state.pendingRefreshes + 1 : 1;
 	const stintHoldSatisfied =
 		state.refreshesSinceCompoundChange === null ||
-		state.refreshesSinceCompoundChange >= WEATHER_STRATEGY_MIN_STINT_REFRESHES;
-	const confirmationSatisfied = pendingRefreshes >= WEATHER_STRATEGY_DOWNGRADE_CONFIRMATIONS;
+		state.refreshesSinceCompoundChange >= policy.minStintRefreshes;
+	const confirmationSatisfied = pendingRefreshes >= policy.downgradeConfirmations;
 	if (stintHoldSatisfied && confirmationSatisfied) {
 		return {
 			candidateDecision,

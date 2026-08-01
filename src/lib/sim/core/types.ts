@@ -182,6 +182,41 @@ export interface StrategyCommand {
 	action: StrategyAction;
 }
 
+export type WeatherStrategyTargetName = 'slicks' | 'intermediate' | 'wet';
+
+export interface WeatherStrategyControllerState {
+	nextRefreshAtMs: number;
+	currentCompound: CompoundName | null;
+	pendingTarget: WeatherStrategyTargetName | null;
+	pendingRefreshes: number;
+	refreshesSinceCompoundChange: number | null;
+	refreshCount: number;
+	heldDowngradeCount: number;
+	rejectedCommandCount: number;
+	nextSequence: number;
+	lastScheduledTriggerLap: number | null;
+	nextTyreSetIndexByCompound: Partial<Record<CompoundName, number>>;
+}
+
+export interface LiveStrategyControllerContext {
+	seed: string;
+	sessionDurationMs: number;
+	lap: number;
+	lapCount: number;
+	segment: TrackSegment;
+	weatherState?: WeatherRuntimeState;
+	entries: readonly SimulationEntry[];
+	states: readonly EntrySimulationState[];
+}
+
+export interface LiveStrategyController {
+	onSegmentStart(context: LiveStrategyControllerContext): StrategyCommand[];
+	recordCommandResult(accepted: boolean): void;
+	sessionDurationMs(): number;
+	snapshot(): WeatherStrategyControllerState;
+	restore(state: WeatherStrategyControllerState): void;
+}
+
 export interface RaceInput {
 	formulaVersion: string;
 	engineVersion: string;
@@ -480,4 +515,6 @@ export interface SimulationSnapshot {
 	carsInPit: string[];
 	lastOvertakeAttemptStep: Record<string, number>;
 	weatherState?: WeatherRuntimeState;
+	liveCommands?: StrategyCommand[];
+	strategyControllerState?: WeatherStrategyControllerState;
 }

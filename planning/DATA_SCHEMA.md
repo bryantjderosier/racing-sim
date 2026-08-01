@@ -1,6 +1,6 @@
 # Data Schema — Fifth Pass (Entity Model for Race Sim)
 
-**Status:** Freeze candidate — ready for grouped SQLite DDL after review sign-off\
+**Status:** Freeze candidate — persistence/DDL contract accepted\
 **Supersedes:** All prior passes (this document is **self-contained**)\
 **Spelling:** British **tyre** in all persisted names\
 **Time:** IANA timezones on circuits; all persisted datetimes are **UTC**\
@@ -27,6 +27,8 @@
 | Race-only result details | `RaceResultDetail` |
 | Setup | `CarSetup` |
 | Resume | Latest `SessionCheckpoint` + `SessionCarCheckpoint` only (one transaction) |
+| Compact session history | `SessionEvent` (filtered player-visible events only) |
+| Telemetry retention | `SessionTelemetryArchive` metadata; payload is outside the primary save |
 | Tyres | `TyreCompound` → `TyreCompoundSpec`; sets / usage / stints |
 | Circuit geography | `Circuit` + `CircuitLayoutVersion` |
 | Career history | Effective-dated contracts, assignments, license awards; result tables |
@@ -78,9 +80,17 @@
 | Attribute | Type | Notes |
 |-----------|------|--------|
 | `id` | ID | |
-| `code` | string | `apex` \| `challenger` \| `academy` |
-| `displayName` | string | |
+| `code` | string | Persisted code: `apex` \| `challenger` \| `academy` |
+| `displayName` | string | Approved player-facing championship name |
 | `ladderRank` | int | Display order only; never for capability/eligibility math |
+
+Approved championship display names:
+
+| Persisted code | Player-facing name | Short code |
+|-----------|------|--------|
+| `apex` | World Formula Championship | `WFC` |
+| `challenger` | International Formula Championship | `IFC` |
+| `academy` | Formula Development Championship | `FDC` |
 
 ### 2.2 ChampionshipSeason
 
@@ -96,7 +106,7 @@
 | Attribute | Type | Notes |
 |-----------|------|--------|
 | `id` | ID | |
-| `entriesPerTeam` | int | Race seats entered (2 default; Academy may be 3) |
+| `entriesPerTeam` | int | Race seats entered (2 default; Formula Development Championship may be 3) |
 | `weekendFormatTemplateId` | ID | |
 | `refuelingEnabled` | bool | |
 | `ersEnabled` | bool | |
@@ -113,9 +123,20 @@
 
 Part procurement/upgrade → `RulesetPartCategoryRule` only.
 
+### 2.3.1 RulesetSupplyContractTier
+
+Relational membership rows for the `supplyContractTiersAllowed` set; this is not stored as JSON.
+
+| Attribute | Type | Notes |
+|-----------|------|--------|
+| `rulesetId` | ID | FK → `ChampionshipSeasonRuleset` |
+| `tier` | enum | `factory_parity` \| `customer_spec` |
+
+Unique on `(rulesetId, tier)`.
+
 ### 2.4 RulesetPartCategoryRule
 
-Allows **Apex factory and customer teams** to differ on the same category.
+Allows **World Formula Championship factory and customer teams** to differ on the same category.
 
 | Attribute | Type | Notes |
 |-----------|------|--------|
@@ -194,7 +215,29 @@ Session-specific rules live on **slots**, not the template header.
 
 ---
 
-## 3. Driver
+## 3. People, teams & drivers
+
+### 3.0 Nationality
+
+| Attribute | Type | Notes |
+|-----------|------|--------|
+| `id` | ID | |
+| `code` | string | Stable content code |
+| `displayName` | string | |
+
+### 3.0.1 Team identity
+
+Team identity is persisted here so season entries, contracts, suppliers, and event entries have
+relational owners. Staff, facilities, and organization detail remain management-layer contracts.
+
+| Attribute | Type | Notes |
+|-----------|------|--------|
+| `id` | ID | |
+| `code` | string | Stable content code |
+| `name` | string | |
+| `shortName` | string | |
+| `nationalityId` | ID? | FK → `Nationality` |
+| `createdAt` | datetime UTC | |
 
 ### 3.1 Driver
 
@@ -355,7 +398,8 @@ No `teamId` / `championshipSeasonId` / `chassisInstanceId` (derive or bind elsew
 | `constructorStatus` | enum | `junior` \| `customer` \| `factory_constructor` |
 | `entryName` | string? | |
 
-Maps to `RulesetPartCategoryRule.participantStatus` (`junior` for Academy/Challenger non-constructor path).
+Maps to `RulesetPartCategoryRule.participantStatus` (`junior` for Formula Development Championship /
+International Formula Championship non-constructor paths).
 
 ### 4.2 SupplyContract
 
@@ -497,6 +541,7 @@ Optional one-to-one child of `SessionResult` for race-like sessions only.
 | `sessionResultId` | ID | PK/FK |
 | `pitStops` | int | |
 | `lapsLed` | int | |
+| `positionsGained` | int | |
 | `retirementReason` | enum? | Null when running/classified |
 
 ### 4.12 ResolvedPerformanceSnapshot
@@ -573,6 +618,10 @@ One **authoritative simulation clock** and RNG live on `SessionCheckpoint`. Only
 | `safetyCarStateSchemaVersion` | string | |
 | `weatherStatePayload` | typed JSON | Evolution state (not just current sample) |
 | `weatherStateSchemaVersion` | string | |
+| `strategyStatePayload` | typed JSON | Live strategy/controller state required for deterministic resume |
+| `strategyStateSchemaVersion` | string | |
+| `resumeStatePayload` | typed JSON | Engine resume metadata: step, applied commands, pit state, and overtake cooldowns |
+| `resumeStateSchemaVersion` | string | |
 | `leaderSessionEntryId` | ID? | |
 | `checkpointedAt` | datetime UTC | Last successful checkpoint write |
 
@@ -602,8 +651,45 @@ One **authoritative simulation clock** and RNG live on `SessionCheckpoint`. Only
 | `pitStopsCompleted` | int | |
 | `penaltyPayload` | typed JSON | Time penalties, warnings, drive-throughs |
 | `penaltySchemaVersion` | string | |
+| `simulationStatePayload` | typed JSON | Complete engine state for this car, including tyre states and strategy modes |
+| `simulationStateSchemaVersion` | string | |
 | `retirementState` | enum | `running` \| `retired` \| `stopped` |
 | `retirementReason` | enum? | `mechanical` \| `crash` \| `disqualified` \| … |
+
+### 5.3 SessionEvent
+
+Compact, player-visible events are retained; segment-completion and lap-telemetry events are not
+written to the primary save.
+
+| Attribute | Type | Notes |
+|-----------|------|--------|
+| `id` | ID | |
+| `weekendSessionId` | ID | |
+| `sequence` | int | Monotonic within the session |
+| `simulationTimeMs` | int | Engine simulation time |
+| `lap` | int | |
+| `segmentId` | ID? | Null for session-level events |
+| `eventType` | enum | `pit` \| `overtake` \| `penalty` \| `incident` \| `drs_weather` \| `unsafe_conditions` \| `strategy_command` \| `finish` |
+| `sessionEntryIdsPayload` | typed JSON | Ordered IDs involved in the event |
+| `payload` | typed JSON | Event-specific details |
+| `payloadSchemaVersion` | string | |
+
+### 5.4 SessionTelemetryArchive
+
+Optional metadata for compressed telemetry stored outside the primary save. The archive is disposable
+and must never be required to resume or classify a session.
+
+| Attribute | Type | Notes |
+|-----------|------|--------|
+| `id` | ID | |
+| `weekendSessionId` | ID | Unique per archive generation |
+| `archivePath` | string | Path managed by the save service, not the renderer |
+| `format` | enum | `jsonl_zstd` \| `json_gzip` |
+| `schemaVersion` | string | Telemetry archive contract version |
+| `sha256` | string | Integrity hash |
+| `byteLength` | int | |
+| `createdAt` | datetime UTC | |
+| `purgedAt` | datetime UTC? | Null while retained |
 
 On checkpoint:
 
@@ -782,11 +868,13 @@ Created from `WeekendFormatSessionSlot` when the event is materialized.
 |-----------|------|--------|
 | `id` | ID | |
 | `eventSessionDefinitionId` | ID | |
-| `status` | enum | `scheduled` \| `live` \| `finished` \| `abandoned` |
+| `status` | enum | `scheduled` \| `live` \| `paused` \| `finished` \| `abandoned` |
 | `tempC` | number? | Current sample |
 | `rainNow` | number? | |
 | `rainInMinutes` | number? | |
 | `trackWetness` | 0–100 | |
+| `simulationInputPayload` | typed JSON | Immutable resolved `RaceInput` snapshot for the session |
+| `simulationInputSchemaVersion` | string | `race-input-v1` resolver contract version |
 | `activeCheckpointId` | ID? | Latest `SessionCheckpoint` |
 
 Does **not** own `simClockMs` (clock is on `SessionCheckpoint`).
@@ -833,7 +921,7 @@ form: integer -10..+10
 | Topic | Decision |
 |-------|----------|
 | Document | Fifth pass is self-contained |
-| Apex parts | Rules keyed by `participantStatus` |
+| World Formula Championship parts | Rules keyed by `participantStatus` |
 | Weekend rules | Per session slot → copied onto `EventSessionDefinition` |
 | Grid linkage | `gridSourceSessionDefinitionId` (not kind matching) |
 | Resume | Latest checkpoint only; checkpoint, cars, tyres, stints, usage, and damage commit atomically |
@@ -842,7 +930,7 @@ form: integer -10..+10
 | License | `LicensePointAward` with optional expiry |
 | Points | Full `PointsSystem`; not on `SessionEntry` |
 | JSON | Geometry, immutable versioned rules, and atomic schema-versioned simulation payloads only |
-| Challenger | Vision mix; R&D remains in management UI |
+| International Formula Championship | Vision mix; R&D remains in management UI |
 | Chassis | Physical instances + design FK; spares allowed |
 | Save topology | One self-contained SQLite file per save; `SaveGame` is singleton metadata |
 | Part R&D | Every performance/reliability change creates a new immutable design version |
@@ -863,4 +951,4 @@ Expressed as `RulesetPartCategoryRule` rows per `(category, participantStatus)`:
 
 ## 11. Out of this document
 
-Team org, Staff, HQ buildings, Finance ledger, SQL DDL files, `formulaVersion` whitepaper.
+Team organization detail, Staff, HQ buildings, Finance ledger, and `formulaVersion` whitepaper.

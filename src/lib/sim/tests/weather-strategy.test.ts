@@ -113,4 +113,19 @@ describe('weather-aware strategy decisions', () => {
 		const fourth = applyWeatherStrategyPersistence(candidate, 'intermediate', state);
 		expect(fourth.decision).toMatchObject({ action: 'pit', target: 'slicks' });
 	});
+
+	test('accepts policy overrides for sweep candidates', () => {
+		const candidate = decideWeatherStrategy({
+			currentCompound: 'intermediate',
+			observedRacingLineWetnessBp: 0,
+			forecast: forecast(500, 500)
+		});
+		const result = applyWeatherStrategyPersistence(
+			candidate,
+			'intermediate',
+			{ ...createWeatherStrategyPersistenceState(), refreshesSinceCompoundChange: 1 },
+			{ downgradeConfirmations: 1, minStintRefreshes: 1 }
+		);
+		expect(result.decision).toMatchObject({ action: 'pit', target: 'slicks' });
+	});
 });

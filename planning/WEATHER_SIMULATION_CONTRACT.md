@@ -200,7 +200,7 @@ Initial `academy-weather-v1` compound specifications:
 
 Soft, medium, and hard retain their accepted dry V4 grip and wear specifications. Intermediate and
 wet use independent base grip, warm-up, wear, and wear-knee specifications. Weather fixtures issue
-all five compound types without changing the dry academy fixture.
+all five compound types without changing the Formula Development Championship dry fixture.
 
 ### 4.5 Rules additions
 
@@ -737,6 +737,15 @@ The weather batch report must include:
 - Replay validation applies raw and hysteresis-adjusted recommendations as explicit pit commands and compares
   total time, executed pit stops, trigger laps, and compound stints. This replay is generated from the reference
   run's forecast trace; it does not yet close the loop by refreshing strategy from the replayed race state.
+- Closed-loop strategy validation refreshes forecasts at safe segment boundaries, injects accepted pit commands
+  into the running simulation, persists controller state through checkpoints, and reports raw-versus-hysteresis
+  outcomes separately from the reference trace.
+- Closed-loop validation runs across every calibration seed and reports aggregate time/pit deltas alongside
+  per-seed stints, trigger spacing, refresh counts, rejected-command counts, completion, and checkpoint-parity gates.
+- Strategy-policy sweeps vary downgrade confirmations and minimum-stint refreshes over the same seeded W2/W5/W9/W11
+  runs. Sweep reports retain the default policy, dimensions, per-policy outcomes, and explicitly identify that
+  checkpoint parity is covered by the baseline validation rather than repeated for every multi-policy candidate.
+  A single-policy sweep uses the requested checkpoint step and validates checkpoint parity for that candidate.
 - Checkpoint and disabled-module determinism results.
 
 Initial acceptance gates:

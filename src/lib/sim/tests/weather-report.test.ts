@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { runWeatherCalibration } from '../calibration/weather-report';
+import { runWeatherCalibration, runWeatherStrategySweep } from '../calibration/weather-report';
 import {
 	createWeatherCalibrationInput,
 	type WeatherCalibrationScenarioId
@@ -25,7 +25,8 @@ describe('weather calibration fixtures and reports', () => {
 			scenarios: ['W0', 'W2', 'W6', 'W8', 'W11'],
 			checkpointStep: 5
 		});
-		expect(report.version).toBe('weather-calibration-v9');
+		expect(report.version).toBe('weather-calibration-v11');
+		expect(report.seedPrefix).toBe('weather-report-test');
 		expect(report.scenarios.W0.checkpointMatches).toBe(true);
 		expect(report.scenarios.W2.truthTimeline.length).toBeGreaterThan(1);
 		expect(report.scenarios.W2.compoundRankingByWetnessBand).toBeDefined();
@@ -56,6 +57,17 @@ describe('weather calibration fixtures and reports', () => {
 		);
 		expect(report.scenarios.W2.strategyCommandValidation?.low.raw).toBeDefined();
 		expect(report.scenarios.W2.strategyCommandValidation?.low.hysteresis).toBeDefined();
+		expect(report.scenarios.W2.closedLoopStrategyValidation?.low.raw).toBeDefined();
+		expect(report.scenarios.W2.closedLoopStrategyValidation?.low.hysteresis).toBeDefined();
+		expect(report.scenarios.W2.closedLoopStrategyValidation?.low.raw.runs).toBe(2);
+		expect(report.scenarios.W2.closedLoopStrategyValidation?.low.raw.completedRuns).toBe(2);
+		expect(report.scenarios.W2.closedLoopStrategyValidation?.low.raw.checkpointParityRuns).toBe(2);
+		expect(report.scenarios.W2.closedLoopStrategyValidation?.low.raw.zeroRejectedCommandRuns).toBe(
+			2
+		);
+		expect(report.scenarios.W2.closedLoopStrategyValidation?.low.raw.triggerLapsByRun).toHaveLength(
+			2
+		);
 		expect(report.scenarios.W6.weatherStrategyDecision?.low).toMatchObject({
 			action: 'stay_out',
 			target: 'wet'
@@ -63,6 +75,32 @@ describe('weather calibration fixtures and reports', () => {
 		expect(report.scenarios.W11.weatherStrategyRefreshes?.high.length).toBeGreaterThan(1);
 		expect(report.scenarios.W11.weatherStrategyRefreshes?.high[0].candidateDecision).toBeDefined();
 		expect(report.scenarios.W11.weatherStrategyRefreshes?.high[0].persistence).toBeDefined();
+		expect(
+			report.scenarios.W11.closedLoopStrategyValidation?.high.hysteresis.checkpointParityRuns
+		).toBe(2);
+		expect(
+			report.scenarios.W11.closedLoopStrategyValidation?.high.hysteresis.noAdjacentTriggerRuns
+		).toBe(2);
 		expect(report.scenarios.W8.controls.unsafeDetectedEvents).toBeGreaterThan(0);
+	});
+
+	test('produces distinct policy entries for strategy sweeps', () => {
+		const report = runWeatherStrategySweep({
+			runCount: 2,
+			entryCount: 2,
+			lapCount: 8,
+			seedPrefix: 'strategy-sweep-test',
+			scenarios: ['W2', 'W5', 'W9', 'W11'],
+			checkpointStep: 5,
+			downgradeConfirmations: [1, 2],
+			minStintRefreshes: [1, 3]
+		});
+		expect(report.version).toBe('weather-strategy-sweep-v1');
+		expect(report.strategySweep.policies).toHaveLength(4);
+		expect(report.strategyValidation.checkpointValidation).toBe('disabled_in_multi_policy_sweep');
+		const w2 = report.strategySweep.policies[0].scenarios.W2;
+		expect(w2).not.toBeNull();
+		expect(w2!.low.raw.runs).toBe(2);
+		expect(w2!.low.raw.checkpointParityRuns).toBe(0);
 	});
 });

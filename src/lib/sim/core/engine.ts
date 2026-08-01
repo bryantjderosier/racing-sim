@@ -21,6 +21,7 @@ import type {
 	SimulationSnapshot,
 	StrategyCommand,
 	TrackSegment,
+	LiveStrategyController,
 	WeatherRuntimeState
 } from './types';
 import { validateRaceInput } from './validate';
@@ -87,7 +88,9 @@ export class RaceSimulation {
 	private readonly input: RaceInput;
 	private readonly inputHash: string;
 	private readonly entries: SimulationEntry[];
-	private readonly commands: StrategyCommand[];
+	private commands: StrategyCommand[];
+	private liveCommands: StrategyCommand[] = [];
+	private readonly strategyController?: LiveStrategyController;
 	private states: EntrySimulationState[];
 	private rng: Record<RngStreamName, Xoshiro128ss>;
 	private events: RaceEvent[] = [];
@@ -100,11 +103,17 @@ export class RaceSimulation {
 	private weatherState?: WeatherRuntimeState;
 	private stepIndex = 0;
 
-	constructor(input: RaceInput, snapshot?: SimulationSnapshot) {
+	constructor(
+		input: RaceInput,
+		snapshot?: SimulationSnapshot,
+		strategyController?: LiveStrategyController
+	) {
 		validateRaceInput(input);
 		this.input = structuredClone(input);
 		this.entries = stableEntries(this.input.entries);
-		this.commands = stableCommands(this.input.commands);
+		this.commands = stableCommands([...this.input.commands, ...(snapshot?.liveCommands ?? [])]);
+		this.liveCommands = structuredClone(snapshot?.liveCommands ?? []);
+		this.strategyController = strategyController;
 		this.inputHash = hashString(canonicalStringify(normalizeForHash(this.input)));
 		if (snapshot) {
 			if (snapshot.inputHash !== this.inputHash) throw new Error('Checkpoint input hash mismatch');
@@ -124,6 +133,10 @@ export class RaceSimulation {
 			this.weatherState = snapshot.weatherState
 				? structuredClone(snapshot.weatherState)
 				: undefined;
+			if (snapshot.strategyControllerState) {
+				if (!this.strategyController) throw new Error('Checkpoint strategy controller mismatch');
+				this.strategyController.restore(snapshot.strategyControllerState);
+			}
 		} else {
 			this.rng = createRngStreams(this.input.seed);
 			this.weatherState = this.input.weather?.enabled
@@ -158,6 +171,68 @@ export class RaceSimulation {
 			}));
 			this.events.push(createRaceEvent(this.events, 'race_started', 0, 1, 'start', [], {}));
 		}
+	}
+
+	private queueStrategyCommand(command: StrategyCommand): boolean {
+		if (
+			!command ||
+			typeof command !== 'object' ||
+			!Number.isInteger(command.sequence) ||
+			!Number.isInteger(command.triggerLap) ||
+			typeof command.sessionEntryId !== 'string' ||
+			typeof command.triggerSegmentId !== 'string' ||
+			!command.action ||
+			typeof command.action !== 'object' ||
+			this.commands.some((candidate) => candidate.sequence === command.sequence) ||
+			!this.entries.some((entry) => entry.sessionEntryId === command.sessionEntryId) ||
+			command.triggerLap < 1 ||
+			command.triggerLap > this.input.rules.lapCount ||
+			!this.input.track.segments.some((segment) => segment.id === command.triggerSegmentId) ||
+			!this.validStrategyAction(command.action)
+		)
+			return false;
+		if (command.action.type === 'pit') {
+			const action = command.action;
+			if (
+				!this.entryFor(command.sessionEntryId).tyreSets.some(
+					(set) => set.id === action.tyreSetId
+				) ||
+				this.commands.some(
+					(candidate) =>
+						candidate.sessionEntryId === command.sessionEntryId &&
+						candidate.triggerLap === command.triggerLap &&
+						candidate.triggerSegmentId === command.triggerSegmentId &&
+						candidate.action.type === 'pit'
+				)
+			)
+				return false;
+		}
+		this.commands = stableCommands([...this.commands, command]);
+		this.liveCommands.push(structuredClone(command));
+		return true;
+	}
+
+	private validStrategyAction(action: StrategyCommand['action']): boolean {
+		switch (action.type) {
+			case 'set_mode':
+				return action.mode === 'conserve' || action.mode === 'balanced' || action.mode === 'attack';
+			case 'set_tyre_conservation':
+				return action.target === 'save' || action.target === 'normal' || action.target === 'push';
+			case 'set_overtaking_aggression':
+				return (
+					action.aggression === 'low' ||
+					action.aggression === 'normal' ||
+					action.aggression === 'high'
+				);
+			case 'pit':
+				return typeof action.tyreSetId === 'string' && action.tyreSetId.length > 0;
+			default:
+				return false;
+		}
+	}
+
+	issueStrategyCommand(command: StrategyCommand): boolean {
+		return this.queueStrategyCommand(command);
 	}
 
 	isComplete(): boolean {
@@ -477,6 +552,21 @@ export class RaceSimulation {
 			}
 			this.clearWeatherSuspendedDrs(lap, segment);
 		}
+		if (this.strategyController) {
+			const generatedCommands = this.strategyController.onSegmentStart({
+				seed: this.input.seed,
+				sessionDurationMs: this.strategyController.sessionDurationMs(),
+				lap,
+				lapCount: this.input.rules.lapCount,
+				segment,
+				weatherState: this.weatherState,
+				entries: this.entries,
+				states: this.states
+			});
+			for (const command of generatedCommands) {
+				this.strategyController.recordCommandResult(this.queueStrategyCommand(command));
+			}
+		}
 		this.applyCommands(lap, segment);
 		this.resolvePitExits(lap, segment);
 		const pitting = this.resolvePitStops(lap, segment);
@@ -714,7 +804,11 @@ export class RaceSimulation {
 			appliedCommands: [...this.appliedCommands].sort((left, right) => left - right),
 			pendingPitTyres: { ...this.pendingPitTyres },
 			carsInPit: [...this.carsInPit].sort(),
-			lastOvertakeAttemptStep: { ...this.lastOvertakeAttemptStep }
+			lastOvertakeAttemptStep: { ...this.lastOvertakeAttemptStep },
+			...(this.liveCommands.length > 0 ? { liveCommands: structuredClone(this.liveCommands) } : {}),
+			...(this.strategyController
+				? { strategyControllerState: this.strategyController.snapshot() }
+				: {})
 		};
 		return this.weatherState
 			? { ...snapshot, weatherState: structuredClone(this.weatherState) }

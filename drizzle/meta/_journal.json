@@ -1,5 +1,27 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1785525254189,
+      "tag": "0000_ambiguous_valkyrie",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1785527905645,
+      "tag": "0001_noisy_blink",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1785535216009,
+      "tag": "0002_salty_ogun",
+      "breakpoints": true
+    }
+  ]
 }

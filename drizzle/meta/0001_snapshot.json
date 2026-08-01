@@ -1,0 +1,5764 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "db680e26-5bc0-4c5c-84fd-6cf3cf2111ca",
+  "prevId": "b8e824f7-be96-468e-9d1e-05e77baafe6a",
+  "tables": {
+    "car_setup": {
+      "name": "car_setup",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "event_entry_id": {
+          "name": "event_entry_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "weekend_session_id": {
+          "name": "weekend_session_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "front_wing_angle": {
+          "name": "front_wing_angle",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "rear_wing_angle": {
+          "name": "rear_wing_angle",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ride_height_front_mm": {
+          "name": "ride_height_front_mm",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ride_height_rear_mm": {
+          "name": "ride_height_rear_mm",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "suspension_stiffness": {
+          "name": "suspension_stiffness",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "brake_bias_percent": {
+          "name": "brake_bias_percent",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "diff_coast": {
+          "name": "diff_coast",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "diff_power": {
+          "name": "diff_power",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "team_setup_knowledge": {
+          "name": "team_setup_knowledge",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "car_setup_event_entry_idx": {
+          "name": "car_setup_event_entry_idx",
+          "columns": [
+            "event_entry_id",
+            "weekend_session_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "car_setup_event_entry_id_event_entry_id_fk": {
+          "name": "car_setup_event_entry_id_event_entry_id_fk",
+          "tableFrom": "car_setup",
+          "tableTo": "event_entry",
+          "columnsFrom": [
+            "event_entry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "car_setup_weekend_session_id_weekend_session_id_fk": {
+          "name": "car_setup_weekend_session_id_weekend_session_id_fk",
+          "tableFrom": "car_setup",
+          "tableTo": "weekend_session",
+          "columnsFrom": [
+            "weekend_session_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "championship": {
+      "name": "championship",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "short_code": {
+          "name": "short_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ladder_rank": {
+          "name": "ladder_rank",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "championship_code_unique": {
+          "name": "championship_code_unique",
+          "columns": [
+            "code"
+          ],
+          "isUnique": true
+        },
+        "championship_short_code_unique": {
+          "name": "championship_short_code_unique",
+          "columns": [
+            "short_code"
+          ],
+          "isUnique": true
+        },
+        "championship_ladder_rank_unique": {
+          "name": "championship_ladder_rank_unique",
+          "columns": [
+            "ladder_rank"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "championship_event": {
+      "name": "championship_event",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "championship_season_id": {
+          "name": "championship_season_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "circuit_layout_version_id": {
+          "name": "circuit_layout_version_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "round_number": {
+          "name": "round_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "championship_event_round_unique": {
+          "name": "championship_event_round_unique",
+          "columns": [
+            "championship_season_id",
+            "round_number"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "championship_event_championship_season_id_championship_season_id_fk": {
+          "name": "championship_event_championship_season_id_championship_season_id_fk",
+          "tableFrom": "championship_event",
+          "tableTo": "championship_season",
+          "columnsFrom": [
+            "championship_season_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "championship_event_circuit_layout_version_id_circuit_layout_version_id_fk": {
+          "name": "championship_event_circuit_layout_version_id_circuit_layout_version_id_fk",
+          "tableFrom": "championship_event",
+          "tableTo": "circuit_layout_version",
+          "columnsFrom": [
+            "circuit_layout_version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "championship_season": {
+      "name": "championship_season",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "championship_id": {
+          "name": "championship_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "season_year": {
+          "name": "season_year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ruleset_id": {
+          "name": "ruleset_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "championship_season_year_unique": {
+          "name": "championship_season_year_unique",
+          "columns": [
+            "championship_id",
+            "season_year"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "championship_season_championship_id_championship_id_fk": {
+          "name": "championship_season_championship_id_championship_id_fk",
+          "tableFrom": "championship_season",
+          "tableTo": "championship",
+          "columnsFrom": [
+            "championship_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "championship_season_ruleset_id_championship_season_ruleset_id_fk": {
+          "name": "championship_season_ruleset_id_championship_season_ruleset_id_fk",
+          "tableFrom": "championship_season",
+          "tableTo": "championship_season_ruleset",
+          "columnsFrom": [
+            "ruleset_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "championship_season_ruleset": {
+      "name": "championship_season_ruleset",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "entries_per_team": {
+          "name": "entries_per_team",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "weekend_format_template_id": {
+          "name": "weekend_format_template_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "refueling_enabled": {
+          "name": "refueling_enabled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ers_enabled": {
+          "name": "ers_enabled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "drs_enabled": {
+          "name": "drs_enabled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "constructor_conversion_allowed": {
+          "name": "constructor_conversion_allowed",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "age_cap_max": {
+          "name": "age_cap_max",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "personnel_limits_payload": {
+          "name": "personnel_limits_payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "personnel_limits_schema_version": {
+          "name": "personnel_limits_schema_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "testing_limits_payload": {
+          "name": "testing_limits_payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "testing_limits_schema_version": {
+          "name": "testing_limits_schema_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "race_distance_rule_payload": {
+          "name": "race_distance_rule_payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "race_distance_rule_schema_version": {
+          "name": "race_distance_rule_schema_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "championship_season_ruleset_weekend_format_template_id_weekend_format_template_id_fk": {
+          "name": "championship_season_ruleset_weekend_format_template_id_weekend_format_template_id_fk",
+          "tableFrom": "championship_season_ruleset",
+          "tableTo": "weekend_format_template",
+          "columnsFrom": [
+            "weekend_format_template_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "chassis_instance": {
+      "name": "chassis_instance",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "team_season_entry_id": {
+          "name": "team_season_entry_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "chassis_design_version_id": {
+          "name": "chassis_design_version_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "serial_number": {
+          "name": "serial_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "chassis_instance_serial_unique": {
+          "name": "chassis_instance_serial_unique",
+          "columns": [
+            "serial_number"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "chassis_instance_team_season_entry_id_team_season_entry_id_fk": {
+          "name": "chassis_instance_team_season_entry_id_team_season_entry_id_fk",
+          "tableFrom": "chassis_instance",
+          "tableTo": "team_season_entry",
+          "columnsFrom": [
+            "team_season_entry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "chassis_instance_chassis_design_version_id_part_design_version_id_fk": {
+          "name": "chassis_instance_chassis_design_version_id_part_design_version_id_fk",
+          "tableFrom": "chassis_instance",
+          "tableTo": "part_design_version",
+          "columnsFrom": [
+            "chassis_design_version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "circuit": {
+      "name": "circuit",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "short_name": {
+          "name": "short_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "nation_id": {
+          "name": "nation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "timezone": {
+          "name": "timezone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "first_appearance_year": {
+          "name": "first_appearance_year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "circuit_short_name_unique": {
+          "name": "circuit_short_name_unique",
+          "columns": [
+            "short_name"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "circuit_nation_id_nationality_id_fk": {
+          "name": "circuit_nation_id_nationality_id_fk",
+          "tableFrom": "circuit",
+          "tableTo": "nationality",
+          "columnsFrom": [
+            "nation_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "circuit_layout_version": {
+      "name": "circuit_layout_version",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "circuit_id": {
+          "name": "circuit_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "version_label": {
+          "name": "version_label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "effective_from_year": {
+          "name": "effective_from_year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "length_km": {
+          "name": "length_km",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "overtaking_difficulty": {
+          "name": "overtaking_difficulty",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "abrasion": {
+          "name": "abrasion",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "downforce_importance": {
+          "name": "downforce_importance",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "power_importance": {
+          "name": "power_importance",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "braking_demand": {
+          "name": "braking_demand",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "traction_demand": {
+          "name": "traction_demand",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "elevation_change": {
+          "name": "elevation_change",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "wall_proximity": {
+          "name": "wall_proximity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "cooling_demand": {
+          "name": "cooling_demand",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "grip_baseline": {
+          "name": "grip_baseline",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "pit_loss_seconds": {
+          "name": "pit_loss_seconds",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "pit_lane_speed_factor": {
+          "name": "pit_lane_speed_factor",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "safety_car_likelihood": {
+          "name": "safety_car_likelihood",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "vsc_likelihood": {
+          "name": "vsc_likelihood",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "qualifying_lap_delta_sensitivity": {
+          "name": "qualifying_lap_delta_sensitivity",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "fuel_consumption_modifier": {
+          "name": "fuel_consumption_modifier",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ers_harvest_modifier": {
+          "name": "ers_harvest_modifier",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "top_speed_zone_factor": {
+          "name": "top_speed_zone_factor",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "corner_count": {
+          "name": "corner_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "possible_drs_zone_count": {
+          "name": "possible_drs_zone_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sectors_payload": {
+          "name": "sectors_payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "waypoints_payload": {
+          "name": "waypoints_payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "marshal_zones_payload": {
+          "name": "marshal_zones_payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "climate_profile_payload": {
+          "name": "climate_profile_payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "geometry_schema_version": {
+          "name": "geometry_schema_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "climate_profile_schema_version": {
+          "name": "climate_profile_schema_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "circuit_layout_version_unique": {
+          "name": "circuit_layout_version_unique",
+          "columns": [
+            "circuit_id",
+            "version_label"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "circuit_layout_version_circuit_id_circuit_id_fk": {
+          "name": "circuit_layout_version_circuit_id_circuit_id_fk",
+          "tableFrom": "circuit_layout_version",
+          "tableTo": "circuit",
+          "columnsFrom": [
+            "circuit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "driver": {
+      "name": "driver",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "date_of_birth": {
+          "name": "date_of_birth",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "nationality_id": {
+          "name": "nationality_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "portrait_id": {
+          "name": "portrait_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "biography_seed": {
+          "name": "biography_seed",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "preferred_number": {
+          "name": "preferred_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "career_start_year": {
+          "name": "career_start_year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "retired_at": {
+          "name": "retired_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "reputation": {
+          "name": "reputation",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ambition": {
+          "name": "ambition",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "loyalty": {
+          "name": "loyalty",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "temperament": {
+          "name": "temperament",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "leadership": {
+          "name": "leadership",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "media_handling": {
+          "name": "media_handling",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "development_rate": {
+          "name": "development_rate",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "peak_age_start": {
+          "name": "peak_age_start",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "peak_age_end": {
+          "name": "peak_age_end",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "decline_rate": {
+          "name": "decline_rate",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "pace": {
+          "name": "pace",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "race_craft": {
+          "name": "race_craft",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "consistency": {
+          "name": "consistency",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tyre_management": {
+          "name": "tyre_management",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "fuel_management": {
+          "name": "fuel_management",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ers_management": {
+          "name": "ers_management",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "wet_pace": {
+          "name": "wet_pace",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "qualifying_pace": {
+          "name": "qualifying_pace",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "starts": {
+          "name": "starts",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "focus": {
+          "name": "focus",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "feedback": {
+          "name": "feedback",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "adaptability": {
+          "name": "adaptability",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "aggression": {
+          "name": "aggression",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "composure": {
+          "name": "composure",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "pace_potential": {
+          "name": "pace_potential",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "race_craft_potential": {
+          "name": "race_craft_potential",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "consistency_potential": {
+          "name": "consistency_potential",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tyre_management_potential": {
+          "name": "tyre_management_potential",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "fuel_management_potential": {
+          "name": "fuel_management_potential",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ers_management_potential": {
+          "name": "ers_management_potential",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "wet_pace_potential": {
+          "name": "wet_pace_potential",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "qualifying_pace_potential": {
+          "name": "qualifying_pace_potential",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "starts_potential": {
+          "name": "starts_potential",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "focus_potential": {
+          "name": "focus_potential",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "feedback_potential": {
+          "name": "feedback_potential",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "adaptability_potential": {
+          "name": "adaptability_potential",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "aggression_potential": {
+          "name": "aggression_potential",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "composure_potential": {
+          "name": "composure_potential",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "driver_nationality_idx": {
+          "name": "driver_nationality_idx",
+          "columns": [
+            "nationality_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "driver_nationality_id_nationality_id_fk": {
+          "name": "driver_nationality_id_nationality_id_fk",
+          "tableFrom": "driver",
+          "tableTo": "nationality",
+          "columnsFrom": [
+            "nationality_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "driver_championship_experience": {
+      "name": "driver_championship_experience",
+      "columns": {
+        "driver_id": {
+          "name": "driver_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "championship_id": {
+          "name": "championship_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "starts": {
+          "name": "starts",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "wins": {
+          "name": "wins",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "podiums": {
+          "name": "podiums",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "championships": {
+          "name": "championships",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "driver_championship_experience_unique": {
+          "name": "driver_championship_experience_unique",
+          "columns": [
+            "driver_id",
+            "championship_id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "driver_championship_experience_driver_id_driver_id_fk": {
+          "name": "driver_championship_experience_driver_id_driver_id_fk",
+          "tableFrom": "driver_championship_experience",
+          "tableTo": "driver",
+          "columnsFrom": [
+            "driver_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "driver_championship_experience_championship_id_championship_id_fk": {
+          "name": "driver_championship_experience_championship_id_championship_id_fk",
+          "tableFrom": "driver_championship_experience",
+          "tableTo": "championship",
+          "columnsFrom": [
+            "championship_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "driver_contract": {
+      "name": "driver_contract",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "driver_id": {
+          "name": "driver_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "off_screen_series_id": {
+          "name": "off_screen_series_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "is_virtual_off_screen": {
+          "name": "is_virtual_off_screen",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "wage_per_year_minor": {
+          "name": "wage_per_year_minor",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "signing_bonus_minor": {
+          "name": "signing_bonus_minor",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "break_clause_fee_minor": {
+          "name": "break_clause_fee_minor",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "currency_code": {
+          "name": "currency_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "end_date": {
+          "name": "end_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "terminated_date": {
+          "name": "terminated_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "driver_contract_driver_dates_idx": {
+          "name": "driver_contract_driver_dates_idx",
+          "columns": [
+            "driver_id",
+            "start_date",
+            "end_date"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "driver_contract_driver_id_driver_id_fk": {
+          "name": "driver_contract_driver_id_driver_id_fk",
+          "tableFrom": "driver_contract",
+          "tableTo": "driver",
+          "columnsFrom": [
+            "driver_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "driver_contract_team_id_team_id_fk": {
+          "name": "driver_contract_team_id_team_id_fk",
+          "tableFrom": "driver_contract",
+          "tableTo": "team",
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "driver_contract_bonus": {
+      "name": "driver_contract_bonus",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "contract_id": {
+          "name": "contract_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "bonus_type": {
+          "name": "bonus_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "amount_minor": {
+          "name": "amount_minor",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "currency_code": {
+          "name": "currency_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "trigger_payload": {
+          "name": "trigger_payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "trigger_schema_version": {
+          "name": "trigger_schema_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "driver_contract_bonus_contract_idx": {
+          "name": "driver_contract_bonus_contract_idx",
+          "columns": [
+            "contract_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "driver_contract_bonus_contract_id_driver_contract_id_fk": {
+          "name": "driver_contract_bonus_contract_id_driver_contract_id_fk",
+          "tableFrom": "driver_contract_bonus",
+          "tableTo": "driver_contract",
+          "columnsFrom": [
+            "contract_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "driver_health": {
+      "name": "driver_health",
+      "columns": {
+        "driver_id": {
+          "name": "driver_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "injury_severity": {
+          "name": "injury_severity",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "injury_days_remaining": {
+          "name": "injury_days_remaining",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "fatigue": {
+          "name": "fatigue",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "morale": {
+          "name": "morale",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "form": {
+          "name": "form",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "driver_health_driver_id_driver_id_fk": {
+          "name": "driver_health_driver_id_driver_id_fk",
+          "tableFrom": "driver_health",
+          "tableTo": "driver",
+          "columnsFrom": [
+            "driver_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "driver_health_fatigue_check": {
+          "name": "driver_health_fatigue_check",
+          "value": "\"driver_health\".\"fatigue\" BETWEEN 0 AND 100"
+        },
+        "driver_health_morale_check": {
+          "name": "driver_health_morale_check",
+          "value": "\"driver_health\".\"morale\" BETWEEN 0 AND 100"
+        },
+        "driver_health_form_check": {
+          "name": "driver_health_form_check",
+          "value": "\"driver_health\".\"form\" BETWEEN -10 AND 10"
+        }
+      }
+    },
+    "driver_relationship": {
+      "name": "driver_relationship",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "driver_id": {
+          "name": "driver_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "other_driver_id": {
+          "name": "other_driver_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "relationship_type": {
+          "name": "relationship_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "value": {
+          "name": "value",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "effective_date": {
+          "name": "effective_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "driver_relationship_pair_unique": {
+          "name": "driver_relationship_pair_unique",
+          "columns": [
+            "driver_id",
+            "other_driver_id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "driver_relationship_driver_id_driver_id_fk": {
+          "name": "driver_relationship_driver_id_driver_id_fk",
+          "tableFrom": "driver_relationship",
+          "tableTo": "driver",
+          "columnsFrom": [
+            "driver_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "driver_relationship_other_driver_id_driver_id_fk": {
+          "name": "driver_relationship_other_driver_id_driver_id_fk",
+          "tableFrom": "driver_relationship",
+          "tableTo": "driver",
+          "columnsFrom": [
+            "other_driver_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "event_entry": {
+      "name": "event_entry",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "championship_event_id": {
+          "name": "championship_event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "team_season_entry_id": {
+          "name": "team_season_entry_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "chassis_instance_id": {
+          "name": "chassis_instance_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "driver_id": {
+          "name": "driver_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "car_number": {
+          "name": "car_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "baseline_resolved_snapshot_id": {
+          "name": "baseline_resolved_snapshot_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "event_entry_team_number_unique": {
+          "name": "event_entry_team_number_unique",
+          "columns": [
+            "championship_event_id",
+            "team_season_entry_id",
+            "car_number"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "event_entry_championship_event_id_championship_event_id_fk": {
+          "name": "event_entry_championship_event_id_championship_event_id_fk",
+          "tableFrom": "event_entry",
+          "tableTo": "championship_event",
+          "columnsFrom": [
+            "championship_event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "event_entry_team_season_entry_id_team_season_entry_id_fk": {
+          "name": "event_entry_team_season_entry_id_team_season_entry_id_fk",
+          "tableFrom": "event_entry",
+          "tableTo": "team_season_entry",
+          "columnsFrom": [
+            "team_season_entry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "event_entry_chassis_instance_id_chassis_instance_id_fk": {
+          "name": "event_entry_chassis_instance_id_chassis_instance_id_fk",
+          "tableFrom": "event_entry",
+          "tableTo": "chassis_instance",
+          "columnsFrom": [
+            "chassis_instance_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "event_entry_driver_id_driver_id_fk": {
+          "name": "event_entry_driver_id_driver_id_fk",
+          "tableFrom": "event_entry",
+          "tableTo": "driver",
+          "columnsFrom": [
+            "driver_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "event_entry_baseline_resolved_snapshot_id_resolved_performance_snapshot_id_fk": {
+          "name": "event_entry_baseline_resolved_snapshot_id_resolved_performance_snapshot_id_fk",
+          "tableFrom": "event_entry",
+          "tableTo": "resolved_performance_snapshot",
+          "columnsFrom": [
+            "baseline_resolved_snapshot_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "event_session_definition": {
+      "name": "event_session_definition",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "championship_event_id": {
+          "name": "championship_event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_slot_id": {
+          "name": "source_slot_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sequence": {
+          "name": "sequence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "session_kind": {
+          "name": "session_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "scheduled_start": {
+          "name": "scheduled_start",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "scheduled_laps": {
+          "name": "scheduled_laps",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "scheduled_minutes": {
+          "name": "scheduled_minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "drs_enabled_override": {
+          "name": "drs_enabled_override",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "grid_source_session_definition_id": {
+          "name": "grid_source_session_definition_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "reverse_grid_count": {
+          "name": "reverse_grid_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "mandatory_pit_stops": {
+          "name": "mandatory_pit_stops",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "required_compound_rule_id": {
+          "name": "required_compound_rule_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "points_system_id": {
+          "name": "points_system_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "fastest_lap_point_eligible": {
+          "name": "fastest_lap_point_eligible",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "parc_ferme_from_previous": {
+          "name": "parc_ferme_from_previous",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "event_session_definition_sequence_unique": {
+          "name": "event_session_definition_sequence_unique",
+          "columns": [
+            "championship_event_id",
+            "sequence"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "event_session_definition_championship_event_id_championship_event_id_fk": {
+          "name": "event_session_definition_championship_event_id_championship_event_id_fk",
+          "tableFrom": "event_session_definition",
+          "tableTo": "championship_event",
+          "columnsFrom": [
+            "championship_event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "event_session_definition_source_slot_id_weekend_format_session_slot_id_fk": {
+          "name": "event_session_definition_source_slot_id_weekend_format_session_slot_id_fk",
+          "tableFrom": "event_session_definition",
+          "tableTo": "weekend_format_session_slot",
+          "columnsFrom": [
+            "source_slot_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "event_session_definition_grid_source_session_definition_id_event_session_definition_id_fk": {
+          "name": "event_session_definition_grid_source_session_definition_id_event_session_definition_id_fk",
+          "tableFrom": "event_session_definition",
+          "tableTo": "event_session_definition",
+          "columnsFrom": [
+            "grid_source_session_definition_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "event_session_definition_required_compound_rule_id_required_compound_rule_id_fk": {
+          "name": "event_session_definition_required_compound_rule_id_required_compound_rule_id_fk",
+          "tableFrom": "event_session_definition",
+          "tableTo": "required_compound_rule",
+          "columnsFrom": [
+            "required_compound_rule_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "event_session_definition_points_system_id_points_system_id_fk": {
+          "name": "event_session_definition_points_system_id_points_system_id_fk",
+          "tableFrom": "event_session_definition",
+          "tableTo": "points_system",
+          "columnsFrom": [
+            "points_system_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "event_tyre_allocation": {
+      "name": "event_tyre_allocation",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "event_entry_id": {
+          "name": "event_entry_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tyre_compound_spec_id": {
+          "name": "tyre_compound_spec_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sets_entitled": {
+          "name": "sets_entitled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "event_tyre_allocation_unique": {
+          "name": "event_tyre_allocation_unique",
+          "columns": [
+            "event_entry_id",
+            "tyre_compound_spec_id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "event_tyre_allocation_event_entry_id_event_entry_id_fk": {
+          "name": "event_tyre_allocation_event_entry_id_event_entry_id_fk",
+          "tableFrom": "event_tyre_allocation",
+          "tableTo": "event_entry",
+          "columnsFrom": [
+            "event_entry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "event_tyre_allocation_tyre_compound_spec_id_tyre_compound_spec_id_fk": {
+          "name": "event_tyre_allocation_tyre_compound_spec_id_tyre_compound_spec_id_fk",
+          "tableFrom": "event_tyre_allocation",
+          "tableTo": "tyre_compound_spec",
+          "columnsFrom": [
+            "tyre_compound_spec_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "layout_record": {
+      "name": "layout_record",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "circuit_layout_version_id": {
+          "name": "circuit_layout_version_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "championship_id": {
+          "name": "championship_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "session_kind": {
+          "name": "session_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "lap_time_ms": {
+          "name": "lap_time_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "driver_id": {
+          "name": "driver_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "season_year": {
+          "name": "season_year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "layout_record_lookup_idx": {
+          "name": "layout_record_lookup_idx",
+          "columns": [
+            "circuit_layout_version_id",
+            "championship_id",
+            "season_year"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "layout_record_circuit_layout_version_id_circuit_layout_version_id_fk": {
+          "name": "layout_record_circuit_layout_version_id_circuit_layout_version_id_fk",
+          "tableFrom": "layout_record",
+          "tableTo": "circuit_layout_version",
+          "columnsFrom": [
+            "circuit_layout_version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "layout_record_championship_id_championship_id_fk": {
+          "name": "layout_record_championship_id_championship_id_fk",
+          "tableFrom": "layout_record",
+          "tableTo": "championship",
+          "columnsFrom": [
+            "championship_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "layout_record_driver_id_driver_id_fk": {
+          "name": "layout_record_driver_id_driver_id_fk",
+          "tableFrom": "layout_record",
+          "tableTo": "driver",
+          "columnsFrom": [
+            "driver_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "license_point_award": {
+      "name": "license_point_award",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "driver_id": {
+          "name": "driver_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points": {
+          "name": "points",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_type": {
+          "name": "source_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_id": {
+          "name": "source_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "awarded_at": {
+          "name": "awarded_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "license_point_award_driver_idx": {
+          "name": "license_point_award_driver_idx",
+          "columns": [
+            "driver_id",
+            "awarded_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "license_point_award_driver_id_driver_id_fk": {
+          "name": "license_point_award_driver_id_driver_id_fk",
+          "tableFrom": "license_point_award",
+          "tableTo": "driver",
+          "columnsFrom": [
+            "driver_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "nationality": {
+      "name": "nationality",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "nationality_code_unique": {
+          "name": "nationality_code_unique",
+          "columns": [
+            "code"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "part_design_version": {
+      "name": "part_design_version",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "part_category": {
+          "name": "part_category",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "formula_version": {
+          "name": "formula_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "inputs_hash": {
+          "name": "inputs_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "performance_payload": {
+          "name": "performance_payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "performance_schema_version": {
+          "name": "performance_schema_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reliability_payload": {
+          "name": "reliability_payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reliability_schema_version": {
+          "name": "reliability_schema_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "part_design_version_team_category_version_unique": {
+          "name": "part_design_version_team_category_version_unique",
+          "columns": [
+            "team_id",
+            "part_category",
+            "version"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "part_design_version_team_id_team_id_fk": {
+          "name": "part_design_version_team_id_team_id_fk",
+          "tableFrom": "part_design_version",
+          "tableTo": "team",
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "part_installation": {
+      "name": "part_installation",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "part_instance_id": {
+          "name": "part_instance_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "chassis_instance_id": {
+          "name": "chassis_instance_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "slot": {
+          "name": "slot",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "installed_at": {
+          "name": "installed_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "removed_at": {
+          "name": "removed_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "part_installation_chassis_dates_idx": {
+          "name": "part_installation_chassis_dates_idx",
+          "columns": [
+            "chassis_instance_id",
+            "installed_at",
+            "removed_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "part_installation_part_instance_id_part_instance_id_fk": {
+          "name": "part_installation_part_instance_id_part_instance_id_fk",
+          "tableFrom": "part_installation",
+          "tableTo": "part_instance",
+          "columnsFrom": [
+            "part_instance_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "part_installation_chassis_instance_id_chassis_instance_id_fk": {
+          "name": "part_installation_chassis_instance_id_chassis_instance_id_fk",
+          "tableFrom": "part_installation",
+          "tableTo": "chassis_instance",
+          "columnsFrom": [
+            "chassis_instance_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "part_instance": {
+      "name": "part_instance",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "team_season_entry_id": {
+          "name": "team_season_entry_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "part_design_version_id": {
+          "name": "part_design_version_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "serial_number": {
+          "name": "serial_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "part_instance_serial_unique": {
+          "name": "part_instance_serial_unique",
+          "columns": [
+            "serial_number"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "part_instance_team_season_entry_id_team_season_entry_id_fk": {
+          "name": "part_instance_team_season_entry_id_team_season_entry_id_fk",
+          "tableFrom": "part_instance",
+          "tableTo": "team_season_entry",
+          "columnsFrom": [
+            "team_season_entry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "part_instance_part_design_version_id_part_design_version_id_fk": {
+          "name": "part_instance_part_design_version_id_part_design_version_id_fk",
+          "tableFrom": "part_instance",
+          "tableTo": "part_design_version",
+          "columnsFrom": [
+            "part_design_version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "points_system": {
+      "name": "points_system",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "pole_points": {
+          "name": "pole_points",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "fastest_lap_points": {
+          "name": "fastest_lap_points",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "fastest_lap_min_finish_position": {
+          "name": "fastest_lap_min_finish_position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "fastest_lap_requires_classified": {
+          "name": "fastest_lap_requires_classified",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "shortened_race_allocation_mode": {
+          "name": "shortened_race_allocation_mode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "shortened_race_distance_pct_threshold": {
+          "name": "shortened_race_distance_pct_threshold",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "classification_require_pct_distance": {
+          "name": "classification_require_pct_distance",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "points_system_code_version_unique": {
+          "name": "points_system_code_version_unique",
+          "columns": [
+            "code",
+            "version"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "points_system_place_point": {
+      "name": "points_system_place_point",
+      "columns": {
+        "points_system_id": {
+          "name": "points_system_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points": {
+          "name": "points",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "points_system_place_point_unique": {
+          "name": "points_system_place_point_unique",
+          "columns": [
+            "points_system_id",
+            "position"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "points_system_place_point_points_system_id_points_system_id_fk": {
+          "name": "points_system_place_point_points_system_id_points_system_id_fk",
+          "tableFrom": "points_system_place_point",
+          "tableTo": "points_system",
+          "columnsFrom": [
+            "points_system_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "race_result_detail": {
+      "name": "race_result_detail",
+      "columns": {
+        "session_result_id": {
+          "name": "session_result_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "pit_stops": {
+          "name": "pit_stops",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "laps_led": {
+          "name": "laps_led",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "retirement_reason": {
+          "name": "retirement_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "positions_gained": {
+          "name": "positions_gained",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "race_result_detail_session_result_id_session_result_id_fk": {
+          "name": "race_result_detail_session_result_id_session_result_id_fk",
+          "tableFrom": "race_result_detail",
+          "tableTo": "session_result",
+          "columnsFrom": [
+            "session_result_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "required_compound_rule": {
+      "name": "required_compound_rule",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "payload": {
+          "name": "payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "payload_schema_version": {
+          "name": "payload_schema_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "required_compound_rule_code_version_unique": {
+          "name": "required_compound_rule_code_version_unique",
+          "columns": [
+            "code",
+            "version"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "resolved_performance_snapshot": {
+      "name": "resolved_performance_snapshot",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ruleset_id": {
+          "name": "ruleset_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "formula_version": {
+          "name": "formula_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "inputs_hash": {
+          "name": "inputs_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "top_speed": {
+          "name": "top_speed",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "acceleration": {
+          "name": "acceleration",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "cornering_high": {
+          "name": "cornering_high",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "cornering_low": {
+          "name": "cornering_low",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "braking_stability": {
+          "name": "braking_stability",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "drag": {
+          "name": "drag",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "cooling_efficiency": {
+          "name": "cooling_efficiency",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "fuel_efficiency": {
+          "name": "fuel_efficiency",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ers_deploy_power": {
+          "name": "ers_deploy_power",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ers_harvest_efficiency": {
+          "name": "ers_harvest_efficiency",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ers_battery_capacity": {
+          "name": "ers_battery_capacity",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reliability_overall": {
+          "name": "reliability_overall",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "dry_weight_kg": {
+          "name": "dry_weight_kg",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "resolved_performance_snapshot_ruleset_idx": {
+          "name": "resolved_performance_snapshot_ruleset_idx",
+          "columns": [
+            "ruleset_id",
+            "created_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "resolved_performance_snapshot_ruleset_id_championship_season_ruleset_id_fk": {
+          "name": "resolved_performance_snapshot_ruleset_id_championship_season_ruleset_id_fk",
+          "tableFrom": "resolved_performance_snapshot",
+          "tableTo": "championship_season_ruleset",
+          "columnsFrom": [
+            "ruleset_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ruleset_part_category_rule": {
+      "name": "ruleset_part_category_rule",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ruleset_id": {
+          "name": "ruleset_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "part_category": {
+          "name": "part_category",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "participant_status": {
+          "name": "participant_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "procurement_mode": {
+          "name": "procurement_mode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "upgrade_mode": {
+          "name": "upgrade_mode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "ruleset_part_category_rule_scope_unique": {
+          "name": "ruleset_part_category_rule_scope_unique",
+          "columns": [
+            "ruleset_id",
+            "part_category",
+            "participant_status"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "ruleset_part_category_rule_ruleset_id_championship_season_ruleset_id_fk": {
+          "name": "ruleset_part_category_rule_ruleset_id_championship_season_ruleset_id_fk",
+          "tableFrom": "ruleset_part_category_rule",
+          "tableTo": "championship_season_ruleset",
+          "columnsFrom": [
+            "ruleset_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ruleset_supply_contract_tier": {
+      "name": "ruleset_supply_contract_tier",
+      "columns": {
+        "ruleset_id": {
+          "name": "ruleset_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tier": {
+          "name": "tier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "ruleset_supply_contract_tier_unique": {
+          "name": "ruleset_supply_contract_tier_unique",
+          "columns": [
+            "ruleset_id",
+            "tier"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "ruleset_supply_contract_tier_ruleset_id_championship_season_ruleset_id_fk": {
+          "name": "ruleset_supply_contract_tier_ruleset_id_championship_season_ruleset_id_fk",
+          "tableFrom": "ruleset_supply_contract_tier",
+          "tableTo": "championship_season_ruleset",
+          "columnsFrom": [
+            "ruleset_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "save_game": {
+      "name": "save_game",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "singleton_key": {
+          "name": "singleton_key",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "schema_version": {
+          "name": "schema_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "game_version": {
+          "name": "game_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "content_data_version": {
+          "name": "content_data_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "world_date": {
+          "name": "world_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "rng_algorithm": {
+          "name": "rng_algorithm",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "rng_state": {
+          "name": "rng_state",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "save_game_singleton_key_unique": {
+          "name": "save_game_singleton_key_unique",
+          "columns": [
+            "singleton_key"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "save_game_singleton_key_check": {
+          "name": "save_game_singleton_key_check",
+          "value": "\"save_game\".\"singleton_key\" = 1"
+        }
+      }
+    },
+    "save_migration_history": {
+      "name": "save_migration_history",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "save_id": {
+          "name": "save_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "from_schema_version": {
+          "name": "from_schema_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "to_schema_version": {
+          "name": "to_schema_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "applied_at": {
+          "name": "applied_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "save_migration_history_save_applied_idx": {
+          "name": "save_migration_history_save_applied_idx",
+          "columns": [
+            "save_id",
+            "applied_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "save_migration_history_save_id_save_game_id_fk": {
+          "name": "save_migration_history_save_id_save_game_id_fk",
+          "tableFrom": "save_migration_history",
+          "tableTo": "save_game",
+          "columnsFrom": [
+            "save_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "scouting_attribute_knowledge": {
+      "name": "scouting_attribute_knowledge",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "report_id": {
+          "name": "report_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "attribute": {
+          "name": "attribute",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "known_value": {
+          "name": "known_value",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "minimum_value": {
+          "name": "minimum_value",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "maximum_value": {
+          "name": "maximum_value",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "confidence": {
+          "name": "confidence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "scouting_attribute_knowledge_unique": {
+          "name": "scouting_attribute_knowledge_unique",
+          "columns": [
+            "report_id",
+            "attribute"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "scouting_attribute_knowledge_report_id_scouting_report_id_fk": {
+          "name": "scouting_attribute_knowledge_report_id_scouting_report_id_fk",
+          "tableFrom": "scouting_attribute_knowledge",
+          "tableTo": "scouting_report",
+          "columnsFrom": [
+            "report_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "scouting_report": {
+      "name": "scouting_report",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "driver_id": {
+          "name": "driver_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "confidence": {
+          "name": "confidence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "scouting_report_driver_team_idx": {
+          "name": "scouting_report_driver_team_idx",
+          "columns": [
+            "driver_id",
+            "team_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "scouting_report_driver_id_driver_id_fk": {
+          "name": "scouting_report_driver_id_driver_id_fk",
+          "tableFrom": "scouting_report",
+          "tableTo": "driver",
+          "columnsFrom": [
+            "driver_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "scouting_report_team_id_team_id_fk": {
+          "name": "scouting_report_team_id_team_id_fk",
+          "tableFrom": "scouting_report",
+          "tableTo": "team",
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "seat_assignment": {
+      "name": "seat_assignment",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "driver_id": {
+          "name": "driver_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "team_season_entry_id": {
+          "name": "team_season_entry_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "seat_role": {
+          "name": "seat_role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "end_date": {
+          "name": "end_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "is_primary": {
+          "name": "is_primary",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "seat_assignment_driver_dates_idx": {
+          "name": "seat_assignment_driver_dates_idx",
+          "columns": [
+            "driver_id",
+            "start_date",
+            "end_date"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "seat_assignment_driver_id_driver_id_fk": {
+          "name": "seat_assignment_driver_id_driver_id_fk",
+          "tableFrom": "seat_assignment",
+          "tableTo": "driver",
+          "columnsFrom": [
+            "driver_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "seat_assignment_team_season_entry_id_team_season_entry_id_fk": {
+          "name": "seat_assignment_team_season_entry_id_team_season_entry_id_fk",
+          "tableFrom": "seat_assignment",
+          "tableTo": "team_season_entry",
+          "columnsFrom": [
+            "team_season_entry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "session_car_checkpoint": {
+      "name": "session_car_checkpoint",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "checkpoint_id": {
+          "name": "checkpoint_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "session_entry_id": {
+          "name": "session_entry_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "current_lap": {
+          "name": "current_lap",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sector_index": {
+          "name": "sector_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "waypoint_progress": {
+          "name": "waypoint_progress",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "race_position": {
+          "name": "race_position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "gap_to_leader_ms": {
+          "name": "gap_to_leader_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "interval_ahead_ms": {
+          "name": "interval_ahead_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "current_lap_time_ms": {
+          "name": "current_lap_time_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "last_sector_time_ms": {
+          "name": "last_sector_time_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "sector_times_ms_payload": {
+          "name": "sector_times_ms_payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sector_times_schema_version": {
+          "name": "sector_times_schema_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "pit_phase": {
+          "name": "pit_phase",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "pit_phase_elapsed_ms": {
+          "name": "pit_phase_elapsed_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "fuel_kg": {
+          "name": "fuel_kg",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "mounted_tyre_set_id": {
+          "name": "mounted_tyre_set_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "ers_charge_percent": {
+          "name": "ers_charge_percent",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "engine_mode": {
+          "name": "engine_mode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "pit_stops_completed": {
+          "name": "pit_stops_completed",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "penalty_payload": {
+          "name": "penalty_payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "penalty_schema_version": {
+          "name": "penalty_schema_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "simulation_state_payload": {
+          "name": "simulation_state_payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "simulation_state_schema_version": {
+          "name": "simulation_state_schema_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "retirement_state": {
+          "name": "retirement_state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "retirement_reason": {
+          "name": "retirement_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "session_car_checkpoint_entry_unique": {
+          "name": "session_car_checkpoint_entry_unique",
+          "columns": [
+            "checkpoint_id",
+            "session_entry_id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "session_car_checkpoint_checkpoint_id_session_checkpoint_id_fk": {
+          "name": "session_car_checkpoint_checkpoint_id_session_checkpoint_id_fk",
+          "tableFrom": "session_car_checkpoint",
+          "tableTo": "session_checkpoint",
+          "columnsFrom": [
+            "checkpoint_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "session_car_checkpoint_session_entry_id_session_entry_id_fk": {
+          "name": "session_car_checkpoint_session_entry_id_session_entry_id_fk",
+          "tableFrom": "session_car_checkpoint",
+          "tableTo": "session_entry",
+          "columnsFrom": [
+            "session_entry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "session_car_checkpoint_mounted_tyre_set_id_tyre_set_id_fk": {
+          "name": "session_car_checkpoint_mounted_tyre_set_id_tyre_set_id_fk",
+          "tableFrom": "session_car_checkpoint",
+          "tableTo": "tyre_set",
+          "columnsFrom": [
+            "mounted_tyre_set_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "session_checkpoint": {
+      "name": "session_checkpoint",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "weekend_session_id": {
+          "name": "weekend_session_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "checkpoint_seq": {
+          "name": "checkpoint_seq",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sim_clock_ms": {
+          "name": "sim_clock_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "rng_algorithm": {
+          "name": "rng_algorithm",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "rng_state": {
+          "name": "rng_state",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "phase": {
+          "name": "phase",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "safety_car_state_payload": {
+          "name": "safety_car_state_payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "safety_car_state_schema_version": {
+          "name": "safety_car_state_schema_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "weather_state_payload": {
+          "name": "weather_state_payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "weather_state_schema_version": {
+          "name": "weather_state_schema_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "strategy_state_payload": {
+          "name": "strategy_state_payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "strategy_state_schema_version": {
+          "name": "strategy_state_schema_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "resume_state_payload": {
+          "name": "resume_state_payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "resume_state_schema_version": {
+          "name": "resume_state_schema_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "leader_session_entry_id": {
+          "name": "leader_session_entry_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "checkpointed_at": {
+          "name": "checkpointed_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "session_checkpoint_session_unique": {
+          "name": "session_checkpoint_session_unique",
+          "columns": [
+            "weekend_session_id"
+          ],
+          "isUnique": true
+        },
+        "session_checkpoint_sequence_unique": {
+          "name": "session_checkpoint_sequence_unique",
+          "columns": [
+            "weekend_session_id",
+            "checkpoint_seq"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "session_checkpoint_weekend_session_id_weekend_session_id_fk": {
+          "name": "session_checkpoint_weekend_session_id_weekend_session_id_fk",
+          "tableFrom": "session_checkpoint",
+          "tableTo": "weekend_session",
+          "columnsFrom": [
+            "weekend_session_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "session_checkpoint_leader_session_entry_id_session_entry_id_fk": {
+          "name": "session_checkpoint_leader_session_entry_id_session_entry_id_fk",
+          "tableFrom": "session_checkpoint",
+          "tableTo": "session_entry",
+          "columnsFrom": [
+            "leader_session_entry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "session_checkpoint_sequence_check": {
+          "name": "session_checkpoint_sequence_check",
+          "value": "\"session_checkpoint\".\"checkpoint_seq\" >= 1"
+        },
+        "session_checkpoint_clock_check": {
+          "name": "session_checkpoint_clock_check",
+          "value": "\"session_checkpoint\".\"sim_clock_ms\" >= 0"
+        }
+      }
+    },
+    "session_damage_component": {
+      "name": "session_damage_component",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "session_entry_id": {
+          "name": "session_entry_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "component": {
+          "name": "component",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "severity": {
+          "name": "severity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "performance_penalty_payload": {
+          "name": "performance_penalty_payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "performance_penalty_schema_version": {
+          "name": "performance_penalty_schema_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "session_damage_component_entry_idx": {
+          "name": "session_damage_component_entry_idx",
+          "columns": [
+            "session_entry_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "session_damage_component_session_entry_id_session_entry_id_fk": {
+          "name": "session_damage_component_session_entry_id_session_entry_id_fk",
+          "tableFrom": "session_damage_component",
+          "tableTo": "session_entry",
+          "columnsFrom": [
+            "session_entry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "session_entry": {
+      "name": "session_entry",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "weekend_session_id": {
+          "name": "weekend_session_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "event_entry_id": {
+          "name": "event_entry_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "driver_id": {
+          "name": "driver_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "grid_slot": {
+          "name": "grid_slot",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "start_status": {
+          "name": "start_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "resolved_performance_snapshot_id": {
+          "name": "resolved_performance_snapshot_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "session_entry_driver_unique": {
+          "name": "session_entry_driver_unique",
+          "columns": [
+            "weekend_session_id",
+            "driver_id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "session_entry_weekend_session_id_weekend_session_id_fk": {
+          "name": "session_entry_weekend_session_id_weekend_session_id_fk",
+          "tableFrom": "session_entry",
+          "tableTo": "weekend_session",
+          "columnsFrom": [
+            "weekend_session_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "session_entry_event_entry_id_event_entry_id_fk": {
+          "name": "session_entry_event_entry_id_event_entry_id_fk",
+          "tableFrom": "session_entry",
+          "tableTo": "event_entry",
+          "columnsFrom": [
+            "event_entry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "session_entry_driver_id_driver_id_fk": {
+          "name": "session_entry_driver_id_driver_id_fk",
+          "tableFrom": "session_entry",
+          "tableTo": "driver",
+          "columnsFrom": [
+            "driver_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "session_entry_resolved_performance_snapshot_id_resolved_performance_snapshot_id_fk": {
+          "name": "session_entry_resolved_performance_snapshot_id_resolved_performance_snapshot_id_fk",
+          "tableFrom": "session_entry",
+          "tableTo": "resolved_performance_snapshot",
+          "columnsFrom": [
+            "resolved_performance_snapshot_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "session_event": {
+      "name": "session_event",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "weekend_session_id": {
+          "name": "weekend_session_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sequence": {
+          "name": "sequence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "simulation_time_ms": {
+          "name": "simulation_time_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "lap": {
+          "name": "lap",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "segment_id": {
+          "name": "segment_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "event_type": {
+          "name": "event_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "session_entry_ids_payload": {
+          "name": "session_entry_ids_payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "payload": {
+          "name": "payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "payload_schema_version": {
+          "name": "payload_schema_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "session_event_sequence_unique": {
+          "name": "session_event_sequence_unique",
+          "columns": [
+            "weekend_session_id",
+            "sequence"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "session_event_weekend_session_id_weekend_session_id_fk": {
+          "name": "session_event_weekend_session_id_weekend_session_id_fk",
+          "tableFrom": "session_event",
+          "tableTo": "weekend_session",
+          "columnsFrom": [
+            "weekend_session_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "session_event_sequence_check": {
+          "name": "session_event_sequence_check",
+          "value": "\"session_event\".\"sequence\" >= 1"
+        },
+        "session_event_clock_check": {
+          "name": "session_event_clock_check",
+          "value": "\"session_event\".\"simulation_time_ms\" >= 0"
+        }
+      }
+    },
+    "session_point_award": {
+      "name": "session_point_award",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "session_result_id": {
+          "name": "session_result_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points_system_id": {
+          "name": "points_system_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "award_kind": {
+          "name": "award_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points": {
+          "name": "points",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "session_point_award_result_idx": {
+          "name": "session_point_award_result_idx",
+          "columns": [
+            "session_result_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "session_point_award_session_result_id_session_result_id_fk": {
+          "name": "session_point_award_session_result_id_session_result_id_fk",
+          "tableFrom": "session_point_award",
+          "tableTo": "session_result",
+          "columnsFrom": [
+            "session_result_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "session_point_award_points_system_id_points_system_id_fk": {
+          "name": "session_point_award_points_system_id_points_system_id_fk",
+          "tableFrom": "session_point_award",
+          "tableTo": "points_system",
+          "columnsFrom": [
+            "points_system_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "session_result": {
+      "name": "session_result",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "session_entry_id": {
+          "name": "session_entry_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "weekend_session_id": {
+          "name": "weekend_session_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "classification_position": {
+          "name": "classification_position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "classification_status": {
+          "name": "classification_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "laps_completed": {
+          "name": "laps_completed",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "best_lap_ms": {
+          "name": "best_lap_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "best_lap_number": {
+          "name": "best_lap_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "total_time_ms": {
+          "name": "total_time_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "gap_to_leader_ms": {
+          "name": "gap_to_leader_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "laps_behind": {
+          "name": "laps_behind",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "finalized_at": {
+          "name": "finalized_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "session_result_entry_unique": {
+          "name": "session_result_entry_unique",
+          "columns": [
+            "session_entry_id"
+          ],
+          "isUnique": true
+        },
+        "session_result_position_unique": {
+          "name": "session_result_position_unique",
+          "columns": [
+            "weekend_session_id",
+            "classification_position"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "session_result_session_entry_id_session_entry_id_fk": {
+          "name": "session_result_session_entry_id_session_entry_id_fk",
+          "tableFrom": "session_result",
+          "tableTo": "session_entry",
+          "columnsFrom": [
+            "session_entry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "session_result_weekend_session_id_weekend_session_id_fk": {
+          "name": "session_result_weekend_session_id_weekend_session_id_fk",
+          "tableFrom": "session_result",
+          "tableTo": "weekend_session",
+          "columnsFrom": [
+            "weekend_session_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "session_result_laps_check": {
+          "name": "session_result_laps_check",
+          "value": "\"session_result\".\"laps_completed\" >= 0"
+        },
+        "session_result_position_check": {
+          "name": "session_result_position_check",
+          "value": "\"session_result\".\"classification_position\" IS NULL OR \"session_result\".\"classification_position\" >= 1"
+        }
+      }
+    },
+    "session_telemetry_archive": {
+      "name": "session_telemetry_archive",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "weekend_session_id": {
+          "name": "weekend_session_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "archive_path": {
+          "name": "archive_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "format": {
+          "name": "format",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "schema_version": {
+          "name": "schema_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sha256": {
+          "name": "sha256",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "byte_length": {
+          "name": "byte_length",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "purged_at": {
+          "name": "purged_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "session_telemetry_archive_session_idx": {
+          "name": "session_telemetry_archive_session_idx",
+          "columns": [
+            "weekend_session_id",
+            "created_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "session_telemetry_archive_weekend_session_id_weekend_session_id_fk": {
+          "name": "session_telemetry_archive_weekend_session_id_weekend_session_id_fk",
+          "tableFrom": "session_telemetry_archive",
+          "tableTo": "weekend_session",
+          "columnsFrom": [
+            "weekend_session_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "session_tyre_usage": {
+      "name": "session_tyre_usage",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "session_entry_id": {
+          "name": "session_entry_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tyre_set_id": {
+          "name": "tyre_set_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "laps": {
+          "name": "laps",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "wear_delta_percent": {
+          "name": "wear_delta_percent",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "session_tyre_usage_stint_unique": {
+          "name": "session_tyre_usage_stint_unique",
+          "columns": [
+            "session_entry_id",
+            "tyre_set_id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "session_tyre_usage_session_entry_id_session_entry_id_fk": {
+          "name": "session_tyre_usage_session_entry_id_session_entry_id_fk",
+          "tableFrom": "session_tyre_usage",
+          "tableTo": "session_entry",
+          "columnsFrom": [
+            "session_entry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "session_tyre_usage_tyre_set_id_tyre_set_id_fk": {
+          "name": "session_tyre_usage_tyre_set_id_tyre_set_id_fk",
+          "tableFrom": "session_tyre_usage",
+          "tableTo": "tyre_set",
+          "columnsFrom": [
+            "tyre_set_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "stint": {
+      "name": "stint",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "session_entry_id": {
+          "name": "session_entry_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tyre_set_id": {
+          "name": "tyre_set_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "start_lap": {
+          "name": "start_lap",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "end_lap": {
+          "name": "end_lap",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "fuel_start_kg": {
+          "name": "fuel_start_kg",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "fuel_end_kg": {
+          "name": "fuel_end_kg",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "stint_session_entry_lap_idx": {
+          "name": "stint_session_entry_lap_idx",
+          "columns": [
+            "session_entry_id",
+            "start_lap"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "stint_session_entry_id_session_entry_id_fk": {
+          "name": "stint_session_entry_id_session_entry_id_fk",
+          "tableFrom": "stint",
+          "tableTo": "session_entry",
+          "columnsFrom": [
+            "session_entry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "stint_tyre_set_id_tyre_set_id_fk": {
+          "name": "stint_tyre_set_id_tyre_set_id_fk",
+          "tableFrom": "stint",
+          "tableTo": "tyre_set",
+          "columnsFrom": [
+            "tyre_set_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "supply_contract": {
+      "name": "supply_contract",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "team_season_entry_id": {
+          "name": "team_season_entry_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "supplier_team_id": {
+          "name": "supplier_team_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "part_category": {
+          "name": "part_category",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "contract_tier": {
+          "name": "contract_tier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "end_date": {
+          "name": "end_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "annual_cost_minor": {
+          "name": "annual_cost_minor",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "currency_code": {
+          "name": "currency_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "supply_contract_team_dates_idx": {
+          "name": "supply_contract_team_dates_idx",
+          "columns": [
+            "team_season_entry_id",
+            "start_date",
+            "end_date"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "supply_contract_team_season_entry_id_team_season_entry_id_fk": {
+          "name": "supply_contract_team_season_entry_id_team_season_entry_id_fk",
+          "tableFrom": "supply_contract",
+          "tableTo": "team_season_entry",
+          "columnsFrom": [
+            "team_season_entry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "supply_contract_supplier_team_id_team_id_fk": {
+          "name": "supply_contract_supplier_team_id_team_id_fk",
+          "tableFrom": "supply_contract",
+          "tableTo": "team",
+          "columnsFrom": [
+            "supplier_team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "team": {
+      "name": "team",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "short_name": {
+          "name": "short_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "nationality_id": {
+          "name": "nationality_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "team_code_unique": {
+          "name": "team_code_unique",
+          "columns": [
+            "code"
+          ],
+          "isUnique": true
+        },
+        "team_nationality_idx": {
+          "name": "team_nationality_idx",
+          "columns": [
+            "nationality_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "team_nationality_id_nationality_id_fk": {
+          "name": "team_nationality_id_nationality_id_fk",
+          "tableFrom": "team",
+          "tableTo": "nationality",
+          "columnsFrom": [
+            "nationality_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "team_season_entry": {
+      "name": "team_season_entry",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "championship_season_id": {
+          "name": "championship_season_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "constructor_status": {
+          "name": "constructor_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "entries_count": {
+          "name": "entries_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "team_season_entry_team_season_unique": {
+          "name": "team_season_entry_team_season_unique",
+          "columns": [
+            "team_id",
+            "championship_season_id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "team_season_entry_team_id_team_id_fk": {
+          "name": "team_season_entry_team_id_team_id_fk",
+          "tableFrom": "team_season_entry",
+          "tableTo": "team",
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "team_season_entry_championship_season_id_championship_season_id_fk": {
+          "name": "team_season_entry_championship_season_id_championship_season_id_fk",
+          "tableFrom": "team_season_entry",
+          "tableTo": "championship_season",
+          "columnsFrom": [
+            "championship_season_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "tyre_compound": {
+      "name": "tyre_compound",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "tyre_compound_code_unique": {
+          "name": "tyre_compound_code_unique",
+          "columns": [
+            "code"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "tyre_compound_spec": {
+      "name": "tyre_compound_spec",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tyre_compound_id": {
+          "name": "tyre_compound_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "grip_peak": {
+          "name": "grip_peak",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "degradation_rate": {
+          "name": "degradation_rate",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "warm_up_laps": {
+          "name": "warm_up_laps",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "operating_window_min_c": {
+          "name": "operating_window_min_c",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "operating_window_max_c": {
+          "name": "operating_window_max_c",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "durability": {
+          "name": "durability",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "wetness_crossover": {
+          "name": "wetness_crossover",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "is_wet": {
+          "name": "is_wet",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "optimal_wetness_min_bp": {
+          "name": "optimal_wetness_min_bp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "optimal_wetness_max_bp": {
+          "name": "optimal_wetness_max_bp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "under_wetness_loss_ppm": {
+          "name": "under_wetness_loss_ppm",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "over_wetness_loss_ppm": {
+          "name": "over_wetness_loss_ppm",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "water_clearing_ppm": {
+          "name": "water_clearing_ppm",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "dry_track_wear_multiplier_ppm": {
+          "name": "dry_track_wear_multiplier_ppm",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "operating_temp_min_deci_c": {
+          "name": "operating_temp_min_deci_c",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "operating_temp_max_deci_c": {
+          "name": "operating_temp_max_deci_c",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "tyre_compound_spec_version_unique": {
+          "name": "tyre_compound_spec_version_unique",
+          "columns": [
+            "tyre_compound_id",
+            "version"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "tyre_compound_spec_tyre_compound_id_tyre_compound_id_fk": {
+          "name": "tyre_compound_spec_tyre_compound_id_tyre_compound_id_fk",
+          "tableFrom": "tyre_compound_spec",
+          "tableTo": "tyre_compound",
+          "columnsFrom": [
+            "tyre_compound_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "tyre_set": {
+      "name": "tyre_set",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "event_entry_id": {
+          "name": "event_entry_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tyre_compound_spec_id": {
+          "name": "tyre_compound_spec_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "set_index": {
+          "name": "set_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "wear_percent": {
+          "name": "wear_percent",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "tyre_set_entry_index_unique": {
+          "name": "tyre_set_entry_index_unique",
+          "columns": [
+            "event_entry_id",
+            "set_index"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "tyre_set_event_entry_id_event_entry_id_fk": {
+          "name": "tyre_set_event_entry_id_event_entry_id_fk",
+          "tableFrom": "tyre_set",
+          "tableTo": "event_entry",
+          "columnsFrom": [
+            "event_entry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "tyre_set_tyre_compound_spec_id_tyre_compound_spec_id_fk": {
+          "name": "tyre_set_tyre_compound_spec_id_tyre_compound_spec_id_fk",
+          "tableFrom": "tyre_set",
+          "tableTo": "tyre_compound_spec",
+          "columnsFrom": [
+            "tyre_compound_spec_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "tyre_set_wear_percent_check": {
+          "name": "tyre_set_wear_percent_check",
+          "value": "\"tyre_set\".\"wear_percent\" BETWEEN 0 AND 100"
+        }
+      }
+    },
+    "weekend_format_session_slot": {
+      "name": "weekend_format_session_slot",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "template_id": {
+          "name": "template_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sequence": {
+          "name": "sequence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "session_kind": {
+          "name": "session_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "target_laps": {
+          "name": "target_laps",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "target_minutes": {
+          "name": "target_minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "is_scored": {
+          "name": "is_scored",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "grid_source_slot_id": {
+          "name": "grid_source_slot_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "reverse_grid_count": {
+          "name": "reverse_grid_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "mandatory_pit_stops": {
+          "name": "mandatory_pit_stops",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "required_compound_rule_id": {
+          "name": "required_compound_rule_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "points_system_id": {
+          "name": "points_system_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "fastest_lap_point_eligible": {
+          "name": "fastest_lap_point_eligible",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "parc_ferme_from_previous": {
+          "name": "parc_ferme_from_previous",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "weekend_format_session_slot_sequence_unique": {
+          "name": "weekend_format_session_slot_sequence_unique",
+          "columns": [
+            "template_id",
+            "sequence"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "weekend_format_session_slot_template_id_weekend_format_template_id_fk": {
+          "name": "weekend_format_session_slot_template_id_weekend_format_template_id_fk",
+          "tableFrom": "weekend_format_session_slot",
+          "tableTo": "weekend_format_template",
+          "columnsFrom": [
+            "template_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "weekend_format_session_slot_grid_source_slot_id_weekend_format_session_slot_id_fk": {
+          "name": "weekend_format_session_slot_grid_source_slot_id_weekend_format_session_slot_id_fk",
+          "tableFrom": "weekend_format_session_slot",
+          "tableTo": "weekend_format_session_slot",
+          "columnsFrom": [
+            "grid_source_slot_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "weekend_format_session_slot_required_compound_rule_id_required_compound_rule_id_fk": {
+          "name": "weekend_format_session_slot_required_compound_rule_id_required_compound_rule_id_fk",
+          "tableFrom": "weekend_format_session_slot",
+          "tableTo": "required_compound_rule",
+          "columnsFrom": [
+            "required_compound_rule_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "weekend_format_session_slot_points_system_id_points_system_id_fk": {
+          "name": "weekend_format_session_slot_points_system_id_points_system_id_fk",
+          "tableFrom": "weekend_format_session_slot",
+          "tableTo": "points_system",
+          "columnsFrom": [
+            "points_system_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "weekend_format_template": {
+      "name": "weekend_format_template",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "weekend_format_template_code_version_unique": {
+          "name": "weekend_format_template_code_version_unique",
+          "columns": [
+            "code",
+            "version"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "weekend_session": {
+      "name": "weekend_session",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "event_session_definition_id": {
+          "name": "event_session_definition_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "temp_c": {
+          "name": "temp_c",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "rain_now": {
+          "name": "rain_now",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "rain_in_minutes": {
+          "name": "rain_in_minutes",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "track_wetness": {
+          "name": "track_wetness",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "active_checkpoint_id": {
+          "name": "active_checkpoint_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "weekend_session_definition_unique": {
+          "name": "weekend_session_definition_unique",
+          "columns": [
+            "event_session_definition_id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "weekend_session_event_session_definition_id_event_session_definition_id_fk": {
+          "name": "weekend_session_event_session_definition_id_event_session_definition_id_fk",
+          "tableFrom": "weekend_session",
+          "tableTo": "event_session_definition",
+          "columnsFrom": [
+            "event_session_definition_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

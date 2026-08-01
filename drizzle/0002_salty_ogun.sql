@@ -1,0 +1,2 @@
+ALTER TABLE `weekend_session` ADD `simulation_input_payload` text DEFAULT '{}' NOT NULL;--> statement-breakpoint
+ALTER TABLE `weekend_session` ADD `simulation_input_schema_version` text DEFAULT 'race-input-v1' NOT NULL;
