@@ -23,12 +23,21 @@ export const saveGame = sqliteTable(
 		worldDate: text('world_date').notNull(),
 		rngAlgorithm: text('rng_algorithm').notNull(),
 		rngState: blob('rng_state', { mode: 'buffer' }).notNull(),
+		managerFirstName: text('manager_first_name'),
+		managerLastName: text('manager_last_name'),
+		managerNationalityId: text('manager_nationality_id').references(() => nationality.id),
+		managerBackstoryCode: text('manager_backstory_code'),
+		managerAvatarPayload: text('manager_avatar_payload'),
+		managerAvatarSchemaVersion: text('manager_avatar_schema_version'),
+		playerTeamId: text('player_team_id').references((): AnySQLiteColumn => team.id),
 		createdAt: text('created_at').notNull(),
 		updatedAt: text('updated_at').notNull()
 	},
 	(table) => [
 		check('save_game_singleton_key_check', sql`${table.singletonKey} = 1`),
-		uniqueIndex('save_game_singleton_key_unique').on(table.singletonKey)
+		uniqueIndex('save_game_singleton_key_unique').on(table.singletonKey),
+		index('save_game_player_team_idx').on(table.playerTeamId),
+		index('save_game_manager_nationality_idx').on(table.managerNationalityId)
 	]
 );
 

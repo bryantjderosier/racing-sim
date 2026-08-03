@@ -6,7 +6,18 @@ import { createClient, type Client } from '@libsql/client';
 import { drizzle } from 'drizzle-orm/libsql';
 import { migrate } from 'drizzle-orm/libsql/migrator';
 import * as schema from './schema.js';
-import { BASE_CONTENT_PACK, type ContentPack, validateContentPack } from './content-pack.js';
+import {
+	BASE_CONTENT_PACK,
+	isPackTeamId,
+	type ContentPack,
+	validateContentPack
+} from './content-pack.js';
+import { findManagerBackstory } from '../../src/lib/content/manager-backstories.js';
+import {
+	MANAGER_AVATAR_SCHEMA_VERSION,
+	parseManagerAvatar,
+	serializeManagerAvatar
+} from '../../src/lib/content/manager-avatar.js';
 
 type Database = ReturnType<typeof drizzle<typeof schema>>;
 type Transaction = Parameters<Parameters<Database['transaction']>[0]>[0];
@@ -14,7 +25,7 @@ type DatabaseExecutor =
 	Pick<Database, 'select' | 'insert'> | Pick<Transaction, 'select' | 'insert'>;
 
 const DEFAULT_MIGRATIONS_FOLDER = fileURLToPath(new URL('../../drizzle', import.meta.url));
-const SAVE_SCHEMA_VERSION = 1;
+export const SAVE_SCHEMA_VERSION = 3;
 
 export class SaveAlreadyExistsError extends Error {
 	readonly code = 'SAVE_ALREADY_EXISTS' as const;
@@ -52,6 +63,15 @@ export class SaveMetadataMissingError extends Error {
 	}
 }
 
+export class InvalidSaveCreateError extends Error {
+	readonly code = 'INVALID_COMMAND' as const;
+
+	constructor(message: string) {
+		super(message);
+		this.name = 'InvalidSaveCreateError';
+	}
+}
+
 export interface SaveDatabase {
 	client: Client;
 	db: Database;
@@ -63,6 +83,13 @@ export interface CreateSaveOptions {
 	displayName: string;
 	gameVersion: string;
 	worldDate: string;
+	managerFirstName: string;
+	managerLastName: string;
+	managerNationalityId: string;
+	managerBackstoryCode: string;
+	managerAvatarPayload: string;
+	managerAvatarSchemaVersion?: string;
+	playerTeamId: string;
 	rngAlgorithm: string;
 	rngState: Uint8Array;
 	pack?: ContentPack;
@@ -92,6 +119,18 @@ async function insertContentPackRows(executor: DatabaseExecutor, pack: ContentPa
 		await executor
 			.insert(schema.championship)
 			.values([...pack.championships])
+			.onConflictDoNothing();
+	}
+	if (pack.nationalities.length > 0) {
+		await executor
+			.insert(schema.nationality)
+			.values([...pack.nationalities])
+			.onConflictDoNothing();
+	}
+	if (pack.teams.length > 0) {
+		await executor
+			.insert(schema.team)
+			.values([...pack.teams])
 			.onConflictDoNothing();
 	}
 }
@@ -145,8 +184,34 @@ export async function createSaveDatabase(options: CreateSaveOptions): Promise<Cr
 	const targetPath = resolve(options.targetPath);
 	const pack = options.pack ?? BASE_CONTENT_PACK;
 	validateContentPack(pack);
-	if (!options.displayName || !options.gameVersion || !options.worldDate || !options.rngAlgorithm) {
-		throw new Error('Save metadata is incomplete.');
+	const managerFirstName = options.managerFirstName?.trim();
+	const managerLastName = options.managerLastName?.trim();
+	const managerNationalityId = options.managerNationalityId?.trim();
+	const managerBackstoryCode = options.managerBackstoryCode?.trim();
+	const playerTeamId = options.playerTeamId?.trim();
+	const avatar = parseManagerAvatar(options.managerAvatarPayload);
+	if (
+		!options.displayName ||
+		!options.gameVersion ||
+		!options.worldDate ||
+		!options.rngAlgorithm ||
+		!managerFirstName ||
+		!managerLastName ||
+		!managerNationalityId ||
+		!managerBackstoryCode ||
+		!playerTeamId ||
+		!avatar
+	) {
+		throw new InvalidSaveCreateError('Save metadata is incomplete.');
+	}
+	if (!pack.nationalities.some((row) => row.id === managerNationalityId)) {
+		throw new InvalidSaveCreateError('managerNationalityId is not a valid nationality.');
+	}
+	if (!findManagerBackstory(managerBackstoryCode)) {
+		throw new InvalidSaveCreateError('managerBackstoryCode is not a valid backstory.');
+	}
+	if (!isPackTeamId(pack, playerTeamId)) {
+		throw new InvalidSaveCreateError('playerTeamId is not a valid career-start team.');
 	}
 
 	await ensureTargetDoesNotExist(targetPath);
@@ -171,6 +236,14 @@ export async function createSaveDatabase(options: CreateSaveOptions): Promise<Cr
 				worldDate: options.worldDate,
 				rngAlgorithm: options.rngAlgorithm,
 				rngState: Buffer.from(options.rngState),
+				managerFirstName,
+				managerLastName,
+				managerNationalityId,
+				managerBackstoryCode,
+				managerAvatarPayload: serializeManagerAvatar(avatar),
+				managerAvatarSchemaVersion:
+					options.managerAvatarSchemaVersion ?? MANAGER_AVATAR_SCHEMA_VERSION,
+				playerTeamId,
 				createdAt: now,
 				updatedAt: now
 			});

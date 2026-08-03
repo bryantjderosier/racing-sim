@@ -1,6 +1,6 @@
 # Race Simulation Contract — Headless Prototype
 
-**Status:** Draft implementation contract\
+**Status:** Draft implementation contract; reconciled design inputs\
 **Scope:** Deterministic, headless, dry-race prototype\
 **Language:** TypeScript\
 **Primary fixture:** Formula Development Championship (`academy` internal code)\
@@ -38,19 +38,19 @@ These systems must fit the interfaces below but are added only after the dry bas
 
 ## 3. Locked prototype decisions
 
-| Topic | Decision |
-|-------|----------|
-| Resolution | Fixed `TrackSegment` steps |
-| Track structure | 12–20 segments grouped into three official timing sectors |
-| Baseline layout | 15 segments; five per official sector |
-| Baseline championship | Formula Development Championship (`academy`) |
-| Baseline field | 10 teams × 3 cars = 30 entries |
-| Baseline distance | 50 laps |
-| Conditions | Dry and static |
-| Refueling | Disabled; full-race fuel load and consumption still simulated |
-| Strategy input | Predefined deterministic command schedule |
-| Calibration | Real-world-shaped statistical ranges using wholly fictional content |
-| Persistence | In-memory only; emit schema-compatible outputs |
+| Topic                 | Decision                                                            |
+| --------------------- | ------------------------------------------------------------------- |
+| Resolution            | Fixed `TrackSegment` steps                                          |
+| Track structure       | 12–20 segments grouped into three official timing sectors           |
+| Baseline layout       | 15 segments; five per official sector                               |
+| Baseline championship | Formula Development Championship (`academy`)                        |
+| Baseline field        | 10 teams × 3 cars = 30 entries                                      |
+| Baseline distance     | 50 laps                                                             |
+| Conditions            | Dry and static                                                      |
+| Refueling             | Disabled; full-race fuel load and consumption still simulated       |
+| Strategy input        | Predefined deterministic command schedule                           |
+| Calibration           | Real-world-shaped statistical ranges using wholly fictional content |
+| Persistence           | In-memory only; emit schema-compatible outputs                      |
 
 ---
 
@@ -75,17 +75,28 @@ The engine must not:
 - Depend on Svelte, Electron, or browser globals.
 - Resolve team finances, contracts, development, or morale.
 
+### Official result boundary
+
+Every player-controlled or off-screen weekend uses the same official result contract. The engine
+owns sporting and physical outcomes and emits session results, race details, point-award inputs,
+penalties, retirements, reliability, and major incidents. Off-screen execution may use lower detail,
+but it must preserve the same official outcome semantics.
+
+The management layer aggregates the completed weekend sessions into one immutable, idempotent
+weekend-result package and applies downstream career consequences exactly once. The engine never
+directly mutates standings, finances, personnel, contracts, board state, news, or narrative state.
+
 ## 5. Version contract
 
 Every completed run records:
 
-| Field | Purpose |
-|-------|---------|
+| Field            | Purpose                                                      |
+| ---------------- | ------------------------------------------------------------ |
 | `formulaVersion` | Identifies calculation order, formulas, clamps, and rounding |
-| `rngAlgorithm` | Identifies the deterministic generator |
-| `seed` | Reproduces the run |
-| `inputHash` | Detects fixture or command changes |
-| `engineVersion` | Identifies the serialized state/event contract |
+| `rngAlgorithm`   | Identifies the deterministic generator                       |
+| `seed`           | Reproduces the run                                           |
+| `inputHash`      | Detects fixture or command changes                           |
+| `engineVersion`  | Identifies the serialized state/event contract               |
 
 Any change that alters deterministic output for identical inputs must bump `formulaVersion` or `engineVersion`.
 
@@ -95,17 +106,17 @@ Any change that alters deterministic output for identical inputs must bump `form
 
 Engine-internal state uses deterministic integer or fixed-point units:
 
-| Quantity | Internal unit |
-|----------|---------------|
-| Time | Integer milliseconds |
-| Distance | Integer metres; sub-segment progress in millionths |
-| Fuel | Integer grams |
-| Percentages | Basis points, `0–10_000` |
-| Normalized performance | Parts per million, baseline `1_000_000` |
-| Ratings | Integer `1–20` |
-| Position/order | Integer with `sessionEntryId` as final tie-break |
+| Quantity               | Internal unit                                      |
+| ---------------------- | -------------------------------------------------- |
+| Time                   | Integer milliseconds                               |
+| Distance               | Integer metres; sub-segment progress in millionths |
+| Fuel                   | Integer grams                                      |
+| Percentages            | Basis points, `0–10_000`                           |
+| Normalized performance | Parts per million, baseline `1_000_000`            |
+| Ratings                | Integer `0–100`                                    |
+| Position/order         | Integer with `sessionEntryId` as final tie-break   |
 
-Schema-facing decimal values are converted at the engine boundary. Intermediate rounding occurs only at documented segment boundaries using round-half-even.
+Schema-facing ratings are consumed directly as integer `0–100` values; no personnel-rating conversion is permitted. Intermediate rounding occurs only at documented segment boundaries using round-half-even.
 
 ---
 
@@ -210,24 +221,24 @@ interface SimulationTrack {
 
 Each segment defines:
 
-| Field | Meaning |
-|-------|---------|
-| `id` / `sequence` | Stable ordering |
-| `officialSector` | `1`, `2`, or `3` |
-| `distanceM` | Segment distance |
-| `baseTimeMs` | Neutral clean-air segment time |
-| `highSpeedWeight` | High-speed cornering contribution |
-| `lowSpeedWeight` | Low-speed/mechanical contribution |
-| `powerWeight` | Acceleration/power contribution |
-| `topSpeedWeight` | Maximum-speed contribution |
-| `brakingWeight` | Braking contribution |
-| `overtakingDifficulty` | Attempt threshold |
-| `dirtyAirSensitivity` | Following-time penalty |
-| `tyreEnergyFactor` | Wear contribution |
-| `fuelBurnFactor` | Fuel-use contribution |
-| `isDrsDetection` | Captures eligibility gap |
-| `isDrsActivation` | Applies DRS effect |
-| `isPitEntry` / `isPitExit` | Pit transition markers |
+| Field                      | Meaning                           |
+| -------------------------- | --------------------------------- |
+| `id` / `sequence`          | Stable ordering                   |
+| `officialSector`           | `1`, `2`, or `3`                  |
+| `distanceM`                | Segment distance                  |
+| `baseTimeMs`               | Neutral clean-air segment time    |
+| `highSpeedWeight`          | High-speed cornering contribution |
+| `lowSpeedWeight`           | Low-speed/mechanical contribution |
+| `powerWeight`              | Acceleration/power contribution   |
+| `topSpeedWeight`           | Maximum-speed contribution        |
+| `brakingWeight`            | Braking contribution              |
+| `overtakingDifficulty`     | Attempt threshold                 |
+| `dirtyAirSensitivity`      | Following-time penalty            |
+| `tyreEnergyFactor`         | Wear contribution                 |
+| `fuelBurnFactor`           | Fuel-use contribution             |
+| `isDrsDetection`           | Captures eligibility gap          |
+| `isDrsActivation`          | Applies DRS effect                |
+| `isPitEntry` / `isPitExit` | Pit transition markers            |
 
 Track invariants:
 
@@ -464,16 +475,16 @@ Events include simulation time, lap, segment, affected entry IDs, type, and a ty
 
 ### 13.3 Schema mapping
 
-| Prototype output | Persistent destination later |
-|------------------|------------------------------|
-| Entry final classification | `SessionResult` |
-| Pit stops/laps led | `RaceResultDetail` |
-| Position/pole/fastest-lap points | `SessionPointAward` |
-| Tyre use | `SessionTyreUsage` + `Stint` |
-| Final tyre wear | `TyreSet` |
-| Car progress during a run | `SessionCarCheckpoint` |
-| Engine RNG/clock | `SessionCheckpoint` |
-| Damage | `SessionDamageComponent` |
+| Prototype output                 | Persistent destination later |
+| -------------------------------- | ---------------------------- |
+| Entry final classification       | `SessionResult`              |
+| Pit stops/laps led               | `RaceResultDetail`           |
+| Position/pole/fastest-lap points | `SessionPointAward`          |
+| Tyre use                         | `SessionTyreUsage` + `Stint` |
+| Final tyre wear                  | `TyreSet`                    |
+| Car progress during a run        | `SessionCarCheckpoint`       |
+| Engine RNG/clock                 | `SessionCheckpoint`          |
+| Damage                           | `SessionDamageComponent`     |
 
 The headless prototype serializes these shapes but does not write SQLite.
 

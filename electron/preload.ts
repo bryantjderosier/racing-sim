@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import {
 	IPC_CHANNELS,
+	type CareerIdentityDto,
 	type CurrentWeekendDto,
 	type ResultsGetRequest,
 	type SaveBackupResult,
@@ -27,7 +28,8 @@ const electronAPI = {
 		backup: (request: SaveIdRequest): Promise<SaveBackupResult> =>
 			ipcRenderer.invoke(IPC_CHANNELS.saveBackup, request),
 		delete: (request: SaveIdRequest): Promise<void> =>
-			ipcRenderer.invoke(IPC_CHANNELS.saveDelete, request)
+			ipcRenderer.invoke(IPC_CHANNELS.saveDelete, request),
+		getIdentity: (): Promise<CareerIdentityDto> => ipcRenderer.invoke(IPC_CHANNELS.saveGetIdentity)
 	},
 	weekend: {
 		getCurrent: (): Promise<CurrentWeekendDto | null> =>

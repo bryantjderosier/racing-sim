@@ -1,6 +1,6 @@
 import { asc, eq, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/libsql';
-import type { CurrentWeekendDto, SessionResultDto } from '../ipc-contract.js';
+import type { CareerIdentityDto, CurrentWeekendDto, SessionResultDto } from '../ipc-contract.js';
 import * as schema from './schema.js';
 
 type Database = ReturnType<typeof drizzle<typeof schema>>;
@@ -203,4 +203,50 @@ export async function getSessionResults(
 		positionsGained: row.positionsGained ?? 0,
 		points: points.get(row.sessionResultId) ?? 0
 	}));
+}
+
+export async function getCareerIdentity(db: Database): Promise<CareerIdentityDto | null> {
+	const rows = await db
+		.select({
+			saveId: schema.saveGame.id,
+			displayName: schema.saveGame.displayName,
+			worldDate: schema.saveGame.worldDate,
+			managerFirstName: schema.saveGame.managerFirstName,
+			managerLastName: schema.saveGame.managerLastName,
+			managerNationalityId: schema.saveGame.managerNationalityId,
+			managerBackstoryCode: schema.saveGame.managerBackstoryCode,
+			managerAvatarPayload: schema.saveGame.managerAvatarPayload,
+			managerAvatarSchemaVersion: schema.saveGame.managerAvatarSchemaVersion,
+			teamId: schema.team.id,
+			teamName: schema.team.name,
+			teamShortName: schema.team.shortName,
+			nationalityDisplayName: schema.nationality.displayName
+		})
+		.from(schema.saveGame)
+		.leftJoin(schema.team, eq(schema.saveGame.playerTeamId, schema.team.id))
+		.leftJoin(schema.nationality, eq(schema.team.nationalityId, schema.nationality.id))
+		.limit(1);
+
+	const row = rows[0];
+	if (!row) return null;
+
+	return {
+		saveId: row.saveId,
+		displayName: row.displayName,
+		worldDate: row.worldDate,
+		managerFirstName: row.managerFirstName,
+		managerLastName: row.managerLastName,
+		managerNationalityId: row.managerNationalityId,
+		managerBackstoryCode: row.managerBackstoryCode,
+		managerAvatarPayload: row.managerAvatarPayload,
+		managerAvatarSchemaVersion: row.managerAvatarSchemaVersion,
+		team: row.teamId
+			? {
+					id: row.teamId,
+					name: row.teamName ?? '',
+					shortName: row.teamShortName ?? '',
+					nationalityDisplayName: row.nationalityDisplayName
+				}
+			: null
+	};
 }

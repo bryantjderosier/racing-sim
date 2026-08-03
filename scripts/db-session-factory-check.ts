@@ -13,6 +13,12 @@ import {
 	createSaveDatabase,
 	openSaveDatabase
 } from '../electron/db/save-service.js';
+import { FOUNDATION_FDC_TEAMS, FOUNDATION_NATIONALITIES } from '../src/lib/content/career-start.js';
+import { DEFAULT_MANAGER_BACKSTORY } from '../src/lib/content/manager-backstories.js';
+import {
+	DEFAULT_MANAGER_AVATAR,
+	serializeManagerAvatar
+} from '../src/lib/content/manager-avatar.js';
 
 const tempDir = await mkdtemp(join(tmpdir(), 'racing-manager-session-factory-check-'));
 const savePath = join(tempDir, 'session-factory.sqlite');
@@ -28,6 +34,12 @@ try {
 		displayName: 'Session Factory Check',
 		gameVersion: '0.0.1',
 		worldDate: '2030-01-01',
+		managerFirstName: 'Test',
+		managerLastName: 'Manager',
+		managerNationalityId: FOUNDATION_NATIONALITIES[0].id,
+		managerBackstoryCode: DEFAULT_MANAGER_BACKSTORY.code,
+		managerAvatarPayload: serializeManagerAvatar(DEFAULT_MANAGER_AVATAR),
+		playerTeamId: FOUNDATION_FDC_TEAMS[0].id,
 		rngAlgorithm: 'xoshiro128ss',
 		rngState: new Uint8Array([1, 2, 3, 4])
 	});

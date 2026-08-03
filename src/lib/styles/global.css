@@ -1,6 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn-svelte/tailwind.css';
+@import '@fontsource-variable/noto-sans';
+@import '@fontsource/noto-sans-mono/400.css';
+@import '@fontsource/noto-sans-mono/500.css';
+@import '@fontsource/noto-sans-mono/600.css';
+@import '@fontsource/noto-sans-mono/700.css';
 
+@custom-variant dark (&:is(.dark *));
+
+/*
+  Always-dark Electron UI. Game tokens stay as named vars; shadcn tokens map onto them
+  so components match the existing palette without a light theme.
+*/
 :root {
+	/* Game palette */
 	--background: #0e0e0e;
 	--surface-dark: #131313;
 	--surface: #171717;
@@ -25,26 +39,121 @@
 	--content-tertiary: rgb(249 249 249 / 47%);
 	--content-disabled: rgb(249 249 249 / 35%);
 
-	--font-ui: 'Noto Sans', sans-serif;
+	--font-ui: 'Noto Sans Variable', 'Noto Sans', sans-serif;
 	--font-mono: 'Noto Sans Mono', monospace;
 
 	/* 1920×1080 design reference; 1 at 1080p, 2 at 4K */
 	--design-w: 1920;
 	--design-h: 1080;
-	--ui-scale: min(100vw / var(--design-w), 100vh / var(--design-h));
+	--ui-scale: clamp(1, min(calc(100vw / 1920px), calc(100vh / 1080px)), 2);
+
+	/* shadcn-svelte tokens → game palette */
+	--foreground: var(--content-primary);
+	--card: var(--surface);
+	--card-foreground: var(--content-primary);
+	--popover: var(--surface);
+	--popover-foreground: var(--content-primary);
+	--primary: var(--content-primary);
+	--primary-foreground: var(--background);
+	--secondary: var(--surface-light);
+	--secondary-foreground: var(--content-primary);
+	--muted: var(--surface-dark);
+	--muted-foreground: var(--content-secondary);
+	--accent: var(--surface-hover);
+	--accent-foreground: var(--content-primary);
+	--destructive: var(--negative);
+	--input: var(--border);
+	--ring: var(--info);
+	--chart-1: var(--info);
+	--chart-2: var(--positive);
+	--chart-3: var(--warning);
+	--chart-4: var(--agent);
+	--chart-5: var(--negative);
+	--radius: 0.45rem;
+	--sidebar: var(--surface-dark);
+	--sidebar-foreground: var(--content-primary);
+	--sidebar-primary: var(--agent);
+	--sidebar-primary-foreground: var(--content-primary);
+	--sidebar-accent: var(--surface-light);
+	--sidebar-accent-foreground: var(--content-primary);
+	--sidebar-border: var(--border);
+	--sidebar-ring: var(--info);
 }
 
-*,
-*::before,
-*::after {
-	box-sizing: border-box;
+@theme inline {
+	--font-sans: var(--font-ui);
+	--font-mono: var(--font-mono);
+
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-destructive: var(--destructive);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+
+	--color-surface: var(--surface);
+	--color-surface-dark: var(--surface-dark);
+	--color-surface-light: var(--surface-light);
+	--color-surface-hover: var(--surface-hover);
+	--color-positive: var(--positive);
+	--color-negative: var(--negative);
+	--color-warning: var(--warning);
+	--color-info: var(--info);
+	--color-agent: var(--agent);
+	--color-content-primary: var(--content-primary);
+	--color-content-secondary: var(--content-secondary);
+	--color-content-tertiary: var(--content-tertiary);
+	--color-content-disabled: var(--content-disabled);
+
+	--color-chart-1: var(--chart-1);
+	--color-chart-2: var(--chart-2);
+	--color-chart-3: var(--chart-3);
+	--color-chart-4: var(--chart-4);
+	--color-chart-5: var(--chart-5);
+	--color-sidebar: var(--sidebar);
+	--color-sidebar-foreground: var(--sidebar-foreground);
+	--color-sidebar-primary: var(--sidebar-primary);
+	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+	--color-sidebar-accent: var(--sidebar-accent);
+	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+	--color-sidebar-border: var(--sidebar-border);
+	--color-sidebar-ring: var(--sidebar-ring);
+
+	--radius-sm: calc(var(--radius) * 0.6);
+	--radius-md: calc(var(--radius) * 0.8);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) * 1.4);
+	--radius-2xl: calc(var(--radius) * 1.8);
+	--radius-3xl: calc(var(--radius) * 2.2);
+	--radius-4xl: calc(var(--radius) * 2.6);
 }
 
-html,
-body {
-	margin: 0;
-	min-height: 100%;
-	background: var(--background);
-	color: var(--content-primary);
-	font-family: var(--font-ui);
+@layer base {
+	*,
+	*::before,
+	*::after {
+		box-sizing: border-box;
+		border-color: var(--border);
+	}
+
+	html,
+	body {
+		margin: 0;
+		min-height: 100%;
+		background: var(--background);
+		color: var(--content-primary);
+		font-family: var(--font-ui);
+	}
 }

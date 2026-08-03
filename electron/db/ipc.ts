@@ -6,6 +6,7 @@ import { Xoshiro128ss } from '../../src/lib/sim/core/rng.js';
 import {
 	IPC_CHANNELS,
 	type IpcErrorCode,
+	type CareerIdentityDto,
 	type SaveBackupResult,
 	type SaveCreateRequest,
 	type SaveIdRequest,
@@ -19,11 +20,12 @@ import {
 import {
 	closeSaveDatabase,
 	createSaveDatabase,
+	SAVE_SCHEMA_VERSION,
 	openSaveDatabase,
 	type SaveDatabase
 } from './save-service.js';
 import { SaveCatalog, type SaveCatalogEntry } from './save-catalog.js';
-import { getCurrentWeekend, getSessionResults } from './read-models.js';
+import { getCareerIdentity, getCurrentWeekend, getSessionResults } from './read-models.js';
 import { SessionOrchestrator, SessionLifecycleError } from './session-orchestrator.js';
 import { SessionFactory } from './session-factory.js';
 
@@ -156,6 +158,12 @@ export function registerDbIpc(options: { sessionFactory?: SessionFactory } = {})
 		invoke(async () => {
 			requireRequestValue(request?.displayName, 'displayName');
 			requireRequestValue(request?.worldDate, 'worldDate');
+			requireRequestValue(request?.managerFirstName, 'managerFirstName');
+			requireRequestValue(request?.managerLastName, 'managerLastName');
+			requireRequestValue(request?.managerNationalityId, 'managerNationalityId');
+			requireRequestValue(request?.managerBackstoryCode, 'managerBackstoryCode');
+			requireRequestValue(request?.managerAvatarPayload, 'managerAvatarPayload');
+			requireRequestValue(request?.playerTeamId, 'playerTeamId');
 			const targetPath = join(saveDirectory(), `${randomUUID()}.sqlite`);
 			const seed =
 				typeof request.seed === 'string' && request.seed.trim() ? request.seed.trim() : targetPath;
@@ -165,6 +173,12 @@ export function registerDbIpc(options: { sessionFactory?: SessionFactory } = {})
 				displayName: request.displayName.trim(),
 				gameVersion: app.getVersion(),
 				worldDate: request.worldDate.trim(),
+				managerFirstName: request.managerFirstName.trim(),
+				managerLastName: request.managerLastName.trim(),
+				managerNationalityId: request.managerNationalityId.trim(),
+				managerBackstoryCode: request.managerBackstoryCode.trim(),
+				managerAvatarPayload: request.managerAvatarPayload.trim(),
+				playerTeamId: request.playerTeamId.trim(),
 				rngAlgorithm: 'xoshiro128ss',
 				rngState,
 				migrationsFolder: migrationsFolder()
@@ -173,7 +187,7 @@ export function registerDbIpc(options: { sessionFactory?: SessionFactory } = {})
 				saveId: created.saveId,
 				path: created.path,
 				displayName: request.displayName.trim(),
-				schemaVersion: 1,
+				schemaVersion: SAVE_SCHEMA_VERSION,
 				gameVersion: app.getVersion(),
 				contentDataVersion: created.contentDataVersion,
 				createdAt: new Date().toISOString(),
@@ -241,6 +255,15 @@ export function registerDbIpc(options: { sessionFactory?: SessionFactory } = {})
 				await rm(path, { force: true });
 			}
 			await catalog().remove(entry.saveId);
+		})
+	);
+	ipcMain.handle(IPC_CHANNELS.saveGetIdentity, () =>
+		invoke(async (): Promise<CareerIdentityDto> => {
+			const identity = await getCareerIdentity(requireActiveDatabase());
+			if (!identity) {
+				throw Object.assign(new Error('Save identity was not found.'), { code: 'SAVE_NOT_FOUND' });
+			}
+			return identity;
 		})
 	);
 	ipcMain.handle(IPC_CHANNELS.weekendGetCurrent, () =>

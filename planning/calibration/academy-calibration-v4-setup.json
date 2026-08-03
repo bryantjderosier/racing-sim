@@ -1,603 +1,603 @@
 {
-  "version": "academy-calibration-v4",
-  "runsPerGridScenario": 1,
-  "entriesPerRun": 30,
-  "lapsPerRun": 50,
-  "gridScenarios": {
-    "performance": {
-      "gridMode": "performance",
-      "lapTime": {
-        "all": {
-          "mean": 91781,
-          "standardDeviation": 3748,
-          "min": 89062,
-          "p05": 89971,
-          "p50": 91108,
-          "p95": 92983,
-          "max": 115329
-        },
-        "clean": {
-          "mean": 91130,
-          "standardDeviation": 752,
-          "min": 89062,
-          "p05": 89939,
-          "p50": 91058,
-          "p95": 92605,
-          "max": 93902
-        }
-      },
-      "variability": {
-        "withinDriverStandardDeviationMs": {
-          "mean": 613,
-          "standardDeviation": 141,
-          "min": 300,
-          "p05": 354,
-          "p50": 669,
-          "p95": 778,
-          "max": 812
-        },
-        "withinStintFuelCorrectedStandardDeviationMs": {
-          "mean": 381,
-          "standardDeviation": 227,
-          "min": 72,
-          "p05": 110,
-          "p50": 314,
-          "p95": 766,
-          "max": 877
-        }
-      },
-      "fieldSpreadMs": {
-        "mean": 64443,
-        "standardDeviation": 0,
-        "min": 64443,
-        "p05": 64443,
-        "p50": 64443,
-        "p95": 64443,
-        "max": 64443
-      },
-      "degradationByCompound": {
-        "hard": {
-          "meanWearBpByStintLap": {
-            "1": 137,
-            "2": 260,
-            "3": 381,
-            "4": 503,
-            "5": 624,
-            "6": 744,
-            "7": 865,
-            "8": 984,
-            "9": 1104,
-            "10": 1223,
-            "11": 1341,
-            "12": 1459,
-            "13": 1577,
-            "14": 1695,
-            "15": 1812,
-            "16": 1929,
-            "17": 2047,
-            "18": 2164,
-            "19": 2302,
-            "20": 2419,
-            "21": 2537,
-            "22": 2654,
-            "23": 2771,
-            "24": 2889,
-            "25": 3006,
-            "26": 3124,
-            "27": 3241,
-            "28": 3358,
-            "29": 3476
-          },
-          "meanFuelCorrectedLapMsByStintLap": {
-            "1": 90335,
-            "2": 90024,
-            "3": 89793,
-            "4": 89862,
-            "5": 89826,
-            "6": 89839,
-            "7": 89808,
-            "8": 89880,
-            "9": 89842,
-            "10": 89852,
-            "11": 89953,
-            "12": 89955,
-            "13": 89943,
-            "14": 89937,
-            "15": 89974,
-            "16": 89908,
-            "17": 89921,
-            "18": 89859,
-            "19": 89915,
-            "20": 89961,
-            "21": 90014,
-            "22": 90041,
-            "23": 90050,
-            "24": 89998,
-            "25": 90048,
-            "26": 90032,
-            "27": 90145,
-            "28": 90066,
-            "29": 90105
-          },
-          "lap12VsLap3DeltaMs": 161
-        },
-        "medium": {
-          "meanWearBpByStintLap": {
-            "1": 199,
-            "2": 390,
-            "3": 580,
-            "4": 770,
-            "5": 958,
-            "6": 1146,
-            "7": 1332,
-            "8": 1518,
-            "9": 1703,
-            "10": 1887,
-            "11": 2071,
-            "12": 2254,
-            "13": 2435,
-            "14": 2617,
-            "15": 2797,
-            "16": 2976,
-            "17": 3222,
-            "18": 3403,
-            "19": 3584,
-            "20": 3764
-          },
-          "meanFuelCorrectedLapMsByStintLap": {
-            "1": 90029,
-            "2": 89568,
-            "3": 89172,
-            "4": 89241,
-            "5": 89225,
-            "6": 89352,
-            "7": 89322,
-            "8": 89374,
-            "9": 89394,
-            "10": 89414,
-            "11": 89453,
-            "12": 89591,
-            "13": 89705,
-            "14": 89974,
-            "15": 90168,
-            "16": 90410,
-            "17": 90653,
-            "18": 90859,
-            "19": 91068,
-            "20": 91306
-          },
-          "lap12VsLap3DeltaMs": 419
-        },
-        "soft": {
-          "meanWearBpByStintLap": {
-            "1": 281,
-            "2": 560,
-            "3": 838,
-            "4": 1115,
-            "5": 1390,
-            "6": 1664,
-            "7": 1937,
-            "8": 2209,
-            "9": 2480,
-            "10": 2750,
-            "11": 3018,
-            "12": 3285,
-            "13": 3551,
-            "14": 3817
-          },
-          "meanFuelCorrectedLapMsByStintLap": {
-            "1": 89803,
-            "2": 88974,
-            "3": 88895,
-            "4": 88916,
-            "5": 88972,
-            "6": 88741,
-            "7": 89034,
-            "8": 89113,
-            "9": 89154,
-            "10": 89228,
-            "11": 89187,
-            "12": 89435,
-            "13": 89650,
-            "14": 89847
-          },
-          "lap12VsLap3DeltaMs": 540
-        }
-      },
-      "pitStops": {
-        "configuredLossMs": 21650,
-        "effectiveLossMs": {
-          "mean": 22286,
-          "standardDeviation": 217,
-          "min": 21801,
-          "p05": 21941,
-          "p50": 22315,
-          "p95": 22577,
-          "max": 22710
-        },
-        "observedStrategyGroups": {
-          "1-stop": {
-            "entries": 20,
-            "meanTotalTimeMs": 4588371,
-            "meanFinishPosition": 14.4,
-            "wins": 1
-          },
-          "2-stop": {
-            "entries": 10,
-            "meanTotalTimeMs": 4594069,
-            "meanFinishPosition": 17.7,
-            "wins": 0
-          }
-        }
-      },
-      "overtaking": {
-        "attempts": 239,
-        "successes": 75,
-        "successRate": 0.3138075313807531,
-        "attemptsPerRace": {
-          "mean": 239,
-          "standardDeviation": 0,
-          "min": 239,
-          "p05": 239,
-          "p50": 239,
-          "p95": 239,
-          "max": 239
-        },
-        "successesPerRace": {
-          "mean": 75,
-          "standardDeviation": 0,
-          "min": 75,
-          "p05": 75,
-          "p50": 75,
-          "p95": 75,
-          "max": 75
-        },
-        "uniquePassingPairsPerRace": {
-          "mean": 41,
-          "standardDeviation": 0,
-          "min": 41,
-          "p05": 41,
-          "p50": 41,
-          "p95": 41,
-          "max": 41
-        },
-        "repeatPassesPerRace": {
-          "mean": 34,
-          "standardDeviation": 0,
-          "min": 34,
-          "p05": 34,
-          "p50": 34,
-          "p95": 34,
-          "max": 34
-        },
-        "immediatePassBacksPerRace": {
-          "mean": 3,
-          "standardDeviation": 0,
-          "min": 3,
-          "p05": 3,
-          "p50": 3,
-          "p95": 3,
-          "max": 3
-        },
-        "laterRepassesPerRace": {
-          "mean": 31,
-          "standardDeviation": 0,
-          "min": 31,
-          "p05": 31,
-          "p50": 31,
-          "p95": 31,
-          "max": 31
-        },
-        "netPassesPerRace": {
-          "mean": 55,
-          "standardDeviation": 0,
-          "min": 55,
-          "p05": 55,
-          "p50": 55,
-          "p95": 55,
-          "max": 55
-        },
-        "drsPasses": 30,
-        "nonDrsPasses": 45,
-        "passesBySegment": {
-          "seg-01": 8,
-          "seg-02": 3,
-          "seg-03": 3,
-          "seg-04": 5,
-          "seg-05": 28,
-          "seg-06": 3,
-          "seg-07": 2,
-          "seg-08": 6,
-          "seg-09": 6,
-          "seg-10": 5,
-          "seg-11": 1,
-          "seg-13": 2,
-          "seg-15": 3
-        }
-      },
-      "gridToFinish": {
-        "meanAbsoluteMovement": 3.466666666666667,
-        "maxGain": 9,
-        "maxLoss": -10,
-        "gridFinishRankCorrelation": 0.8709677419354839,
-        "topTenRetentionRate": 1
-      },
-      "correlations": {
-        "driverPaceVsCleanLap": -0.6481393824601561,
-        "carPerformanceVsCleanLap": -0.5647651323720706
-      }
-    }
-  },
-  "controlledSensitivity": {
-    "runs": 100,
-    "driverPace": {
-      "comparison": "pace 19 versus pace 8; positive is faster",
-      "gainMsPerLap": {
-        "mean": 779,
-        "standardDeviation": 0,
-        "min": 779,
-        "p05": 779,
-        "p50": 779,
-        "p95": 780,
-        "max": 780
-      }
-    },
-    "carPerformance": {
-      "comparison": "five relevant factors at 1.03 versus 0.97; positive is faster",
-      "gainMsPerLap": {
-        "mean": 403,
-        "standardDeviation": 0,
-        "min": 403,
-        "p05": 403,
-        "p50": 403,
-        "p95": 404,
-        "max": 404
-      }
-    },
-    "driverTyreManagement": {
-      "comparison": "tyre management 19 versus 8; positive values favor stronger management",
-      "stressTestContext": "uninterrupted 50-lap hard stint",
-      "endWearReductionBp": {
-        "mean": 837,
-        "standardDeviation": 0,
-        "min": 837,
-        "p05": 837,
-        "p50": 837,
-        "p95": 837,
-        "max": 837
-      },
-      "lateStintDegradationReductionMs": {
-        "mean": 745,
-        "standardDeviation": 1,
-        "min": 742,
-        "p05": 743,
-        "p50": 745,
-        "p95": 747,
-        "max": 748
-      },
-      "totalTimeGainMs": {
-        "mean": 12885,
-        "standardDeviation": 10,
-        "min": 12856,
-        "p05": 12869,
-        "p50": 12885,
-        "p95": 12902,
-        "max": 12913
-      },
-      "representativeOneStopRace": {
-        "comparison": "medium-to-hard one-stop; positive values favor stronger management",
-        "meanUsedTyreWearReductionBp": {
-          "mean": 500,
-          "standardDeviation": 0,
-          "min": 500,
-          "p05": 500,
-          "p50": 500,
-          "p95": 500,
-          "max": 500
-        },
-        "totalTimeGainMs": {
-          "mean": 5414,
-          "standardDeviation": 11,
-          "min": 5389,
-          "p05": 5397,
-          "p50": 5414,
-          "p95": 5430,
-          "max": 5444
-        }
-      }
-    },
-    "setupTradeoff": {
-      "comparison": "preserving setup 1.003 pace/0.960 wear versus peak-pace setup 0.997 pace/1.040 wear",
-      "stressTestContext": "uninterrupted 50-lap hard stint",
-      "preservingSetupEndWearReductionBp": {
-        "mean": 510,
-        "standardDeviation": 0,
-        "min": 510,
-        "p05": 510,
-        "p50": 510,
-        "p95": 510,
-        "max": 510
-      },
-      "preservingSetupLateStintDegradationReductionMs": {
-        "mean": 442,
-        "standardDeviation": 1,
-        "min": 440,
-        "p05": 440,
-        "p50": 442,
-        "p95": 444,
-        "max": 446
-      },
-      "peakPaceSetupTotalTimeGainMs": {
-        "mean": 19286,
-        "standardDeviation": 12,
-        "min": 19256,
-        "p05": 19264,
-        "p50": 19286,
-        "p95": 19304,
-        "max": 19316
-      },
-      "representativeOneStopRace": {
-        "comparison": "preserving setup 0.998 pace/0.960 wear minus peak-pace setup 0.997 pace/1.040 wear; positive time means preserving is slower",
-        "meanUsedTyreWearReductionBp": {
-          "mean": 303,
-          "standardDeviation": 0,
-          "min": 303,
-          "p05": 303,
-          "p50": 303,
-          "p95": 303,
-          "max": 303
-        },
-        "preservingMinusPeakTotalTimeMs": {
-          "mean": 1342,
-          "standardDeviation": 11,
-          "min": 1314,
-          "p05": 1324,
-          "p50": 1342,
-          "p95": 1360,
-          "max": 1369
-        },
-        "targetPreservingDisadvantageMs": {
-          "minimum": 0,
-          "maximum": 3000
-        }
-      },
-      "preservingPaceSweep": {
-        "comparison": "preserving setup at 0.960 wear minus peak-pace setup 0.997 pace/1.040 wear in a medium-to-hard one-stop race",
-        "candidates": [
-          {
-            "setupFactorPpm": 997000,
-            "preservingMinusPeakTotalTimeMs": {
-              "mean": -3114,
-              "standardDeviation": 12,
-              "min": -3139,
-              "p05": -3135,
-              "p50": -3114,
-              "p95": -3094,
-              "max": -3072
-            },
-            "runsWithinTarget": 0
-          },
-          {
-            "setupFactorPpm": 997250,
-            "preservingMinusPeakTotalTimeMs": {
-              "mean": -2000,
-              "standardDeviation": 11,
-              "min": -2034,
-              "p05": -2020,
-              "p50": -1999,
-              "p95": -1985,
-              "max": -1982
-            },
-            "runsWithinTarget": 0
-          },
-          {
-            "setupFactorPpm": 997500,
-            "preservingMinusPeakTotalTimeMs": {
-              "mean": -887,
-              "standardDeviation": 11,
-              "min": -912,
-              "p05": -906,
-              "p50": -886,
-              "p95": -869,
-              "max": -857
-            },
-            "runsWithinTarget": 0
-          },
-          {
-            "setupFactorPpm": 997750,
-            "preservingMinusPeakTotalTimeMs": {
-              "mean": 227,
-              "standardDeviation": 12,
-              "min": 198,
-              "p05": 207,
-              "p50": 227,
-              "p95": 246,
-              "max": 251
-            },
-            "runsWithinTarget": 100
-          },
-          {
-            "setupFactorPpm": 998000,
-            "preservingMinusPeakTotalTimeMs": {
-              "mean": 1342,
-              "standardDeviation": 11,
-              "min": 1314,
-              "p05": 1324,
-              "p50": 1342,
-              "p95": 1360,
-              "max": 1369
-            },
-            "runsWithinTarget": 100
-          },
-          {
-            "setupFactorPpm": 998500,
-            "preservingMinusPeakTotalTimeMs": {
-              "mean": 3570,
-              "standardDeviation": 10,
-              "min": 3538,
-              "p05": 3554,
-              "p50": 3568,
-              "p95": 3587,
-              "max": 3592
-            },
-            "runsWithinTarget": 0
-          },
-          {
-            "setupFactorPpm": 999000,
-            "preservingMinusPeakTotalTimeMs": {
-              "mean": 5798,
-              "standardDeviation": 12,
-              "min": 5769,
-              "p05": 5781,
-              "p50": 5796,
-              "p95": 5819,
-              "max": 5822
-            },
-            "runsWithinTarget": 0
-          }
-        ]
-      }
-    },
-    "strategy": {
-      "comparison": "best two-stop minus best one-stop total time; positive favors one-stop",
-      "bestTwoStopMinusBestOneStopMs": {
-        "mean": 2956,
-        "standardDeviation": 11,
-        "min": 2930,
-        "p05": 2936,
-        "p50": 2958,
-        "p95": 2973,
-        "max": 2987
-      },
-      "bestOneStopPitLapFrequency": {
-        "21": 100
-      },
-      "bestTwoStopPitWindowFrequency": {
-        "15/32": 100
-      },
-      "matchedRaceComparison": {
-        "comparison": "two-stop minus one-stop for the same driver, car, grid, rivals, and seed; positive favors one-stop",
-        "twoStopMinusOneStopTotalTimeMs": {
-          "mean": -208,
-          "standardDeviation": 7905,
-          "min": -17760,
-          "p05": -13344,
-          "p50": -325,
-          "p95": 12444,
-          "max": 28629
-        },
-        "twoStopMinusOneStopFinishPositions": {
-          "mean": 0,
-          "standardDeviation": 4,
-          "min": -9,
-          "p05": -6,
-          "p50": 0,
-          "p95": 6,
-          "max": 12
-        },
-        "twoStopFasterRuns": 51,
-        "twoStopBetterFinishRuns": 45
-      }
-    }
-  }
+	"version": "academy-calibration-v4",
+	"runsPerGridScenario": 1,
+	"entriesPerRun": 30,
+	"lapsPerRun": 50,
+	"gridScenarios": {
+		"performance": {
+			"gridMode": "performance",
+			"lapTime": {
+				"all": {
+					"mean": 91781,
+					"standardDeviation": 3748,
+					"min": 89062,
+					"p05": 89971,
+					"p50": 91108,
+					"p95": 92983,
+					"max": 115329
+				},
+				"clean": {
+					"mean": 91130,
+					"standardDeviation": 752,
+					"min": 89062,
+					"p05": 89939,
+					"p50": 91058,
+					"p95": 92605,
+					"max": 93902
+				}
+			},
+			"variability": {
+				"withinDriverStandardDeviationMs": {
+					"mean": 613,
+					"standardDeviation": 141,
+					"min": 300,
+					"p05": 354,
+					"p50": 669,
+					"p95": 778,
+					"max": 812
+				},
+				"withinStintFuelCorrectedStandardDeviationMs": {
+					"mean": 381,
+					"standardDeviation": 227,
+					"min": 72,
+					"p05": 110,
+					"p50": 314,
+					"p95": 766,
+					"max": 877
+				}
+			},
+			"fieldSpreadMs": {
+				"mean": 64443,
+				"standardDeviation": 0,
+				"min": 64443,
+				"p05": 64443,
+				"p50": 64443,
+				"p95": 64443,
+				"max": 64443
+			},
+			"degradationByCompound": {
+				"hard": {
+					"meanWearBpByStintLap": {
+						"1": 137,
+						"2": 260,
+						"3": 381,
+						"4": 503,
+						"5": 624,
+						"6": 744,
+						"7": 865,
+						"8": 984,
+						"9": 1104,
+						"10": 1223,
+						"11": 1341,
+						"12": 1459,
+						"13": 1577,
+						"14": 1695,
+						"15": 1812,
+						"16": 1929,
+						"17": 2047,
+						"18": 2164,
+						"19": 2302,
+						"20": 2419,
+						"21": 2537,
+						"22": 2654,
+						"23": 2771,
+						"24": 2889,
+						"25": 3006,
+						"26": 3124,
+						"27": 3241,
+						"28": 3358,
+						"29": 3476
+					},
+					"meanFuelCorrectedLapMsByStintLap": {
+						"1": 90335,
+						"2": 90024,
+						"3": 89793,
+						"4": 89862,
+						"5": 89826,
+						"6": 89839,
+						"7": 89808,
+						"8": 89880,
+						"9": 89842,
+						"10": 89852,
+						"11": 89953,
+						"12": 89955,
+						"13": 89943,
+						"14": 89937,
+						"15": 89974,
+						"16": 89908,
+						"17": 89921,
+						"18": 89859,
+						"19": 89915,
+						"20": 89961,
+						"21": 90014,
+						"22": 90041,
+						"23": 90050,
+						"24": 89998,
+						"25": 90048,
+						"26": 90032,
+						"27": 90145,
+						"28": 90066,
+						"29": 90105
+					},
+					"lap12VsLap3DeltaMs": 161
+				},
+				"medium": {
+					"meanWearBpByStintLap": {
+						"1": 199,
+						"2": 390,
+						"3": 580,
+						"4": 770,
+						"5": 958,
+						"6": 1146,
+						"7": 1332,
+						"8": 1518,
+						"9": 1703,
+						"10": 1887,
+						"11": 2071,
+						"12": 2254,
+						"13": 2435,
+						"14": 2617,
+						"15": 2797,
+						"16": 2976,
+						"17": 3222,
+						"18": 3403,
+						"19": 3584,
+						"20": 3764
+					},
+					"meanFuelCorrectedLapMsByStintLap": {
+						"1": 90029,
+						"2": 89568,
+						"3": 89172,
+						"4": 89241,
+						"5": 89225,
+						"6": 89352,
+						"7": 89322,
+						"8": 89374,
+						"9": 89394,
+						"10": 89414,
+						"11": 89453,
+						"12": 89591,
+						"13": 89705,
+						"14": 89974,
+						"15": 90168,
+						"16": 90410,
+						"17": 90653,
+						"18": 90859,
+						"19": 91068,
+						"20": 91306
+					},
+					"lap12VsLap3DeltaMs": 419
+				},
+				"soft": {
+					"meanWearBpByStintLap": {
+						"1": 281,
+						"2": 560,
+						"3": 838,
+						"4": 1115,
+						"5": 1390,
+						"6": 1664,
+						"7": 1937,
+						"8": 2209,
+						"9": 2480,
+						"10": 2750,
+						"11": 3018,
+						"12": 3285,
+						"13": 3551,
+						"14": 3817
+					},
+					"meanFuelCorrectedLapMsByStintLap": {
+						"1": 89803,
+						"2": 88974,
+						"3": 88895,
+						"4": 88916,
+						"5": 88972,
+						"6": 88741,
+						"7": 89034,
+						"8": 89113,
+						"9": 89154,
+						"10": 89228,
+						"11": 89187,
+						"12": 89435,
+						"13": 89650,
+						"14": 89847
+					},
+					"lap12VsLap3DeltaMs": 540
+				}
+			},
+			"pitStops": {
+				"configuredLossMs": 21650,
+				"effectiveLossMs": {
+					"mean": 22286,
+					"standardDeviation": 217,
+					"min": 21801,
+					"p05": 21941,
+					"p50": 22315,
+					"p95": 22577,
+					"max": 22710
+				},
+				"observedStrategyGroups": {
+					"1-stop": {
+						"entries": 20,
+						"meanTotalTimeMs": 4588371,
+						"meanFinishPosition": 14.4,
+						"wins": 1
+					},
+					"2-stop": {
+						"entries": 10,
+						"meanTotalTimeMs": 4594069,
+						"meanFinishPosition": 17.7,
+						"wins": 0
+					}
+				}
+			},
+			"overtaking": {
+				"attempts": 239,
+				"successes": 75,
+				"successRate": 0.3138075313807531,
+				"attemptsPerRace": {
+					"mean": 239,
+					"standardDeviation": 0,
+					"min": 239,
+					"p05": 239,
+					"p50": 239,
+					"p95": 239,
+					"max": 239
+				},
+				"successesPerRace": {
+					"mean": 75,
+					"standardDeviation": 0,
+					"min": 75,
+					"p05": 75,
+					"p50": 75,
+					"p95": 75,
+					"max": 75
+				},
+				"uniquePassingPairsPerRace": {
+					"mean": 41,
+					"standardDeviation": 0,
+					"min": 41,
+					"p05": 41,
+					"p50": 41,
+					"p95": 41,
+					"max": 41
+				},
+				"repeatPassesPerRace": {
+					"mean": 34,
+					"standardDeviation": 0,
+					"min": 34,
+					"p05": 34,
+					"p50": 34,
+					"p95": 34,
+					"max": 34
+				},
+				"immediatePassBacksPerRace": {
+					"mean": 3,
+					"standardDeviation": 0,
+					"min": 3,
+					"p05": 3,
+					"p50": 3,
+					"p95": 3,
+					"max": 3
+				},
+				"laterRepassesPerRace": {
+					"mean": 31,
+					"standardDeviation": 0,
+					"min": 31,
+					"p05": 31,
+					"p50": 31,
+					"p95": 31,
+					"max": 31
+				},
+				"netPassesPerRace": {
+					"mean": 55,
+					"standardDeviation": 0,
+					"min": 55,
+					"p05": 55,
+					"p50": 55,
+					"p95": 55,
+					"max": 55
+				},
+				"drsPasses": 30,
+				"nonDrsPasses": 45,
+				"passesBySegment": {
+					"seg-01": 8,
+					"seg-02": 3,
+					"seg-03": 3,
+					"seg-04": 5,
+					"seg-05": 28,
+					"seg-06": 3,
+					"seg-07": 2,
+					"seg-08": 6,
+					"seg-09": 6,
+					"seg-10": 5,
+					"seg-11": 1,
+					"seg-13": 2,
+					"seg-15": 3
+				}
+			},
+			"gridToFinish": {
+				"meanAbsoluteMovement": 3.466666666666667,
+				"maxGain": 9,
+				"maxLoss": -10,
+				"gridFinishRankCorrelation": 0.8709677419354839,
+				"topTenRetentionRate": 1
+			},
+			"correlations": {
+				"driverPaceVsCleanLap": -0.6481393824601561,
+				"carPerformanceVsCleanLap": -0.5647651323720706
+			}
+		}
+	},
+	"controlledSensitivity": {
+		"runs": 100,
+		"driverPace": {
+			"comparison": "pace 19 versus pace 8; positive is faster",
+			"gainMsPerLap": {
+				"mean": 779,
+				"standardDeviation": 0,
+				"min": 779,
+				"p05": 779,
+				"p50": 779,
+				"p95": 780,
+				"max": 780
+			}
+		},
+		"carPerformance": {
+			"comparison": "five relevant factors at 1.03 versus 0.97; positive is faster",
+			"gainMsPerLap": {
+				"mean": 403,
+				"standardDeviation": 0,
+				"min": 403,
+				"p05": 403,
+				"p50": 403,
+				"p95": 404,
+				"max": 404
+			}
+		},
+		"driverTyreManagement": {
+			"comparison": "tyre management 19 versus 8; positive values favor stronger management",
+			"stressTestContext": "uninterrupted 50-lap hard stint",
+			"endWearReductionBp": {
+				"mean": 837,
+				"standardDeviation": 0,
+				"min": 837,
+				"p05": 837,
+				"p50": 837,
+				"p95": 837,
+				"max": 837
+			},
+			"lateStintDegradationReductionMs": {
+				"mean": 745,
+				"standardDeviation": 1,
+				"min": 742,
+				"p05": 743,
+				"p50": 745,
+				"p95": 747,
+				"max": 748
+			},
+			"totalTimeGainMs": {
+				"mean": 12885,
+				"standardDeviation": 10,
+				"min": 12856,
+				"p05": 12869,
+				"p50": 12885,
+				"p95": 12902,
+				"max": 12913
+			},
+			"representativeOneStopRace": {
+				"comparison": "medium-to-hard one-stop; positive values favor stronger management",
+				"meanUsedTyreWearReductionBp": {
+					"mean": 500,
+					"standardDeviation": 0,
+					"min": 500,
+					"p05": 500,
+					"p50": 500,
+					"p95": 500,
+					"max": 500
+				},
+				"totalTimeGainMs": {
+					"mean": 5414,
+					"standardDeviation": 11,
+					"min": 5389,
+					"p05": 5397,
+					"p50": 5414,
+					"p95": 5430,
+					"max": 5444
+				}
+			}
+		},
+		"setupTradeoff": {
+			"comparison": "preserving setup 1.003 pace/0.960 wear versus peak-pace setup 0.997 pace/1.040 wear",
+			"stressTestContext": "uninterrupted 50-lap hard stint",
+			"preservingSetupEndWearReductionBp": {
+				"mean": 510,
+				"standardDeviation": 0,
+				"min": 510,
+				"p05": 510,
+				"p50": 510,
+				"p95": 510,
+				"max": 510
+			},
+			"preservingSetupLateStintDegradationReductionMs": {
+				"mean": 442,
+				"standardDeviation": 1,
+				"min": 440,
+				"p05": 440,
+				"p50": 442,
+				"p95": 444,
+				"max": 446
+			},
+			"peakPaceSetupTotalTimeGainMs": {
+				"mean": 19286,
+				"standardDeviation": 12,
+				"min": 19256,
+				"p05": 19264,
+				"p50": 19286,
+				"p95": 19304,
+				"max": 19316
+			},
+			"representativeOneStopRace": {
+				"comparison": "preserving setup 0.998 pace/0.960 wear minus peak-pace setup 0.997 pace/1.040 wear; positive time means preserving is slower",
+				"meanUsedTyreWearReductionBp": {
+					"mean": 303,
+					"standardDeviation": 0,
+					"min": 303,
+					"p05": 303,
+					"p50": 303,
+					"p95": 303,
+					"max": 303
+				},
+				"preservingMinusPeakTotalTimeMs": {
+					"mean": 1342,
+					"standardDeviation": 11,
+					"min": 1314,
+					"p05": 1324,
+					"p50": 1342,
+					"p95": 1360,
+					"max": 1369
+				},
+				"targetPreservingDisadvantageMs": {
+					"minimum": 0,
+					"maximum": 3000
+				}
+			},
+			"preservingPaceSweep": {
+				"comparison": "preserving setup at 0.960 wear minus peak-pace setup 0.997 pace/1.040 wear in a medium-to-hard one-stop race",
+				"candidates": [
+					{
+						"setupFactorPpm": 997000,
+						"preservingMinusPeakTotalTimeMs": {
+							"mean": -3114,
+							"standardDeviation": 12,
+							"min": -3139,
+							"p05": -3135,
+							"p50": -3114,
+							"p95": -3094,
+							"max": -3072
+						},
+						"runsWithinTarget": 0
+					},
+					{
+						"setupFactorPpm": 997250,
+						"preservingMinusPeakTotalTimeMs": {
+							"mean": -2000,
+							"standardDeviation": 11,
+							"min": -2034,
+							"p05": -2020,
+							"p50": -1999,
+							"p95": -1985,
+							"max": -1982
+						},
+						"runsWithinTarget": 0
+					},
+					{
+						"setupFactorPpm": 997500,
+						"preservingMinusPeakTotalTimeMs": {
+							"mean": -887,
+							"standardDeviation": 11,
+							"min": -912,
+							"p05": -906,
+							"p50": -886,
+							"p95": -869,
+							"max": -857
+						},
+						"runsWithinTarget": 0
+					},
+					{
+						"setupFactorPpm": 997750,
+						"preservingMinusPeakTotalTimeMs": {
+							"mean": 227,
+							"standardDeviation": 12,
+							"min": 198,
+							"p05": 207,
+							"p50": 227,
+							"p95": 246,
+							"max": 251
+						},
+						"runsWithinTarget": 100
+					},
+					{
+						"setupFactorPpm": 998000,
+						"preservingMinusPeakTotalTimeMs": {
+							"mean": 1342,
+							"standardDeviation": 11,
+							"min": 1314,
+							"p05": 1324,
+							"p50": 1342,
+							"p95": 1360,
+							"max": 1369
+						},
+						"runsWithinTarget": 100
+					},
+					{
+						"setupFactorPpm": 998500,
+						"preservingMinusPeakTotalTimeMs": {
+							"mean": 3570,
+							"standardDeviation": 10,
+							"min": 3538,
+							"p05": 3554,
+							"p50": 3568,
+							"p95": 3587,
+							"max": 3592
+						},
+						"runsWithinTarget": 0
+					},
+					{
+						"setupFactorPpm": 999000,
+						"preservingMinusPeakTotalTimeMs": {
+							"mean": 5798,
+							"standardDeviation": 12,
+							"min": 5769,
+							"p05": 5781,
+							"p50": 5796,
+							"p95": 5819,
+							"max": 5822
+						},
+						"runsWithinTarget": 0
+					}
+				]
+			}
+		},
+		"strategy": {
+			"comparison": "best two-stop minus best one-stop total time; positive favors one-stop",
+			"bestTwoStopMinusBestOneStopMs": {
+				"mean": 2956,
+				"standardDeviation": 11,
+				"min": 2930,
+				"p05": 2936,
+				"p50": 2958,
+				"p95": 2973,
+				"max": 2987
+			},
+			"bestOneStopPitLapFrequency": {
+				"21": 100
+			},
+			"bestTwoStopPitWindowFrequency": {
+				"15/32": 100
+			},
+			"matchedRaceComparison": {
+				"comparison": "two-stop minus one-stop for the same driver, car, grid, rivals, and seed; positive favors one-stop",
+				"twoStopMinusOneStopTotalTimeMs": {
+					"mean": -208,
+					"standardDeviation": 7905,
+					"min": -17760,
+					"p05": -13344,
+					"p50": -325,
+					"p95": 12444,
+					"max": 28629
+				},
+				"twoStopMinusOneStopFinishPositions": {
+					"mean": 0,
+					"standardDeviation": 4,
+					"min": -9,
+					"p05": -6,
+					"p50": 0,
+					"p95": 6,
+					"max": 12
+				},
+				"twoStopFasterRuns": 51,
+				"twoStopBetterFinishRuns": 45
+			}
+		}
+	}
 }

@@ -1,7 +1,7 @@
 # Weather Simulation Contract — Stage D1
 
-**Status:** Locked implementation contract  
-**Scope:** Deterministic static-to-changing weather for the headless race engine  
+**Status:** Prototype expansion contract; deferred from launch
+**Scope:** Deterministic static-to-changing weather for the headless race engine; segment-level surface detail is not launch behavior
 **Depends on:** Accepted `academy-dry-v4` Stage C baseline  
 **Persistence:** In-memory prototype with checkpoint-compatible state
 
@@ -13,7 +13,7 @@ Add changing weather without destabilizing the accepted dry-race model. The modu
 
 - A hidden deterministic weather timeline.
 - Circuit-wide precipitation.
-- Mini-sector racing-line and off-line surface wetness.
+- Future expansion: mini-sector racing-line and off-line surface wetness.
 - Air and track temperature.
 - Continuous slick, intermediate, and wet tyre suitability.
 - Wet-driver and changing-condition performance.
@@ -30,19 +30,21 @@ The disabled weather module must preserve `academy-dry-v4` output exactly.
 | Topic                    | Decision                                                              |
 | ------------------------ | --------------------------------------------------------------------- |
 | Precipitation resolution | Circuit-wide in V1                                                    |
-| Surface resolution       | Independent state for every `TrackSegment`                            |
-| Surface channels         | Racing-line and off-line wetness                                      |
+| Surface resolution       | Shared circuit-wide track state at launch; segment state deferred      |
+| Surface channels         | Circuit-wide launch state; racing-line/off-line channels deferred     |
 | Weather truth            | Hidden deterministic timeline resolved at session initialization      |
 | Forecast presentation    | Rolling probability and intensity windows                             |
 | Weather clock            | One shared clock based on leader elapsed time                         |
-| Update cadence           | Once per mini-sector before car timing is calculated                  |
+| Update cadence           | Shared session/weather clock at launch; mini-sector updates deferred  |
 | Tyre crossover           | Continuous wetness curves, never discrete condition switches          |
 | Temperature              | Air and track temperature; wind and humidity deferred                 |
 | Driver ratings           | Wetness blends `pace` toward `wetPace`; `adaptability` handles change |
 | DRS                      | Automatic weather suspension and hysteretic restoration               |
 | Unsafe conditions        | Emit state/events; race-control actions remain deferred               |
 
-Localized rain cells may be added later without replacing the segment-surface contract.
+The launch model uses one shared circuit-wide atmospheric and track state. The segment-surface,
+mini-sector, racing-line/off-line, and localized-rain details in this document are future expansion
+scope and must not be enabled by launch callers.
 
 ---
 
@@ -142,7 +144,7 @@ fixed-point scaling, and runtime state later interpolates between resolved point
 
 Calibration fixtures may set minimum and maximum values equal to create an exact truth timeline.
 
-### 4.2 TrackSegment additions
+### 4.2 TrackSegment additions (deferred beyond launch)
 
 Each segment adds:
 
@@ -263,7 +265,10 @@ state and contributes to grip and wear.
 
 ---
 
-## 6. Weather and surface evolution
+## 6. Weather and surface evolution (deferred segment-surface expansion)
+
+The following surface-evolution rules are not enabled at launch. Launch weather consumes and updates
+one shared circuit-wide track state; retain this section for a later granularity expansion.
 
 ### 6.1 Shared weather clock
 
@@ -439,13 +444,13 @@ rawTransitionPenaltyPpm
 
 adaptabilityScalePpm
   = 50_000
-  + (20 - adaptability) × (1_000_000 - 50_000) ÷ 19
+  + (100 - adaptability) × (1_000_000 - 50_000) ÷ 99
 
 transitionPenaltyPpm
   = rawTransitionPenaltyPpm × adaptabilityScalePpm ÷ 1_000_000
 ```
 
-Rating 20 retains 5% of the raw transition loss rather than eliminating it. Rating 1 receives the
+Rating 100 retains 5% of the raw transition loss rather than eliminating it. Rating 0 receives the
 full raw loss. `wetPace` never changes dry timing, and `adaptability` never changes timing when
 wetness and track temperature are stable.
 
@@ -539,7 +544,7 @@ in V1. HQ weather-station quality and staff analysis improve:
 - Probability calibration
 - Useful forecast horizon
 
-The prototype resolves capability from three 1–20 ratings using weights of 50% HQ weather station,
+The prototype resolves capability from three 0–100 ratings using weights of 50% HQ weather station,
 30% weather analyst, and 20% trackside tools. At the minimum and maximum combined quality, the
 resolved bands are:
 

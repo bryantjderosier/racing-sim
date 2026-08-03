@@ -9,6 +9,7 @@ export const IPC_CHANNELS = Object.freeze({
 	saveClose: 'save:close',
 	saveBackup: 'save:backup',
 	saveDelete: 'save:delete',
+	saveGetIdentity: 'save:get-identity',
 	sessionGetState: 'session:get-state',
 	sessionStart: 'session:start',
 	sessionPause: 'session:pause',
@@ -44,6 +45,12 @@ export interface SaveSummary {
 export interface SaveCreateRequest {
 	displayName: string;
 	worldDate: string;
+	managerFirstName: string;
+	managerLastName: string;
+	managerNationalityId: string;
+	managerBackstoryCode: string;
+	managerAvatarPayload: string;
+	playerTeamId: string;
 	seed?: string;
 }
 
@@ -54,6 +61,24 @@ export interface SaveIdRequest {
 export interface SaveBackupResult {
 	saveId: string;
 	backupPath: string;
+}
+
+export interface CareerIdentityDto {
+	saveId: string;
+	displayName: string;
+	worldDate: string;
+	managerFirstName: string | null;
+	managerLastName: string | null;
+	managerNationalityId: string | null;
+	managerBackstoryCode: string | null;
+	managerAvatarPayload: string | null;
+	managerAvatarSchemaVersion: string | null;
+	team: {
+		id: string;
+		name: string;
+		shortName: string;
+		nationalityDisplayName: string | null;
+	} | null;
 }
 
 export interface CurrentWeekendDto {

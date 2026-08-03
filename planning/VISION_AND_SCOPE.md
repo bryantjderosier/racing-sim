@@ -17,14 +17,14 @@ The fantasy is climbing (or rebuilding) a fully **fictional** three-tier ladder 
 
 ## 2. What “OOTP / FM style” means here
 
-| Pillar | In this game |
-|--------|----------------|
-| **No 3D driving** | No cockpit, no player-controlled driving physics, no 3D race view. Race weekends are managed via UI + 2D map/telemetry. |
-| **Text / data first** | Decisions live in contracts, budgets, R&D trees, staff reports, and statistical history — not arcade spectacle. |
-| **In-race agency** | Full-distance races with live calls (tires, fuel where allowed, energy/ERS, damage response, SC/VSC) — FM match-day depth, not post-sim-only results. |
-| **Career as story** | Day-by-day calendar; board confidence and possible firing; stay and build a franchise or jump teams (including mid-season if a club pays the break fee). |
-| **Deep history** | Season-over-season stats, driver/team trajectories, and league tables that make a multi-decade save feel archival. |
-| **Customizable world (later)** | v1 ships one official fictional ladder. League size/evolution via voting comes later; player-authored custom leagues are out of scope for v1. |
+| Pillar                         | In this game                                                                                                                                             |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **No 3D driving**              | No cockpit, no player-controlled driving physics, no 3D race view. Race weekends are managed via UI + 2D map/telemetry.                                  |
+| **Text / data first**          | Decisions live in contracts, budgets, R&D trees, staff reports, and statistical history — not arcade spectacle.                                          |
+| **In-race agency**             | Full-distance races with live calls (tires, fuel where allowed, energy/ERS, damage response, SC/VSC) — FM match-day depth, not post-sim-only results.    |
+| **Career as story**            | Day-by-day calendar; board confidence and possible firing; stay and build a franchise or jump teams (including mid-season if a club pays the break fee). |
+| **Deep history**               | Season-over-season stats, driver/team trajectories, and league tables that make a multi-decade save feel archival.                                       |
+| **Customizable world (later)** | v1 ships one official fictional ladder. League size/evolution via voting comes later; player-authored custom leagues are out of scope for v1.            |
 
 ---
 
@@ -35,6 +35,7 @@ The fantasy is climbing (or rebuilding) a fully **fictional** three-tier ladder 
 **Start (v1):** Take over an **existing** team in the **bottom tier only**.
 
 **Progression (blend):**
+
 - Stay and march the same franchise up/down the ladder via on-track results and promotion/relegation, **or**
 - Move in the off-season — or mid-season if another team offers and covers the contract break fee.
 - The board can fire the player; job security is part of the sim.
@@ -47,11 +48,11 @@ The fantasy is climbing (or rebuilding) a fully **fictional** three-tier ladder 
 
 Three championship tiers with team counts roughly aligned to F1 / F2 / F3. All teams, drivers, tracks, sponsors, and series names are **fully fictional**.
 
-| Tier | Internal code | Championship | Calendar shape (v1 default) |
-|------|---------------|--------------|-----------------------------|
-| **Tier 1** | `apex` | World Formula Championship | ~22–24 feature weekends; sprints optional / later |
-| **Tier 2** | `challenger` | International Formula Championship | ~14 dual-race weekends (~28 races) |
-| **Tier 3** | `academy` | Formula Development Championship | ~10 dual-race weekends (~20 races) |
+| Tier       | Internal code | Championship                       | Calendar shape (v1 default)                       |
+| ---------- | ------------- | ---------------------------------- | ------------------------------------------------- |
+| **Tier 1** | `apex`        | World Formula Championship         | ~22–24 feature weekends; sprints optional / later |
+| **Tier 2** | `challenger`  | International Formula Championship | ~14 dual-race weekends (~28 races)                |
+| **Tier 3** | `academy`     | Formula Development Championship   | ~10 dual-race weekends (~20 races)                |
 
 ### 4.2 Promotion & relegation
 
@@ -66,11 +67,11 @@ Three championship tiers with team counts roughly aligned to F1 / F2 / F3. All t
 
 Juniors are **not** identical-spec series; freedom widens up the ladder and into Tier 1 constructor status.
 
-| Tier | Development model (v1 principle) |
-|------|----------------------------------|
+| Tier       | Development model (v1 principle)                                                                                                                                                                                                                  |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Tier 3** | Mostly **spec cores** with only small upgrade / reliability paths on those parts. Technical staff still matter via **setup discovery speed/accuracy** in practice and **reliability / engine-mode tolerance** on spec parts — not aero invention. |
-| **Tier 2** | **2–3 spec parts**; the rest of the car is freely developable. |
-| **Tier 1** | Teams may **purchase engines and parts from constructor suppliers**. As HQ buildings unlock and level up, a team can convert into its **own supplier / constructor**. |
+| **Tier 2** | **2–3 spec parts**; the rest of the car is freely developable.                                                                                                                                                                                    |
+| **Tier 1** | Teams may **purchase engines and parts from constructor suppliers**. As HQ buildings unlock and level up, a team can convert into its **own supplier / constructor**.                                                                             |
 
 Promotion into Tier 1 therefore starts as a **customer** operation, not a blank R&D sheet and not an instant equal constructor.
 
@@ -110,16 +111,16 @@ All of the following are first-class for v1:
 
 ## 7. Out of scope (v1)
 
-- 3D race view, driving physics, or player-as-driver modes  
-- Licensed real-world series, teams, drivers, or circuits  
-- Creating a custom team at start (existing bottom-tier takeover only)  
-- Player-authored custom leagues  
-- Multiplayer / online saves / cloud sync  
-- Promotion/relegation playoffs  
-- Deep regulations & politics simulation  
-- Sprint format as a required Tier 1 system (may land later)  
-- Playable off-screen / foreign-series calendars (lightweight virtual contracts only)  
-- Owner-only or pure financial sandbox as a separate mode  
+- 3D race view, driving physics, or player-as-driver modes
+- Licensed real-world series, teams, drivers, or circuits
+- Creating a custom team at start (existing bottom-tier takeover only)
+- Player-authored custom leagues
+- Multiplayer / online saves / cloud sync
+- Promotion/relegation playoffs
+- Deep regulations & politics simulation
+- Sprint format as a required Tier 1 system (may land later)
+- Playable off-screen / foreign-series calendars (lightweight virtual contracts only)
+- Owner-only or pure financial sandbox as a separate mode
 
 ---
 

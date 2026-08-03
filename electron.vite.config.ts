@@ -16,13 +16,7 @@ export default defineConfig({
 				entryFileNames: '[name].js',
 				format: 'es'
 			},
-			external: [
-				'electron',
-				'electron-serve',
-				'@libsql/client',
-				'drizzle-orm',
-				/^node:/
-			]
+			external: ['electron', 'electron-serve', '@libsql/client', 'drizzle-orm', /^node:/]
 		}
 	}
 });

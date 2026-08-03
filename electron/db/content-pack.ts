@@ -1,4 +1,10 @@
 import { createHash } from 'node:crypto';
+import {
+	FOUNDATION_FDC_TEAMS,
+	FOUNDATION_NATIONALITIES,
+	type NationalitySeed,
+	type TeamSeed
+} from '../../src/lib/content/career-start.js';
 
 export interface ContentPackManifest {
 	contentDataVersion: string;
@@ -18,6 +24,8 @@ export interface ChampionshipSeed {
 export interface ContentPack {
 	manifest: ContentPackManifest;
 	championships: readonly ChampionshipSeed[];
+	nationalities: readonly NationalitySeed[];
+	teams: readonly TeamSeed[];
 }
 
 const FOUNDATION_CHAMPIONSHIPS: readonly ChampionshipSeed[] = [
@@ -62,20 +70,40 @@ function canonicalize(value: unknown): unknown {
 	return value;
 }
 
-function hashRows(championships: readonly ChampionshipSeed[]) {
+function hashPackRows(pack: {
+	championships: readonly ChampionshipSeed[];
+	nationalities: readonly NationalitySeed[];
+	teams: readonly TeamSeed[];
+}) {
 	return createHash('sha256')
-		.update(JSON.stringify(canonicalize({ championships })))
+		.update(
+			JSON.stringify(
+				canonicalize({
+					championships: pack.championships,
+					nationalities: pack.nationalities,
+					teams: pack.teams
+				})
+			)
+		)
 		.digest('hex');
 }
 
+const foundationRows = {
+	championships: FOUNDATION_CHAMPIONSHIPS,
+	nationalities: FOUNDATION_NATIONALITIES,
+	teams: FOUNDATION_FDC_TEAMS
+};
+
 export const BASE_CONTENT_PACK: ContentPack = Object.freeze({
 	manifest: Object.freeze({
-		contentDataVersion: 'foundation-v1',
+		contentDataVersion: 'foundation-v3',
 		packSchemaVersion: 'content-pack-v1',
 		requiredGameVersion: '0.0.1',
-		contentHash: hashRows(FOUNDATION_CHAMPIONSHIPS)
+		contentHash: hashPackRows(foundationRows)
 	}),
-	championships: FOUNDATION_CHAMPIONSHIPS
+	championships: FOUNDATION_CHAMPIONSHIPS,
+	nationalities: FOUNDATION_NATIONALITIES,
+	teams: FOUNDATION_FDC_TEAMS
 });
 
 export class ContentPackHashMismatchError extends Error {
@@ -97,7 +125,7 @@ export class ContentPackValidationError extends Error {
 }
 
 export function validateContentPack(pack: ContentPack) {
-	const { manifest, championships } = pack;
+	const { manifest, championships, nationalities, teams } = pack;
 	if (
 		!manifest.contentDataVersion ||
 		!manifest.packSchemaVersion ||
@@ -107,26 +135,59 @@ export function validateContentPack(pack: ContentPack) {
 		throw new ContentPackValidationError('Content pack manifest is incomplete.');
 	}
 
-	const ids = new Set<string>();
+	const championshipIds = new Set<string>();
 	const codes = new Set<string>();
 	const shortCodes = new Set<string>();
 	const ladderRanks = new Set<number>();
 	for (const championship of championships) {
-		if (ids.has(championship.id))
+		if (championshipIds.has(championship.id)) {
 			throw new ContentPackValidationError('Duplicate championship ID.');
-		if (codes.has(championship.code))
+		}
+		if (codes.has(championship.code)) {
 			throw new ContentPackValidationError('Duplicate championship code.');
+		}
 		if (shortCodes.has(championship.shortCode)) {
 			throw new ContentPackValidationError('Duplicate championship short code.');
 		}
 		if (ladderRanks.has(championship.ladderRank)) {
 			throw new ContentPackValidationError('Duplicate championship ladder rank.');
 		}
-		ids.add(championship.id);
+		championshipIds.add(championship.id);
 		codes.add(championship.code);
 		shortCodes.add(championship.shortCode);
 		ladderRanks.add(championship.ladderRank);
 	}
 
-	if (hashRows(championships) !== manifest.contentHash) throw new ContentPackHashMismatchError();
+	const nationalityIds = new Set<string>();
+	const nationalityCodes = new Set<string>();
+	for (const nationality of nationalities) {
+		if (nationalityIds.has(nationality.id)) {
+			throw new ContentPackValidationError('Duplicate nationality ID.');
+		}
+		if (nationalityCodes.has(nationality.code)) {
+			throw new ContentPackValidationError('Duplicate nationality code.');
+		}
+		nationalityIds.add(nationality.id);
+		nationalityCodes.add(nationality.code);
+	}
+
+	const teamIds = new Set<string>();
+	const teamCodes = new Set<string>();
+	for (const team of teams) {
+		if (teamIds.has(team.id)) throw new ContentPackValidationError('Duplicate team ID.');
+		if (teamCodes.has(team.code)) throw new ContentPackValidationError('Duplicate team code.');
+		if (!nationalityIds.has(team.nationalityId)) {
+			throw new ContentPackValidationError(`Team ${team.code} references unknown nationality.`);
+		}
+		teamIds.add(team.id);
+		teamCodes.add(team.code);
+	}
+
+	if (hashPackRows({ championships, nationalities, teams }) !== manifest.contentHash) {
+		throw new ContentPackHashMismatchError();
+	}
+}
+
+export function isPackTeamId(pack: ContentPack, teamId: string): boolean {
+	return pack.teams.some((team) => team.id === teamId);
 }

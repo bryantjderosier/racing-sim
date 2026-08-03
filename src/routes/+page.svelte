@@ -64,8 +64,7 @@
 		<header class="brand">
 			<h1>GRAND PRIX MANAGER</h1>
 			<p>
-				Build your team. Develop your car. Sign the grid's finest talent. Chase championship
-				glory.
+				Build your team. Develop your car. Sign the grid's finest talent. Chase championship glory.
 			</p>
 		</header>
 

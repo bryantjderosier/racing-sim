@@ -1,6 +1,6 @@
 # Database Persistence Contract — Pre-UI Boundary
 
-**Status:** Accepted implementation contract; schema, foundation save bootstrap, typed IPC, and read models implemented
+**Status:** Accepted implementation contract; reconciled design boundary through D-543
 **Depends on:** `DATA_SCHEMA.md`, `RACE_SIMULATION_CONTRACT.md`, `WEATHER_SIMULATION_CONTRACT.md`
 **Scope:** SQLite save files, simulation persistence, migrations, and renderer IPC
 
@@ -66,6 +66,29 @@ tyre usage, and the final checkpoint cleanup/update. The operation is idempotent
 
 The engine remains pure: repositories adapt relational rows into `RaceInput` and adapt
 `RaceRunResult` back into persistence records. No engine step reads SQLite.
+
+### Weekend settlement
+
+After the weekend’s final official session, one idempotent settlement operation aggregates the
+session results into an immutable official weekend-result package. The management layer applies
+standings, finances, personnel state, technical state, board effects, news, narrative consequences,
+and career history exactly once. Session-level results remain available to the race-weekend UI.
+
+Settlement applies deterministic consequences only. Operational recommendations are persisted as
+pending threads and never activate automatically; the player must approve, edit, reject, defer, or
+leave them unresolved. Safety, legality, or validity blockers may pause calendar progress.
+
+### World-state and calendar persistence
+
+The save database is the authoritative home for world date and RNG, AI teams and personnel,
+contracts, markets, supplier relationships, board and career state, news, narrative state, and
+bounded consequences. Disposable telemetry and presentation caches may remain outside the save but
+must never be required to resume or settle a career.
+
+One serialized calendar pipeline advances daily simulation, race weekends, settlement, deadlines,
+regulation effective dates, and season transitions. Each transition has an identity and commits
+atomically. A failure preserves the last valid state, pauses the calendar, and exposes a retry or
+explicit game-rule fallback; it never silently advances or partially applies the transition.
 
 ### Checkpoint cadence and shutdown
 
