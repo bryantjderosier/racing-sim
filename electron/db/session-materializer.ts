@@ -5,6 +5,7 @@ import { persistSessionInput, SESSION_INPUT_SCHEMA_VERSION } from './session-inp
 import * as schema from './schema.js';
 
 type Database = ReturnType<typeof drizzle<typeof schema>>;
+type Transaction = Parameters<Parameters<Database['transaction']>[0]>[0];
 
 export interface SessionMaterializationConditions {
 	tempC?: number | null;
@@ -18,6 +19,9 @@ export interface SessionMaterializationRequest {
 	eventSessionDefinitionId: string;
 	input: RaceInput;
 	conditions?: SessionMaterializationConditions;
+	performanceSnapshots?: readonly (typeof schema.resolvedPerformanceSnapshot.$inferInsert)[];
+	sessionEntries?: readonly (typeof schema.sessionEntry.$inferInsert)[];
+	tyreSets?: readonly (typeof schema.tyreSet.$inferInsert)[];
 }
 
 export interface SessionMaterializationResult {
@@ -42,6 +46,30 @@ function requireId(value: unknown, label: string): asserts value is string {
 	}
 }
 
+async function persistSessionParticipants(
+	tx: Transaction,
+	request: SessionMaterializationRequest
+): Promise<void> {
+	if (request.performanceSnapshots?.length) {
+		await tx
+			.insert(schema.resolvedPerformanceSnapshot)
+			.values([...request.performanceSnapshots])
+			.onConflictDoNothing();
+	}
+	if (request.sessionEntries?.length) {
+		await tx
+			.insert(schema.sessionEntry)
+			.values([...request.sessionEntries])
+			.onConflictDoNothing();
+	}
+	if (request.tyreSets?.length) {
+		await tx
+			.insert(schema.tyreSet)
+			.values([...request.tyreSets])
+			.onConflictDoNothing();
+	}
+}
+
 export async function materializeWeekendSession(
 	db: Database,
 	request: SessionMaterializationRequest
@@ -63,10 +91,6 @@ export async function materializeWeekendSession(
 				`Event session definition was not found: ${request.eventSessionDefinitionId}.`
 			);
 		}
-		if (!definition.pointsSystemId) {
-			throw new SessionMaterializationError('Event session definition has no points system.');
-		}
-
 		const existingRows = await tx
 			.select({
 				id: schema.weekendSession.id,
@@ -102,6 +126,7 @@ export async function materializeWeekendSession(
 						'CONFLICT'
 					);
 				}
+				await persistSessionParticipants(tx, request);
 				return {
 					weekendSessionId: request.weekendSessionId,
 					created: false,
@@ -110,6 +135,7 @@ export async function materializeWeekendSession(
 			}
 
 			await persistSessionInput(tx, request.weekendSessionId, request.input);
+			await persistSessionParticipants(tx, request);
 			return {
 				weekendSessionId: request.weekendSessionId,
 				created: false,
@@ -130,6 +156,7 @@ export async function materializeWeekendSession(
 			activeCheckpointId: null
 		});
 		await persistSessionInput(tx, request.weekendSessionId, request.input);
+		await persistSessionParticipants(tx, request);
 		return {
 			weekendSessionId: request.weekendSessionId,
 			created: true,

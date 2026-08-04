@@ -156,9 +156,6 @@ export function createPersistedSessionDefinitionResolver(
 			.filter((candidate) => ['live', 'paused', 'scheduled'].includes(candidate.status))
 			.sort((left, right) => sessionPriority(left.status) - sessionPriority(right.status))[0];
 		if (!row) return null;
-		if (!row.pointsSystemId) {
-			throw new SessionInputResolverError('Current session has no points system.');
-		}
 		const input = decodeInput(row);
 		return {
 			input,

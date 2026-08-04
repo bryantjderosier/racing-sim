@@ -1,6 +1,8 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import {
 	IPC_CHANNELS,
+	type CalendarAdvanceDto,
+	type CalendarAdvanceRequest,
 	type CareerIdentityDto,
 	type CurrentWeekendDto,
 	type ResultsGetRequest,
@@ -34,6 +36,10 @@ const electronAPI = {
 	weekend: {
 		getCurrent: (): Promise<CurrentWeekendDto | null> =>
 			ipcRenderer.invoke(IPC_CHANNELS.weekendGetCurrent)
+	},
+	calendar: {
+		advanceDay: (request: CalendarAdvanceRequest = {}): Promise<CalendarAdvanceDto> =>
+			ipcRenderer.invoke(IPC_CHANNELS.calendarAdvanceDay, request)
 	},
 	results: {
 		get: (request: ResultsGetRequest): Promise<SessionResultDto[]> =>

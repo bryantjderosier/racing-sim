@@ -26,7 +26,7 @@ export function weatherRaceInput(seed = 'weather-test-seed', lapCount = 20): Rac
 	input.engineVersion = WEATHER_ENGINE_VERSION;
 	input.weather = {
 		enabled: true,
-		forecastModelVersion: 'forecast-v2',
+		forecastModelVersion: 'forecast-v3-ratings-0-100',
 		scenario: {
 			controlPointIntervalMs: 60_000,
 			initialAirTempDeciC: 220,

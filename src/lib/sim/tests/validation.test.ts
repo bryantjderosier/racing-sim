@@ -7,6 +7,21 @@ describe('race input validation', () => {
 		expect(() => validateRaceInput(singleCarInput())).not.toThrow();
 	});
 
+	test('accepts the full 0–100 rating range and rejects values outside it', () => {
+		const bounds = singleCarInput();
+		bounds.entries[0].driver.pace = 0;
+		bounds.entries[0].driver.consistency = 100;
+		expect(() => validateRaceInput(bounds)).not.toThrow();
+
+		const belowMinimum = singleCarInput();
+		belowMinimum.entries[0].driver.pace = -1;
+		expect(() => validateRaceInput(belowMinimum)).toThrow(/pace rating invalid/);
+
+		const aboveMaximum = singleCarInput();
+		aboveMaximum.entries[0].driver.pace = 101;
+		expect(() => validateRaceInput(aboveMaximum)).toThrow(/pace rating invalid/);
+	});
+
 	test('rejects invalid track distance and unissued tyres', () => {
 		const invalidDistance = singleCarInput();
 		invalidDistance.track.lapDistanceM += 1;
@@ -38,7 +53,9 @@ describe('race input validation', () => {
 	test('rejects a formula version that does not match the active coefficients', () => {
 		const input = singleCarInput();
 		input.formulaVersion = 'academy-dry-v2';
-		expect(() => validateRaceInput(input)).toThrow(/formulaVersion must be academy-dry-v4/);
+		expect(() => validateRaceInput(input)).toThrow(
+			/formulaVersion must be academy-dry-v5-ratings-0-100/
+		);
 	});
 
 	test('accepts the weather foundation contract', () => {
@@ -47,9 +64,9 @@ describe('race input validation', () => {
 
 	test('rejects weather version and hysteresis mismatches', () => {
 		const dryVersion = weatherRaceInput();
-		dryVersion.formulaVersion = 'academy-dry-v4';
+		dryVersion.formulaVersion = 'academy-dry-v5-ratings-0-100';
 		expect(() => validateRaceInput(dryVersion)).toThrow(
-			/formulaVersion must be academy-weather-v2/
+			/formulaVersion must be academy-weather-v3-ratings-0-100/
 		);
 
 		const invalidHysteresis = weatherRaceInput();

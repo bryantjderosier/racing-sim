@@ -24,7 +24,7 @@ export type SessionOrchestratorStatus = 'idle' | 'live' | 'paused' | 'finished' 
 
 export interface SessionOrchestratorOptions {
 	weekendSessionId: string;
-	pointsSystemId: string;
+	pointsSystemId: string | null;
 	checkpointContext: (
 		snapshot: SimulationSnapshot,
 		reason: SessionCheckpointReason,

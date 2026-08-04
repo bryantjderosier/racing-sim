@@ -5,6 +5,7 @@ import {
 	type NationalitySeed,
 	type TeamSeed
 } from '../../src/lib/content/career-start.js';
+import { FDC_FOUNDATION_CONTENT } from '../../src/lib/content/fdc-foundation.js';
 
 export interface ContentPackManifest {
 	contentDataVersion: string;
@@ -26,6 +27,7 @@ export interface ContentPack {
 	championships: readonly ChampionshipSeed[];
 	nationalities: readonly NationalitySeed[];
 	teams: readonly TeamSeed[];
+	foundation: typeof FDC_FOUNDATION_CONTENT;
 }
 
 const FOUNDATION_CHAMPIONSHIPS: readonly ChampionshipSeed[] = [
@@ -74,6 +76,7 @@ function hashPackRows(pack: {
 	championships: readonly ChampionshipSeed[];
 	nationalities: readonly NationalitySeed[];
 	teams: readonly TeamSeed[];
+	foundation: typeof FDC_FOUNDATION_CONTENT;
 }) {
 	return createHash('sha256')
 		.update(
@@ -81,7 +84,8 @@ function hashPackRows(pack: {
 				canonicalize({
 					championships: pack.championships,
 					nationalities: pack.nationalities,
-					teams: pack.teams
+					teams: pack.teams,
+					foundation: pack.foundation
 				})
 			)
 		)
@@ -91,19 +95,21 @@ function hashPackRows(pack: {
 const foundationRows = {
 	championships: FOUNDATION_CHAMPIONSHIPS,
 	nationalities: FOUNDATION_NATIONALITIES,
-	teams: FOUNDATION_FDC_TEAMS
+	teams: FOUNDATION_FDC_TEAMS,
+	foundation: FDC_FOUNDATION_CONTENT
 };
 
 export const BASE_CONTENT_PACK: ContentPack = Object.freeze({
 	manifest: Object.freeze({
-		contentDataVersion: 'foundation-v3',
-		packSchemaVersion: 'content-pack-v1',
+		contentDataVersion: 'foundation-v4-tier3-season',
+		packSchemaVersion: 'content-pack-v2',
 		requiredGameVersion: '0.0.1',
 		contentHash: hashPackRows(foundationRows)
 	}),
 	championships: FOUNDATION_CHAMPIONSHIPS,
 	nationalities: FOUNDATION_NATIONALITIES,
-	teams: FOUNDATION_FDC_TEAMS
+	teams: FOUNDATION_FDC_TEAMS,
+	foundation: FDC_FOUNDATION_CONTENT
 });
 
 export class ContentPackHashMismatchError extends Error {
@@ -125,7 +131,7 @@ export class ContentPackValidationError extends Error {
 }
 
 export function validateContentPack(pack: ContentPack) {
-	const { manifest, championships, nationalities, teams } = pack;
+	const { manifest, championships, nationalities, teams, foundation } = pack;
 	if (
 		!manifest.contentDataVersion ||
 		!manifest.packSchemaVersion ||
@@ -183,7 +189,42 @@ export function validateContentPack(pack: ContentPack) {
 		teamCodes.add(team.code);
 	}
 
-	if (hashPackRows({ championships, nationalities, teams }) !== manifest.contentHash) {
+	if (
+		foundation.season.championshipId !== championships.find((row) => row.code === 'academy')?.id
+	) {
+		throw new ContentPackValidationError(
+			'Foundation season is not attached to the academy championship.'
+		);
+	}
+	if (foundation.season.rulesetId !== foundation.ruleset.id) {
+		throw new ContentPackValidationError('Foundation season references an unknown ruleset.');
+	}
+	if (foundation.ruleset.weekendFormatTemplateId !== foundation.weekendFormat.id) {
+		throw new ContentPackValidationError(
+			'Foundation ruleset references an unknown weekend format.'
+		);
+	}
+	if (foundation.events.length !== 10 || foundation.eventSessionDefinitions.length !== 50) {
+		throw new ContentPackValidationError(
+			'Foundation calendar must contain 10 events and 50 sessions.'
+		);
+	}
+	const sessionKinds = foundation.eventSessionDefinitions.map((session) => session.sessionKind);
+	if (
+		sessionKinds.includes('qualifying') ||
+		sessionKinds.filter((kind) => kind === 'sprint').length !== 10
+	) {
+		throw new ContentPackValidationError(
+			'Foundation Tier 3 sessions do not match the launch format.'
+		);
+	}
+	if (foundation.drivers.length !== 20 || foundation.eventEntries.length !== 200) {
+		throw new ContentPackValidationError(
+			'Foundation roster must contain 20 drivers and 200 event entries.'
+		);
+	}
+
+	if (hashPackRows({ championships, nationalities, teams, foundation }) !== manifest.contentHash) {
 		throw new ContentPackHashMismatchError();
 	}
 }

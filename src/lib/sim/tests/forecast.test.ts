@@ -30,14 +30,14 @@ const exactCapability: WeatherForecastCapability = {
 describe('weather forecast snapshots', () => {
 	test('maps HQ, analyst, and trackside ratings into bounded capability', () => {
 		const low = resolveWeatherForecastCapability('team-low', {
-			hqWeatherStationLevel: 1,
-			weatherAnalystSkill: 1,
-			tracksideToolsLevel: 1
+			hqWeatherStationLevel: 0,
+			weatherAnalystSkill: 0,
+			tracksideToolsLevel: 0
 		});
 		const high = resolveWeatherForecastCapability('team-high', {
-			hqWeatherStationLevel: 20,
-			weatherAnalystSkill: 20,
-			tracksideToolsLevel: 20
+			hqWeatherStationLevel: 100,
+			weatherAnalystSkill: 100,
+			tracksideToolsLevel: 100
 		});
 		expect(high.refreshIntervalMs).toBeLessThan(low.refreshIntervalMs);
 		expect(high.usefulHorizonMs).toBeGreaterThan(low.usefulHorizonMs);
@@ -86,14 +86,14 @@ describe('weather forecast snapshots', () => {
 
 	test('capability levels share forecast error while narrowing intensity intervals', () => {
 		const low = resolveWeatherForecastCapability('forecast-low', {
-			hqWeatherStationLevel: 1,
-			weatherAnalystSkill: 1,
-			tracksideToolsLevel: 1
+			hqWeatherStationLevel: 0,
+			weatherAnalystSkill: 0,
+			tracksideToolsLevel: 0
 		});
 		const high = resolveWeatherForecastCapability('forecast-high', {
-			hqWeatherStationLevel: 20,
-			weatherAnalystSkill: 20,
-			tracksideToolsLevel: 20
+			hqWeatherStationLevel: 100,
+			weatherAnalystSkill: 100,
+			tracksideToolsLevel: 100
 		});
 		const lowSnapshot = buildWeatherForecastSnapshot(timeline, low, 'paired-errors', 0, 3_600_000);
 		const highSnapshot = buildWeatherForecastSnapshot(

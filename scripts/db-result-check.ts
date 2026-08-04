@@ -1,4 +1,5 @@
 import { strict as assert } from 'node:assert';
+import { eq } from 'drizzle-orm';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -247,7 +248,10 @@ try {
 		assert.equal((await save.db.select().from(schema.sessionPointAward)).length, 1);
 		assert.equal((await save.db.select().from(schema.sessionEvent)).length, 4);
 		assert.equal((await save.db.select().from(schema.sessionCheckpoint)).length, 0);
-		const session = await save.db.select().from(schema.weekendSession);
+		const session = await save.db
+			.select()
+			.from(schema.weekendSession)
+			.where(eq(schema.weekendSession.id, weekendSessionId));
 		assert.equal(session[0]?.status, 'finished');
 		assert.equal(session[0]?.activeCheckpointId, null);
 	} finally {

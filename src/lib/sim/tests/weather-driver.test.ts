@@ -13,18 +13,18 @@ import { weatherRaceInput } from './helpers';
 
 const segment = FICTIONAL_TRACK.segments[6];
 const driver: DriverRatings = {
-	pace: 12,
-	raceCraft: 12,
-	consistency: 12,
-	tyreManagement: 12,
-	fuelManagement: 12,
-	starts: 12,
-	focus: 12,
-	aggression: 12,
-	composure: 12,
-	feedback: 12,
-	wetPace: 18,
-	adaptability: 12
+	pace: 60,
+	raceCraft: 60,
+	consistency: 60,
+	tyreManagement: 60,
+	fuelManagement: 60,
+	starts: 60,
+	focus: 60,
+	aggression: 60,
+	composure: 60,
+	feedback: 60,
+	wetPace: 90,
+	adaptability: 60
 };
 
 function stableWetInput(wetPace: number) {
@@ -45,7 +45,7 @@ function stableWetInput(wetPace: number) {
 		trackSegment.evaporationPpm = 0;
 		trackSegment.racingLineDryingPpm = 0;
 	}
-	input.entries[0].driver.pace = 12;
+	input.entries[0].driver.pace = 60;
 	input.entries[0].driver.wetPace = wetPace;
 	input.entries[0].startingTyreSetId = `${input.entries[0].sessionEntryId}-wet`;
 	return input;
@@ -102,14 +102,14 @@ describe('weather driver pace and adaptability', () => {
 			FORMULA_CONFIG,
 			WEATHER_DRIVER_CONFIG
 		);
-		expect(dry).toBe(driverFactor(driver, segment, FORMULA_CONFIG));
+		expect(dry).toBeCloseTo(driverFactor(driver, segment, FORMULA_CONFIG), 12);
 		expect(mixed).toBeLessThan(dry);
 		expect(wet).toBeLessThan(mixed);
 	});
 
 	test('does not apply adaptability in stable conditions', () => {
 		const low = weatherTransitionPenaltyPpm(
-			{ ...driver, adaptability: 1 },
+			{ ...driver, adaptability: 0 },
 			7_500,
 			7_500,
 			260,
@@ -117,7 +117,7 @@ describe('weather driver pace and adaptability', () => {
 			WEATHER_DRIVER_CONFIG
 		);
 		const high = weatherTransitionPenaltyPpm(
-			{ ...driver, adaptability: 20 },
+			{ ...driver, adaptability: 100 },
 			7_500,
 			7_500,
 			260,
@@ -130,7 +130,7 @@ describe('weather driver pace and adaptability', () => {
 
 	test('reduces rapid weather-transition loss for adaptable drivers', () => {
 		const low = weatherTransitionPenaltyPpm(
-			{ ...driver, adaptability: 1 },
+			{ ...driver, adaptability: 0 },
 			4_000,
 			3_500,
 			280,
@@ -138,7 +138,7 @@ describe('weather driver pace and adaptability', () => {
 			WEATHER_DRIVER_CONFIG
 		);
 		const high = weatherTransitionPenaltyPpm(
-			{ ...driver, adaptability: 20 },
+			{ ...driver, adaptability: 100 },
 			4_000,
 			3_500,
 			280,
@@ -150,14 +150,14 @@ describe('weather driver pace and adaptability', () => {
 	});
 
 	test('makes higher wet pace faster in a stable wet engine run', () => {
-		const low = runRace(stableWetInput(6));
-		const high = runRace(stableWetInput(19));
+		const low = runRace(stableWetInput(25));
+		const high = runRace(stableWetInput(95));
 		expect(high.sessionResults[0].totalTimeMs).toBeLessThan(low.sessionResults[0].totalTimeMs);
 	});
 
 	test('makes higher adaptability faster through an engine weather transition', () => {
-		const low = runRace(changingWeatherInput(1));
-		const high = runRace(changingWeatherInput(20));
+		const low = runRace(changingWeatherInput(0));
+		const high = runRace(changingWeatherInput(100));
 		expect(high.sessionResults[0].totalTimeMs).toBeLessThan(low.sessionResults[0].totalTimeMs);
 	});
 });

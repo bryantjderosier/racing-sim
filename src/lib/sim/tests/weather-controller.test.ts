@@ -26,9 +26,9 @@ function controllerFor(
 	return new WeatherStrategyController({
 		targetEntryId: entry.sessionEntryId,
 		capability: resolveWeatherForecastCapability('controller-test', {
-			hqWeatherStationLevel: 1,
-			weatherAnalystSkill: 1,
-			tracksideToolsLevel: 1
+			hqWeatherStationLevel: 0,
+			weatherAnalystSkill: 0,
+			tracksideToolsLevel: 0
 		}),
 		mode,
 		sessionDurationMs: 2_000_000,

@@ -19,6 +19,7 @@ export const IPC_CHANNELS = Object.freeze({
 	sessionIssueStrategy: 'session:issue-strategy',
 	sessionUpdate: 'session:update',
 	weekendGetCurrent: 'weekend:get-current',
+	calendarAdvanceDay: 'calendar:advance-day',
 	resultsGet: 'results:get'
 });
 
@@ -110,6 +111,36 @@ export interface CurrentWeekendDto {
 		rainInMinutes: number | null;
 		trackWetness: number | null;
 	};
+}
+
+export interface CalendarAdvanceRequest {
+	expectedWorldDate?: string;
+}
+
+export interface CalendarAdvanceDto {
+	transitionId: string;
+	transitionKind: 'day';
+	status: 'advanced' | 'blocked' | 'idempotent';
+	fromWorldDate: string;
+	toWorldDate: string;
+	savedWorldDate: string;
+	blockCode: 'weekend_active' | 'weekend_start_required' | 'season_transition_required' | null;
+	blockReason: string | null;
+	requiresWeekendStart: boolean;
+	weekendSessionId: string | null;
+	championshipEventId: string | null;
+	championshipEventName: string | null;
+	dailyMaintenance: {
+		phase: 'maintenance';
+		worldDate: string;
+		driversRecovered: number;
+		fatigueRecoveredPoints: number;
+		injuriesResolved: number;
+		contractsStarting: number;
+		contractsEnding: number;
+		seatsStarting: number;
+		seatsEnding: number;
+	} | null;
 }
 
 export interface ResultsGetRequest {

@@ -6,7 +6,7 @@ import type {
 } from './types';
 
 export const DRY_ENGINE_VERSION = 'headless-segment-v1';
-export const WEATHER_FORMULA_VERSION = 'academy-weather-v2';
+export const WEATHER_FORMULA_VERSION = 'academy-weather-v3-ratings-0-100';
 export const WEATHER_ENGINE_VERSION = 'headless-segment-v3';
 
 export const WEATHER_SURFACE_CONFIG: Readonly<WeatherSurfaceConfig> = Object.freeze({
@@ -41,10 +41,10 @@ export const WEATHER_DRIVER_CONFIG: Readonly<WeatherDriverConfig> = Object.freez
 });
 
 export const FORMULA_CONFIG: Readonly<FormulaConfig> = Object.freeze({
-	version: 'academy-dry-v4',
-	ratingCenter: 10.5,
+	version: 'academy-dry-v5-ratings-0-100',
+	ratingCenter: 50,
 	carPerformanceScale: 0.075,
-	driverPerformancePerPoint: 0.00135,
+	driverPerformancePerPoint: 0.0002565,
 	consistencyNoiseMs: 44,
 	fuelPenaltyMsPerKgPerLap: 31,
 	baseFuelBurnGramsPerLap: 1_520,

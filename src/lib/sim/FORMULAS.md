@@ -1,6 +1,6 @@
-# Headless race formula v1
+# Headless race formula v2
 
-`academy-dry-v4` implements the calculation and update order in
+`academy-dry-v5-ratings-0-100` implements the calculation and update order in
 `planning/RACE_SIMULATION_CONTRACT.md`. All persisted simulation quantities are integers:
 milliseconds, fuel grams, tyre-wear basis points, and parts-per-million input multipliers.
 `roundHalfEven` is applied at each segment boundary.
@@ -9,8 +9,8 @@ milliseconds, fuel grams, tyre-wear basis points, and parts-per-million input mu
 
 | Coefficient                         |             Value |
 | ----------------------------------- | ----------------: |
-| Rating center                       |              10.5 |
-| Driver time factor per rating point |           0.00135 |
+| Rating center                       |                50 |
+| Driver time factor per rating point |         0.0002565 |
 | Car performance scale               |             0.075 |
 | Base consistency noise              | 44 ms per segment |
 | Fuel penalty                        |      31 ms/kg/lap |
@@ -47,7 +47,9 @@ basis points.
 
 ## Calibration status
 
-The `academy-dry-v4` Stage C baseline was accepted after the 100-run academy, matched-strategy,
+The `academy-dry-v5-ratings-0-100` baseline preserves the prior formula behavior while accepting
+direct 0–100 ratings. It requires a fresh calibration pass before acceptance. The previous
+`academy-dry-v4` Stage C baseline was accepted after the 100-run academy, matched-strategy,
 tyre-management, and setup-sweep reviews.
 Changing a coefficient that changes deterministic output requires a new `formulaVersion`.
 Changing serialized state or event shapes requires a new `engineVersion`.

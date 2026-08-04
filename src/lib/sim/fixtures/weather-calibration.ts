@@ -81,7 +81,7 @@ function baseWeatherInput(seed: string, entryCount: number, lapCount: number): R
 	input.engineVersion = WEATHER_ENGINE_VERSION;
 	input.weather = {
 		enabled: true,
-		forecastModelVersion: 'forecast-v2',
+		forecastModelVersion: 'forecast-v3-ratings-0-100',
 		scenario: scenarioSpec(0, 0, 0, [
 			envelopePoint(300_000, 0, 220, 310),
 			envelopePoint(600_000, 0, 220, 310),

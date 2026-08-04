@@ -34,6 +34,7 @@
 | Circuit geography                            | `Circuit` + `CircuitLayoutVersion`                                         |
 | Career history                               | Effective-dated contracts, assignments, license awards; result tables      |
 | Weekend settlement                           | Management-layer official weekend-result package and idempotent settlement |
+| Current championship standings               | `Championship*Standing` + finish-count rows                                  |
 | World and narrative state                    | Persistent management-layer entities and history inside the save          |
 
 ---
@@ -74,6 +75,48 @@
 - Later content-pack changes do not mutate existing saves; migrations must update the copied data explicitly when required.
 - The application-level save picker/catalog lives outside the save database and stores only file metadata needed to discover and open saves.
 
+### 1.4 CalendarTransition
+
+Calendar transitions are the idempotency and failure boundary for serialized world-time changes.
+The first implementation supports one-day transitions and records blocked attempts without changing
+`SaveGame.worldDate`.
+
+| Attribute         | Type     | Notes                                                                    |
+| ----------------- | -------- | ------------------------------------------------------------------------ |
+| `id`              | ID       | Deterministic transition identity                                        |
+| `transitionKind`  | enum     | `day` \| `weekend_settlement` at launch                                   |
+| `fromWorldDate`   | date     | Expected committed source date                                           |
+| `toWorldDate`     | date     | Candidate next date                                                      |
+| `status`          | enum     | `blocked` \| `committed`                                               |
+| `blockCode`       | enum?    | Weekend, season-transition, or future domain blocker                    |
+| `blockReason`     | string?  | Player-facing recovery context                                          |
+| `createdAt`       | datetime | First attempt                                                            |
+| `updatedAt`       | datetime | Last attempt                                                             |
+| `completedAt`     | datetime | Set only after `SaveGame.worldDate` commits                             |
+
+Unique on `(transitionKind, fromWorldDate, toWorldDate)`. A replay of a committed transition is
+idempotent; a blocked transition may be retried after its blocker is resolved.
+
+### 1.5 DailyPhaseExecution
+
+Daily maintenance phases are persisted inside the same transaction as the day transition. The first
+phase applies passive driver recovery and injury countdowns, and records effective-date contract and
+seat changes for later recommendation/inbox consumers.
+
+| Attribute              | Type     | Notes                              |
+| ---------------------- | -------- | ---------------------------------- |
+| `id`                   | ID       | Deterministic save/date/phase key  |
+| `worldDate`            | date     | Date being resolved                |
+| `phase`                | enum     | `maintenance` at launch            |
+| `status`               | enum     | `completed`                        |
+| `resultPayload`        | typed JSON | Phase result summary              |
+| `resultSchemaVersion`  | string   | `daily-maintenance-v1`             |
+| `createdAt`            | datetime | First execution                    |
+| `completedAt`          | datetime | Successful phase completion        |
+
+Unique on `(worldDate, phase)`. A committed calendar transition cannot exist without its completed
+daily phase.
+
 ---
 
 ## 2. Championship & rules
@@ -109,7 +152,7 @@ Approved championship display names:
 | Attribute                       | Type       | Notes                                                                     |
 | ------------------------------- | ---------- | ------------------------------------------------------------------------- |
 | `id`                            | ID         |                                                                           |
-| `entriesPerTeam`                | int        | Race seats entered (2 default; Formula Development Championship may be 3) |
+| `entriesPerTeam`                | int        | Race seats entered (2 for the launch FDC field)                           |
 | `weekendFormatTemplateId`       | ID         |                                                                           |
 | `refuelingEnabled`              | bool       |                                                                           |
 | `ersEnabled`                    | bool       |                                                                           |
@@ -123,6 +166,8 @@ Approved championship display names:
 | `testingLimitsSchemaVersion`    | string     |                                                                           |
 | `raceDistanceRulePayload`       | typed JSON | How sessions resolve laps/time                                            |
 | `raceDistanceRuleSchemaVersion` | string     |                                                                           |
+| `gridPolicyPayload`             | typed JSON | Regulation-defined qualifying absence, grid source, and opening fallback |
+| `gridPolicySchemaVersion`       | string     |                                                                           |
 
 Part procurement/upgrade → `RulesetPartCategoryRule` only.
 
@@ -893,6 +938,20 @@ Does **not** own `simClockMs` (clock is on `SessionCheckpoint`).
 | `lapTimeMs`              | int  |       |
 | `driverId`               | ID   |       |
 | `seasonYear`             | int  |       |
+
+### 7.7 Championship standings and weekend settlement
+
+`ChampionshipDriverStanding` and `ChampionshipTeamStanding` are current season snapshots. They
+store points, wins, second places, third places, and normalized finish-count rows for complete
+countback ordering. Driver points remain attached to the driver; constructor points remain attached
+to the `TeamSeasonEntry` that operated the car.
+
+`ChampionshipWeekendSettlement` is unique per `ChampionshipEvent` and is the idempotency boundary.
+Its award children preserve the source `SessionPointAward`, driver, team-season entry, and points
+applied by the settlement. Settlement is allowed only after every event session is finished, has
+persisted results, and has no active checkpoint. It updates both standings in one transaction and
+advances `SaveGame.worldDate` to the next event date. Finances, personnel, R&D, recommendations,
+and other management consequences are intentionally outside this first slice.
 
 ---
 

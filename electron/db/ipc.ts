@@ -26,6 +26,7 @@ import {
 } from './save-service.js';
 import { SaveCatalog, type SaveCatalogEntry } from './save-catalog.js';
 import { getCareerIdentity, getCurrentWeekend, getSessionResults } from './read-models.js';
+import { advanceCalendarDay } from './calendar-service.js';
 import { SessionOrchestrator, SessionLifecycleError } from './session-orchestrator.js';
 import { SessionFactory } from './session-factory.js';
 
@@ -268,6 +269,14 @@ export function registerDbIpc(options: { sessionFactory?: SessionFactory } = {})
 	);
 	ipcMain.handle(IPC_CHANNELS.weekendGetCurrent, () =>
 		invoke(async () => getCurrentWeekend(requireActiveDatabase()))
+	);
+	ipcMain.handle(IPC_CHANNELS.calendarAdvanceDay, (_event, request) =>
+		invoke(async () =>
+			advanceCalendarDay(requireActiveDatabase(), {
+				expectedWorldDate:
+					typeof request?.expectedWorldDate === 'string' ? request.expectedWorldDate : undefined
+			})
+		)
 	);
 	ipcMain.handle(IPC_CHANNELS.resultsGet, (_event, request: ResultsGetRequest) =>
 		invoke(async () => {

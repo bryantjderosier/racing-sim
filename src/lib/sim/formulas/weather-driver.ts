@@ -9,8 +9,8 @@ import { driverFactor } from './driver';
 
 const PPM = 1_000_000;
 const BASIS_POINTS = 10_000;
-const MINIMUM_RATING = 1;
-const MAXIMUM_RATING = 20;
+const MINIMUM_RATING = 0;
+const MAXIMUM_RATING = 100;
 
 export function wetPaceBlendBp(racingLineWetnessBp: number): number {
 	return clamp(racingLineWetnessBp, 0, BASIS_POINTS);

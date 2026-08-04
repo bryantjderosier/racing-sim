@@ -25,7 +25,7 @@ type DatabaseExecutor =
 	Pick<Database, 'select' | 'insert'> | Pick<Transaction, 'select' | 'insert'>;
 
 const DEFAULT_MIGRATIONS_FOLDER = fileURLToPath(new URL('../../drizzle', import.meta.url));
-export const SAVE_SCHEMA_VERSION = 3;
+export const SAVE_SCHEMA_VERSION = 5;
 
 export class SaveAlreadyExistsError extends Error {
 	readonly code = 'SAVE_ALREADY_EXISTS' as const;
@@ -115,6 +115,7 @@ async function ensureTargetDoesNotExist(targetPath: string) {
 
 async function insertContentPackRows(executor: DatabaseExecutor, pack: ContentPack) {
 	validateContentPack(pack);
+	const foundation = pack.foundation;
 	if (pack.championships.length > 0) {
 		await executor
 			.insert(schema.championship)
@@ -133,6 +134,32 @@ async function insertContentPackRows(executor: DatabaseExecutor, pack: ContentPa
 			.values([...pack.teams])
 			.onConflictDoNothing();
 	}
+	await executor.insert(schema.weekendFormatTemplate).values(foundation.weekendFormat);
+	await executor.insert(schema.pointsSystem).values([...foundation.pointsSystems]);
+	await executor.insert(schema.pointsSystemPlacePoint).values([...foundation.placePoints]);
+	await executor.insert(schema.tyreCompound).values([...foundation.tyreCompounds]);
+	await executor.insert(schema.tyreCompoundSpec).values([...foundation.tyreCompoundSpecs]);
+	await executor.insert(schema.championshipSeasonRuleset).values(foundation.ruleset);
+	await executor.insert(schema.weekendFormatSessionSlot).values([...foundation.sessionSlots]);
+	await executor
+		.insert(schema.rulesetSupplyContractTier)
+		.values([...foundation.rulesetSupplyTiers]);
+	await executor.insert(schema.rulesetPartCategoryRule).values([...foundation.partCategoryRules]);
+	await executor.insert(schema.championshipSeason).values(foundation.season);
+	await executor.insert(schema.circuit).values([...foundation.circuits]);
+	await executor.insert(schema.circuitLayoutVersion).values([...foundation.layouts]);
+	await executor.insert(schema.championshipEvent).values([...foundation.events]);
+	await executor.insert(schema.driver).values([...foundation.drivers]);
+	await executor.insert(schema.driverHealth).values([...foundation.driverHealth]);
+	await executor.insert(schema.teamSeasonEntry).values([...foundation.teamSeasonEntries]);
+	await executor.insert(schema.seatAssignment).values([...foundation.seatAssignments]);
+	await executor.insert(schema.partDesignVersion).values([...foundation.partDesigns]);
+	await executor.insert(schema.chassisInstance).values([...foundation.chassis]);
+	await executor
+		.insert(schema.eventSessionDefinition)
+		.values([...foundation.eventSessionDefinitions]);
+	await executor.insert(schema.eventEntry).values([...foundation.eventEntries]);
+	await executor.insert(schema.weekendSession).values([...foundation.weekendSessions]);
 }
 
 export async function seedContentPack(db: Database, pack: ContentPack) {

@@ -15,7 +15,7 @@ type Transaction = Parameters<Parameters<Database['transaction']>[0]>[0];
 
 export interface FinalizeSessionOptions {
 	weekendSessionId: string;
-	pointsSystemId: string;
+	pointsSystemId: string | null;
 	finalizedAt: string;
 	lapsBehindByEntry?: Record<string, number>;
 }
@@ -99,7 +99,7 @@ function validateOutput(output: RaceRunResult, options: FinalizeSessionOptions) 
 			throw new FinalizationValidationError(`Race detail has no result: ${detail.sessionEntryId}.`);
 		}
 	}
-	if (!options.pointsSystemId || !options.finalizedAt) {
+	if (!options.finalizedAt || (output.pointAwards.length > 0 && !options.pointsSystemId)) {
 		throw new FinalizationValidationError('Finalization metadata is incomplete.');
 	}
 }
@@ -224,7 +224,9 @@ export async function finalizeSession(
 				};
 			})
 		);
-		const awards = awardRows(output.pointAwards, resultIds, options.pointsSystemId);
+		const awards = options.pointsSystemId
+			? awardRows(output.pointAwards, resultIds, options.pointsSystemId)
+			: [];
 		if (awards.length > 0) await tx.insert(schema.sessionPointAward).values(awards);
 
 		const events = output.events

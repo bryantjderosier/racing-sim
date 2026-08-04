@@ -2,7 +2,7 @@
 
 **Status:** Prototype expansion contract; deferred from launch
 **Scope:** Deterministic static-to-changing weather for the headless race engine; segment-level surface detail is not launch behavior
-**Depends on:** Accepted `academy-dry-v4` Stage C baseline  
+**Depends on:** Recalibrated `academy-dry-v5-ratings-0-100` baseline
 **Persistence:** In-memory prototype with checkpoint-compatible state
 
 ---
@@ -21,7 +21,8 @@ Add changing weather without destabilizing the accepted dry-race model. The modu
 - Probabilistic team forecasts that improve with staff and HQ capability.
 - Deterministic checkpoint/resume and batch calibration.
 
-The disabled weather module must preserve `academy-dry-v4` output exactly.
+The disabled weather module must preserve `academy-dry-v5-ratings-0-100` output exactly for the same
+0–100 inputs.
 
 ---
 
@@ -30,7 +31,7 @@ The disabled weather module must preserve `academy-dry-v4` output exactly.
 | Topic                    | Decision                                                              |
 | ------------------------ | --------------------------------------------------------------------- |
 | Precipitation resolution | Circuit-wide in V1                                                    |
-| Surface resolution       | Shared circuit-wide track state at launch; segment state deferred      |
+| Surface resolution       | Shared circuit-wide track state at launch; segment state deferred     |
 | Surface channels         | Circuit-wide launch state; racing-line/off-line channels deferred     |
 | Weather truth            | Hidden deterministic timeline resolved at session initialization      |
 | Forecast presentation    | Rolling probability and intensity windows                             |
@@ -643,8 +644,8 @@ Acceptance requires:
 Adding weather state, events, tyre temperature, driver fields, and telemetry requires a new
 `engineVersion`. Weather timing and grip formulas require a new `formulaVersion`.
 
-Weather-enabled inputs use `academy-weather-v2` with `headless-segment-v3`. Omitted or disabled
-weather stays on `academy-dry-v4` with `headless-segment-v1`.
+Weather-enabled inputs use `academy-weather-v3-ratings-0-100` with `headless-segment-v3`. Omitted or
+disabled weather stays on `academy-dry-v5-ratings-0-100` with `headless-segment-v1`.
 
 ---
 
@@ -653,7 +654,7 @@ weather stays on `academy-dry-v4` with `headless-segment-v1`.
 ### W0 — Disabled dry regression
 
 - Weather omitted or disabled.
-- Must reproduce accepted `academy-dry-v4` output exactly.
+- Must reproduce the recalibrated `academy-dry-v5-ratings-0-100` output exactly.
 
 ### W1 — Static dry enabled
 

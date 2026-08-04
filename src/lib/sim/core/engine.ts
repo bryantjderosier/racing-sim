@@ -600,7 +600,7 @@ export class RaceSimulation {
 			const gap = ahead ? state.elapsedMs - ahead.elapsedMs : Number.POSITIVE_INFINITY;
 			const startLoss =
 				this.stepIndex === 0
-					? ((21 - entry.driver.starts) / 20) *
+					? (1 - (entry.driver.starts / 100) * 0.95) *
 						FORMULA_CONFIG.startVarianceMs *
 						this.rng.starts.nextFloat()
 					: 0;

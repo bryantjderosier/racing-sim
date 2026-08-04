@@ -75,8 +75,8 @@ export const ACADEMY_COMPOUNDS: Readonly<Record<'soft' | 'medium' | 'hard', Tyre
 function driverRatings(index: number): DriverRatings {
 	const team = Math.floor(index / 3);
 	const seat = index % 3;
-	const baseline = 17 - Math.floor(team / 2) - seat;
-	const rating = (offset: number) => Math.max(6, Math.min(19, baseline + offset));
+	const baseline = 84 - Math.floor(team / 2) * 4 - seat * 2;
+	const rating = (offset: number) => Math.max(0, Math.min(100, baseline + offset * 2));
 	return {
 		pace: rating(seat === 0 ? 1 : 0),
 		raceCraft: rating((index * 3) % 3),

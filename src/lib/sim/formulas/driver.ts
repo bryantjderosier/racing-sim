@@ -19,6 +19,6 @@ export function paceNoiseMs(
 	normalDraw: number,
 	config: FormulaConfig
 ): number {
-	const consistencyScale = (21 - driver.consistency) / 10.5;
+	const consistencyScale = (101 - driver.consistency) / 50.5;
 	return normalDraw * config.consistencyNoiseMs * consistencyScale;
 }

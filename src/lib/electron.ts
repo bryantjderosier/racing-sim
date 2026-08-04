@@ -1,11 +1,13 @@
 import type {
+	CalendarAdvanceDto,
+	CalendarAdvanceRequest,
 	CareerIdentityDto,
 	SaveCreateRequest,
 	SaveIdRequest,
 	SaveSummary
 } from '../../electron/ipc-contract';
 
-export type { CareerIdentityDto, SaveSummary };
+export type { CalendarAdvanceDto, CalendarAdvanceRequest, CareerIdentityDto, SaveSummary };
 export function isElectron(): boolean {
 	return typeof window !== 'undefined' && 'electronAPI' in window;
 }
@@ -48,6 +50,13 @@ export async function deleteSave(request: SaveIdRequest): Promise<void> {
 export async function getCareerIdentity(): Promise<CareerIdentityDto> {
 	if (!isElectron()) throw new Error('Career identity requires the Electron app.');
 	return window.electronAPI.save.getIdentity();
+}
+
+export async function advanceCalendarDay(
+	request: CalendarAdvanceRequest = {}
+): Promise<CalendarAdvanceDto> {
+	if (!isElectron()) throw new Error('Advancing the calendar requires the Electron app.');
+	return window.electronAPI.calendar.advanceDay(request);
 }
 
 export function formatSaveTimestamp(value: string | null): string {

@@ -22,8 +22,8 @@ describe('fuel, tyres, cars, drivers, and race interaction', () => {
 	test('tyre management reduces wear and a justified stop beats staying out', () => {
 		const poor = singleCarInput('tyres', 20);
 		const strong = structuredClone(poor);
-		poor.entries[0].driver.tyreManagement = 6;
-		strong.entries[0].driver.tyreManagement = 19;
+		poor.entries[0].driver.tyreManagement = 30;
+		strong.entries[0].driver.tyreManagement = 95;
 		const poorResult = runRace(poor);
 		const strongResult = runRace(strong);
 		const tyreId = poor.entries[0].startingTyreSetId;
@@ -83,8 +83,8 @@ describe('fuel, tyres, cars, drivers, and race interaction', () => {
 	test('pace and relevant car performance improve timing', () => {
 		const slowerDriver = singleCarInput('pace', 15);
 		const fasterDriver = structuredClone(slowerDriver);
-		slowerDriver.entries[0].driver.pace = 8;
-		fasterDriver.entries[0].driver.pace = 19;
+		slowerDriver.entries[0].driver.pace = 25;
+		fasterDriver.entries[0].driver.pace = 95;
 		expect(runRace(fasterDriver).sessionResults[0].totalTimeMs).toBeLessThan(
 			runRace(slowerDriver).sessionResults[0].totalTimeMs
 		);
@@ -105,7 +105,7 @@ describe('fuel, tyres, cars, drivers, and race interaction', () => {
 				input.entries[0].driver.consistency = consistency;
 				return runRace(input).sessionResults[0].totalTimeMs;
 			});
-		expect(variance(totals(19))).toBeLessThan(variance(totals(6)));
+		expect(variance(totals(95))).toBeLessThan(variance(totals(25)));
 	});
 
 	test('faster attackers have a higher pass probability and can pass in-engine', () => {
@@ -137,10 +137,10 @@ describe('fuel, tyres, cars, drivers, and race interaction', () => {
 		).toBeGreaterThan(
 			overtakeOpportunityProbability(1_100, 8_100, 8_100, false, segment, FORMULA_CONFIG)
 		);
-		attacker.driver.pace = 20;
-		attacker.driver.raceCraft = 20;
-		defender.driver.pace = 5;
-		defender.driver.raceCraft = 5;
+		attacker.driver.pace = 100;
+		attacker.driver.raceCraft = 100;
+		defender.driver.pace = 0;
+		defender.driver.raceCraft = 0;
 		const result = runRace(input);
 		expect(
 			result.events.filter(

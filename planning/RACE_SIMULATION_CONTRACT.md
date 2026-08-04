@@ -10,7 +10,7 @@
 
 ## 1. Purpose
 
-Prove the mathematical and architectural core of the race engine before connecting it to SQLite, Electron, Svelte, finances, R&D, or long-term career simulation.
+Prove the mathematical and architectural core of the race engine before connecting it to Electron, Svelte, finances, R&D, or long-term career simulation. The relational save now owns the boundary that resolves persisted content into an immutable simulation input.
 
 The prototype must:
 
@@ -23,7 +23,7 @@ The prototype must:
 ## 2. Explicit non-goals
 
 - Svelte or Electron UI
-- SQLite persistence or migrations
+- Broader management-layer persistence and settlement
 - Live CLI command entry
 - Changing weather in the first baseline
 - Refueling in the first baseline
@@ -38,19 +38,19 @@ These systems must fit the interfaces below but are added only after the dry bas
 
 ## 3. Locked prototype decisions
 
-| Topic                 | Decision                                                            |
-| --------------------- | ------------------------------------------------------------------- |
-| Resolution            | Fixed `TrackSegment` steps                                          |
-| Track structure       | 12–20 segments grouped into three official timing sectors           |
-| Baseline layout       | 15 segments; five per official sector                               |
-| Baseline championship | Formula Development Championship (`academy`)                        |
-| Baseline field        | 10 teams × 3 cars = 30 entries                                      |
-| Baseline distance     | 50 laps                                                             |
-| Conditions            | Dry and static                                                      |
-| Refueling             | Disabled; full-race fuel load and consumption still simulated       |
-| Strategy input        | Predefined deterministic command schedule                           |
-| Calibration           | Real-world-shaped statistical ranges using wholly fictional content |
-| Persistence           | In-memory only; emit schema-compatible outputs                      |
+| Topic                 | Decision                                                                  |
+| --------------------- | ------------------------------------------------------------------------- |
+| Resolution            | Fixed `TrackSegment` steps                                                |
+| Track structure       | 12–20 segments grouped into three official timing sectors                 |
+| Baseline layout       | 15 segments; five per official sector                                     |
+| Baseline championship | Formula Development Championship (`academy`)                              |
+| Baseline field        | 10 teams × 3 cars = 30 entries                                            |
+| Baseline distance     | 50 laps                                                                   |
+| Conditions            | Dry and static                                                            |
+| Refueling             | Disabled; full-race fuel load and consumption still simulated             |
+| Strategy input        | Predefined deterministic command schedule                                 |
+| Calibration           | Real-world-shaped statistical ranges using wholly fictional content       |
+| Persistence           | Materialize immutable session inputs and persist official session outputs |
 
 ---
 
@@ -486,7 +486,15 @@ Events include simulation time, lap, segment, affected entry IDs, type, and a ty
 | Engine RNG/clock                 | `SessionCheckpoint`          |
 | Damage                           | `SessionDamageComponent`     |
 
-The headless prototype serializes these shapes but does not write SQLite.
+The simulation remains pure. The database layer materializes these shapes from persisted content,
+then writes the immutable input, resolved performance snapshots, session entries, and issued tyre
+sets before orchestration begins.
+
+For the launch FDC slice, the materializer selects the active live/paused session or the earliest
+scheduled session, resolves its event entries, driver ratings, car design payloads, circuit layout,
+rules, points, and dry tyre specs, and validates the resulting `RaceInput`. Practice sessions are
+unscored and therefore carry no points-system ID. Unsupported wet, refueling, and ERS scenarios
+fail closed rather than silently changing their rules.
 
 ---
 
@@ -550,7 +558,7 @@ After Stage C is stable:
 5. Refueling ruleset scenario
 6. ERS module
 7. Live command adapter
-8. SQLite checkpoint integration
+8. Broader SQLite checkpoint, weather, refueling, and management integration
 
 ---
 
@@ -597,7 +605,9 @@ After Stage C is stable:
 1. Contract review: interfaces, update order, units, and deferred scope.
 2. Stage A review: inspect generated timing sheets and degradation curves.
 3. Stage B review: inspect passes, traffic trains, and pit timing.
-4. Stage C review: accepted for `academy-dry-v4` after batch, matched-strategy, tyre-management, and
-   setup-sweep review.
+4. Stage C review: the prior `academy-dry-v4` calibration is historical; the direct 0–100
+   `academy-dry-v5-ratings-0-100` baseline requires a fresh batch, matched-strategy,
+   tyre-management, and setup-sweep review.
 
-No UI, persistence, or management-layer implementation begins until Stage C behavior is accepted.
+No UI or broader management-layer implementation begins until Stage C behavior and the current
+materialization boundary are accepted.

@@ -24,7 +24,9 @@ const requiredTables = [
 	'session_result',
 	'session_checkpoint',
 	'session_event',
-	'session_telemetry_archive'
+	'session_telemetry_archive',
+	'calendar_transition',
+	'daily_phase_execution'
 ];
 
 try {
@@ -45,6 +47,15 @@ try {
 	);
 	if (!String(saveGame.rows[0]?.sql).includes('save_game_singleton_key_check')) {
 		throw new Error('SaveGame singleton constraint is missing');
+	}
+
+	const driverColumns = await client.execute('PRAGMA table_info(driver)');
+	const driverColumnNames = new Set(driverColumns.rows.map((row) => String(row.name)));
+	if (
+		driverColumnNames.has('ers_management') ||
+		driverColumnNames.has('ers_management_potential')
+	) {
+		throw new Error('Deprecated ERS driver columns are still present');
 	}
 
 	console.log(`Database schema valid: ${tableNames.size} tables, foreign keys enabled.`);

@@ -39,7 +39,11 @@ try {
 	});
 	const save = await openSaveDatabase({ targetPath: savePath });
 	try {
-		assert.equal(await getCurrentWeekend(save.db), null);
+		const currentWeekend = await getCurrentWeekend(save.db);
+		assert.ok(currentWeekend);
+		assert.equal(currentWeekend.roundNumber, 1);
+		assert.equal(currentWeekend.session.kind, 'fp1');
+		assert.equal(currentWeekend.status, 'scheduled');
 		assert.deepEqual(await getSessionResults(save.db, 'missing-weekend-session'), []);
 		const identity = await getCareerIdentity(save.db);
 		assert.ok(identity);
@@ -50,7 +54,7 @@ try {
 	} finally {
 		closeSaveDatabase(save);
 	}
-	console.log('Read models valid: identity, empty current-weekend, and result queries passed.');
+	console.log('Read models valid: identity, seeded current-weekend, and result queries passed.');
 } finally {
 	await rm(tempDir, { recursive: true, force: true });
 }

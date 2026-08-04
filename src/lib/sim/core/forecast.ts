@@ -11,7 +11,7 @@ import type {
 } from './types';
 import { interpolateWeatherTruth } from './weather';
 
-export const WEATHER_FORECAST_MODEL_VERSION = 'forecast-v2';
+export const WEATHER_FORECAST_MODEL_VERSION = 'forecast-v3-ratings-0-100';
 
 const BASIS_POINTS = 10_000;
 const MINUTE_MS = 60_000;
@@ -152,16 +152,15 @@ export function resolveWeatherForecastCapability(
 ): WeatherForecastCapability {
 	if (
 		teamId.length === 0 ||
-		Object.values(inputs).some((value) => !Number.isInteger(value) || value < 1 || value > 20)
+		Object.values(inputs).some((value) => !Number.isInteger(value) || value < 0 || value > 100)
 	) {
 		throw new Error('Invalid weather forecast capability inputs');
 	}
 	const quality =
 		(inputs.hqWeatherStationLevel * 0.5 +
 			inputs.weatherAnalystSkill * 0.3 +
-			inputs.tracksideToolsLevel * 0.2 -
-			1) /
-		19;
+			inputs.tracksideToolsLevel * 0.2) /
+		100;
 	return {
 		teamId,
 		refreshIntervalMs: roundHalfEven(300_000 - quality * 180_000),

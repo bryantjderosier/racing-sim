@@ -154,14 +154,14 @@ function forecastQuality(
 } {
 	const capabilities = {
 		low: resolveWeatherForecastCapability('forecast-low', {
-			hqWeatherStationLevel: 1,
-			weatherAnalystSkill: 1,
-			tracksideToolsLevel: 1
+			hqWeatherStationLevel: 0,
+			weatherAnalystSkill: 0,
+			tracksideToolsLevel: 0
 		}),
 		high: resolveWeatherForecastCapability('forecast-high', {
-			hqWeatherStationLevel: 20,
-			weatherAnalystSkill: 20,
-			tracksideToolsLevel: 20
+			hqWeatherStationLevel: 100,
+			weatherAnalystSkill: 100,
+			tracksideToolsLevel: 100
 		})
 	};
 	const snapshots = Object.fromEntries(
@@ -229,14 +229,14 @@ function weatherStrategyRefreshes(
 	if (!input.weather?.enabled || timeline.length === 0 || sessionDurationMs <= 0) return null;
 	const capabilities = {
 		low: resolveWeatherForecastCapability('forecast-low', {
-			hqWeatherStationLevel: 1,
-			weatherAnalystSkill: 1,
-			tracksideToolsLevel: 1
+			hqWeatherStationLevel: 0,
+			weatherAnalystSkill: 0,
+			tracksideToolsLevel: 0
 		}),
 		high: resolveWeatherForecastCapability('forecast-high', {
-			hqWeatherStationLevel: 20,
-			weatherAnalystSkill: 20,
-			tracksideToolsLevel: 20
+			hqWeatherStationLevel: 100,
+			weatherAnalystSkill: 100,
+			tracksideToolsLevel: 100
 		})
 	};
 	const history = surfaceHistory.get('seg-01') ?? [];
@@ -446,8 +446,8 @@ function closedLoopStrategyReplay(
 	const capabilityConfig = resolveWeatherForecastCapability(
 		`forecast-${capability}`,
 		capability === 'low'
-			? { hqWeatherStationLevel: 1, weatherAnalystSkill: 1, tracksideToolsLevel: 1 }
-			: { hqWeatherStationLevel: 20, weatherAnalystSkill: 20, tracksideToolsLevel: 20 }
+			? { hqWeatherStationLevel: 0, weatherAnalystSkill: 0, tracksideToolsLevel: 0 }
+			: { hqWeatherStationLevel: 100, weatherAnalystSkill: 100, tracksideToolsLevel: 100 }
 	);
 	const pitEntry = replayInput.track.segments.find((segment) => segment.isPitEntry);
 	if (!pitEntry) throw new Error('Weather strategy validation requires a pit entry segment');

@@ -1,4 +1,5 @@
 import { strict as assert } from 'node:assert';
+import { eq } from 'drizzle-orm';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -100,7 +101,7 @@ try {
 		await save.db.insert(schema.championshipSeason).values({
 			id: ids.season,
 			championshipId: '00000000-0000-4000-8000-000000000003',
-			seasonYear: 2030,
+			seasonYear: 2031,
 			rulesetId: ids.ruleset
 		});
 		await save.db.insert(schema.teamSeasonEntry).values({
@@ -137,7 +138,7 @@ try {
 			shortName: 'TST',
 			nationId: ids.nationality,
 			timezone: 'UTC',
-			firstAppearanceYear: 2030
+			firstAppearanceYear: 2031
 		});
 		await save.db.insert(schema.circuitLayoutVersion).values({
 			id: ids.layout,
@@ -178,7 +179,7 @@ try {
 			championshipSeasonId: ids.season,
 			circuitLayoutVersionId: ids.layout,
 			roundNumber: 1,
-			startDate: '2030-01-02',
+			startDate: '2031-01-02',
 			name: 'Test Grand Prix'
 		});
 		await save.db.insert(schema.weekendFormatSessionSlot).values({
@@ -262,7 +263,6 @@ try {
 			consistency: 70,
 			tyreManagement: 70,
 			fuelManagement: 70,
-			ersManagement: 70,
 			wetPace: 70,
 			qualifyingPace: 70,
 			starts: 70,
@@ -276,7 +276,6 @@ try {
 			consistencyPotential: 80,
 			tyreManagementPotential: 80,
 			fuelManagementPotential: 80,
-			ersManagementPotential: 80,
 			wetPacePotential: 80,
 			qualifyingPacePotential: 80,
 			startsPotential: 80,
@@ -389,7 +388,8 @@ try {
 		assert.equal(afterRollback?.cars[0]?.racePosition, 2);
 		const session = await save.db
 			.select({ activeCheckpointId: schema.weekendSession.activeCheckpointId })
-			.from(schema.weekendSession);
+			.from(schema.weekendSession)
+			.where(eq(schema.weekendSession.id, ids.weekendSession));
 		assert.equal(session[0]?.activeCheckpointId, secondWritten.checkpointId);
 	} finally {
 		closeSaveDatabase(save);

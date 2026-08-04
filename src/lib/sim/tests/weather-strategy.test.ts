@@ -13,7 +13,7 @@ function forecast(
 	confidenceBp = 8_000
 ): WeatherForecastSnapshot {
 	return {
-		forecastModelVersion: 'forecast-v2',
+		forecastModelVersion: 'forecast-v3-ratings-0-100',
 		teamId: 'strategy-test',
 		issuedAtMs: 0,
 		validUntilMs: 120_000,

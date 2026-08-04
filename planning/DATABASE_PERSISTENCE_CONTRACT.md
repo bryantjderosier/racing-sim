@@ -90,6 +90,12 @@ regulation effective dates, and season transitions. Each transition has an ident
 atomically. A failure preserves the last valid state, pauses the calendar, and exposes a retry or
 explicit game-rule fallback; it never silently advances or partially applies the transition.
 
+Daily advancement uses a fixed phase order: validate queued actions, resolve completions and starts,
+apply daily progress and recovery, settle finances and contracts, advance world and AI systems,
+generate inbox events, then evaluate blockers. The initial implementation persists the maintenance
+phase with passive driver recovery, injury countdowns, and effective-date contract/seat observations;
+finance, R&D, AI, and inbox phases remain explicit follow-on implementations.
+
 ### Checkpoint cadence and shutdown
 
 The accepted cadence writes a checkpoint after every completed lap and immediately on session start,
@@ -133,6 +139,7 @@ The preload exposes a typed API backed by main-process repositories. The accepte
 is:
 
 - `save.list`, `save.create`, `save.open`, `save.close`, `save.backup`, `save.delete`
+- `calendar.advanceDay`
 - `weekend.getCurrent`
 - `session.getState`, `session.start`, `session.pause`, `session.resume`,
   `session.issueStrategy`, `session.checkpoint`, `session.finalize`
@@ -168,7 +175,10 @@ Persisted codes remain stable while display names are stored and rendered as fol
    validation implemented. Session materialization now creates or reuses an unstarted scheduled
    `WeekendSession`, persists the immutable input snapshot transactionally, and only then resolves
    the session for the race UI.**
-5. Build database UI layers against DTOs only, then add live-session streaming.
+5. Implement the authoritative calendar/day-transition service and typed `calendar.advanceDay` IPC.
+   **Implemented for one-day advancement, idempotent replay, weekend gates, and season-transition
+   blocking.**
+6. Build database UI layers against DTOs only, then add live-session streaming.
 
 The calibration JSON outputs are review artifacts, not runtime content. They live under
 `planning/calibration/` and are documented by its README.

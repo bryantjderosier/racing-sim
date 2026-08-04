@@ -56,6 +56,48 @@ export const saveMigrationHistory = sqliteTable(
 	(table) => [index('save_migration_history_save_applied_idx').on(table.saveId, table.appliedAt)]
 );
 
+export const calendarTransition = sqliteTable(
+	'calendar_transition',
+	{
+		id: text('id').primaryKey(),
+		transitionKind: text('transition_kind').notNull(),
+		fromWorldDate: text('from_world_date').notNull(),
+		toWorldDate: text('to_world_date').notNull(),
+		status: text('status').notNull(),
+		blockCode: text('block_code'),
+		blockReason: text('block_reason'),
+		createdAt: text('created_at').notNull(),
+		updatedAt: text('updated_at').notNull(),
+		completedAt: text('completed_at')
+	},
+	(table) => [
+		uniqueIndex('calendar_transition_edge_unique').on(
+			table.transitionKind,
+			table.fromWorldDate,
+			table.toWorldDate
+		),
+		index('calendar_transition_date_idx').on(table.fromWorldDate, table.toWorldDate)
+	]
+);
+
+export const dailyPhaseExecution = sqliteTable(
+	'daily_phase_execution',
+	{
+		id: text('id').primaryKey(),
+		worldDate: text('world_date').notNull(),
+		phase: text('phase').notNull(),
+		status: text('status').notNull(),
+		resultPayload: text('result_payload').notNull(),
+		resultSchemaVersion: text('result_schema_version').notNull(),
+		createdAt: text('created_at').notNull(),
+		completedAt: text('completed_at')
+	},
+	(table) => [
+		uniqueIndex('daily_phase_execution_date_phase_unique').on(table.worldDate, table.phase),
+		index('daily_phase_execution_date_idx').on(table.worldDate)
+	]
+);
+
 export const nationality = sqliteTable(
 	'nationality',
 	{
@@ -163,7 +205,9 @@ export const championshipSeasonRuleset = sqliteTable('championship_season_rulese
 	testingLimitsPayload: text('testing_limits_payload').notNull(),
 	testingLimitsSchemaVersion: text('testing_limits_schema_version').notNull(),
 	raceDistanceRulePayload: text('race_distance_rule_payload').notNull(),
-	raceDistanceRuleSchemaVersion: text('race_distance_rule_schema_version').notNull()
+	raceDistanceRuleSchemaVersion: text('race_distance_rule_schema_version').notNull(),
+	gridPolicyPayload: text('grid_policy_payload').notNull().default('{}'),
+	gridPolicySchemaVersion: text('grid_policy_schema_version').notNull().default('grid-policy-v1')
 });
 
 export const weekendFormatSessionSlot = sqliteTable(
@@ -289,7 +333,6 @@ export const driver = sqliteTable(
 		consistency: integer('consistency').notNull(),
 		tyreManagement: integer('tyre_management').notNull(),
 		fuelManagement: integer('fuel_management').notNull(),
-		ersManagement: integer('ers_management').notNull(),
 		wetPace: integer('wet_pace').notNull(),
 		qualifyingPace: integer('qualifying_pace').notNull(),
 		starts: integer('starts').notNull(),
@@ -303,7 +346,6 @@ export const driver = sqliteTable(
 		consistencyPotential: integer('consistency_potential').notNull(),
 		tyreManagementPotential: integer('tyre_management_potential').notNull(),
 		fuelManagementPotential: integer('fuel_management_potential').notNull(),
-		ersManagementPotential: integer('ers_management_potential').notNull(),
 		wetPacePotential: integer('wet_pace_potential').notNull(),
 		qualifyingPacePotential: integer('qualifying_pace_potential').notNull(),
 		startsPotential: integer('starts_potential').notNull(),
@@ -848,6 +890,131 @@ export const raceResultDetail = sqliteTable('race_result_detail', {
 	retirementReason: text('retirement_reason'),
 	positionsGained: integer('positions_gained').notNull()
 });
+
+export const championshipDriverStanding = sqliteTable(
+	'championship_driver_standing',
+	{
+		id: text('id').primaryKey(),
+		championshipSeasonId: text('championship_season_id')
+			.notNull()
+			.references(() => championshipSeason.id, { onDelete: 'cascade' }),
+		driverId: text('driver_id')
+			.notNull()
+			.references(() => driver.id),
+		points: real('points').notNull().default(0),
+		wins: integer('wins').notNull().default(0),
+		secondPlaces: integer('second_places').notNull().default(0),
+		thirdPlaces: integer('third_places').notNull().default(0),
+		updatedAt: text('updated_at').notNull()
+	},
+	(table) => [
+		uniqueIndex('championship_driver_standing_season_driver_unique').on(
+			table.championshipSeasonId,
+			table.driverId
+		)
+	]
+);
+
+export const championshipTeamStanding = sqliteTable(
+	'championship_team_standing',
+	{
+		id: text('id').primaryKey(),
+		championshipSeasonId: text('championship_season_id')
+			.notNull()
+			.references(() => championshipSeason.id, { onDelete: 'cascade' }),
+		teamSeasonEntryId: text('team_season_entry_id')
+			.notNull()
+			.references(() => teamSeasonEntry.id),
+		points: real('points').notNull().default(0),
+		wins: integer('wins').notNull().default(0),
+		secondPlaces: integer('second_places').notNull().default(0),
+		thirdPlaces: integer('third_places').notNull().default(0),
+		updatedAt: text('updated_at').notNull()
+	},
+	(table) => [
+		uniqueIndex('championship_team_standing_season_entry_unique').on(
+			table.championshipSeasonId,
+			table.teamSeasonEntryId
+		)
+	]
+);
+
+export const championshipDriverFinishCount = sqliteTable(
+	'championship_driver_finish_count',
+	{
+		id: text('id').primaryKey(),
+		standingId: text('standing_id')
+			.notNull()
+			.references(() => championshipDriverStanding.id, { onDelete: 'cascade' }),
+		finishingPosition: integer('finishing_position').notNull(),
+		count: integer('count').notNull().default(0)
+	},
+	(table) => [
+		uniqueIndex('championship_driver_finish_count_unique').on(
+			table.standingId,
+			table.finishingPosition
+		)
+	]
+);
+
+export const championshipTeamFinishCount = sqliteTable(
+	'championship_team_finish_count',
+	{
+		id: text('id').primaryKey(),
+		standingId: text('standing_id')
+			.notNull()
+			.references(() => championshipTeamStanding.id, { onDelete: 'cascade' }),
+		finishingPosition: integer('finishing_position').notNull(),
+		count: integer('count').notNull().default(0)
+	},
+	(table) => [
+		uniqueIndex('championship_team_finish_count_unique').on(
+			table.standingId,
+			table.finishingPosition
+		)
+	]
+);
+
+export const championshipWeekendSettlement = sqliteTable(
+	'championship_weekend_settlement',
+	{
+		id: text('id').primaryKey(),
+		championshipEventId: text('championship_event_id')
+			.notNull()
+			.references(() => championshipEvent.id, { onDelete: 'cascade' }),
+		championshipSeasonId: text('championship_season_id')
+			.notNull()
+			.references(() => championshipSeason.id, { onDelete: 'cascade' }),
+		settledAt: text('settled_at').notNull(),
+		advancedToWorldDate: text('advanced_to_world_date').notNull()
+	},
+	(table) => [
+		uniqueIndex('championship_weekend_settlement_event_unique').on(table.championshipEventId)
+	]
+);
+
+export const championshipWeekendSettlementAward = sqliteTable(
+	'championship_weekend_settlement_award',
+	{
+		id: text('id').primaryKey(),
+		settlementId: text('settlement_id')
+			.notNull()
+			.references(() => championshipWeekendSettlement.id, { onDelete: 'cascade' }),
+		sessionPointAwardId: text('session_point_award_id')
+			.notNull()
+			.references(() => sessionPointAward.id, { onDelete: 'cascade' }),
+		driverId: text('driver_id')
+			.notNull()
+			.references(() => driver.id),
+		teamSeasonEntryId: text('team_season_entry_id')
+			.notNull()
+			.references(() => teamSeasonEntry.id),
+		points: real('points').notNull()
+	},
+	(table) => [
+		uniqueIndex('championship_weekend_settlement_award_source_unique').on(table.sessionPointAwardId)
+	]
+);
 
 export const resolvedPerformanceSnapshot = sqliteTable(
 	'resolved_performance_snapshot',

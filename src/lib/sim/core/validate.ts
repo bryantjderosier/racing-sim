@@ -6,6 +6,9 @@ import {
 } from './config';
 import type { RaceInput, StrategyCommand, TrackSegment, WeatherScenarioSpec } from './types';
 
+const MIN_RATING = 0;
+const MAX_RATING = 100;
+
 function assert(condition: unknown, message: string): asserts condition {
 	if (!condition) throw new Error(`Invalid race input: ${message}`);
 }
@@ -192,21 +195,21 @@ export function validateRaceInput(input: RaceInput): void {
 		);
 		for (const [name, rating] of Object.entries(entry.driver)) {
 			assert(
-				Number.isInteger(rating) && rating >= 1 && rating <= 20,
+				Number.isInteger(rating) && rating >= MIN_RATING && rating <= MAX_RATING,
 				`${entry.sessionEntryId} ${name} rating invalid`
 			);
 		}
 		if (weatherEnabled) {
 			assert(
 				Number.isInteger(entry.driver.wetPace) &&
-					Number(entry.driver.wetPace) >= 1 &&
-					Number(entry.driver.wetPace) <= 20,
+					Number(entry.driver.wetPace) >= MIN_RATING &&
+					Number(entry.driver.wetPace) <= MAX_RATING,
 				`${entry.sessionEntryId} wetPace rating invalid`
 			);
 			assert(
 				Number.isInteger(entry.driver.adaptability) &&
-					Number(entry.driver.adaptability) >= 1 &&
-					Number(entry.driver.adaptability) <= 20,
+					Number(entry.driver.adaptability) >= MIN_RATING &&
+					Number(entry.driver.adaptability) <= MAX_RATING,
 				`${entry.sessionEntryId} adaptability rating invalid`
 			);
 		}
