@@ -71,6 +71,69 @@
       "when": 1785813372741,
       "tag": "0009_new_jocasta",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1785817598247,
+      "tag": "0010_large_vulcan",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1785817654387,
+      "tag": "0011_hot_skin",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1785847370017,
+      "tag": "0012_violet_phantom_reporter",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1785848948260,
+      "tag": "0013_bright_machine_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1785849663530,
+      "tag": "0014_youthful_celestials",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "6",
+      "when": 1785850607880,
+      "tag": "0015_past_aqueduct",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "6",
+      "when": 1785851251939,
+      "tag": "0016_dashing_toro",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1785852999367,
+      "tag": "0017_flimsy_sentinels",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1785860000000,
+      "tag": "0018_sponsor_market",
+      "breakpoints": true
     }
   ]
 }

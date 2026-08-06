@@ -81,6 +81,11 @@ try {
 		assert.equal(eventDate.requiresWeekendStart, true);
 		assert.equal(eventDate.weekendSessionId, 'fdc-event-2030-01-fp1-runtime');
 		assert.equal(eventDate.dailyMaintenance?.injuriesResolved, 1);
+		assert.equal(eventDate.dailyResearchDevelopment?.projectsAdvanced, 3);
+		assert.equal(eventDate.dailyFinance?.transactionsPosted, 0);
+		assert.equal(eventDate.dailyAIWorld?.teamsEvaluated, 10);
+		assert.equal(eventDate.dailyAIWorld?.decisionsCreated, 10);
+		assert.ok((eventDate.dailyInbox?.messagesCreated ?? 0) >= 1);
 		const recoveredDriver = (
 			await save.db
 				.select()
@@ -121,7 +126,7 @@ try {
 			.orderBy(asc(schema.calendarTransition.fromWorldDate));
 		assert.equal(transitions.length, 3);
 		console.table(transitions);
-		assert.equal((await save.db.select().from(schema.dailyPhaseExecution)).length, 2);
+		assert.equal((await save.db.select().from(schema.dailyPhaseExecution)).length, 10);
 	} finally {
 		closeSaveDatabase(save);
 	}

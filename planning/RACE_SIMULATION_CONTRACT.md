@@ -1,6 +1,6 @@
-# Race Simulation Contract — Headless Prototype
+# Race Simulation Contract — Headless Engine Boundary
 
-**Status:** Draft implementation contract; reconciled design inputs\
+**Status:** Accepted implementation contract; reconciled design boundary through D-543\
 **Scope:** Deterministic, headless, dry-race prototype\
 **Language:** TypeScript\
 **Primary fixture:** Formula Development Championship (`academy` internal code)\
@@ -23,7 +23,8 @@ The prototype must:
 ## 2. Explicit non-goals
 
 - Svelte or Electron UI
-- Broader management-layer persistence and settlement
+- Applying management-layer consequences such as standings, finance, personnel, board, news, or
+  narrative state; those systems consume the official result package outside the pure engine.
 - Live CLI command entry
 - Changing weather in the first baseline
 - Refueling in the first baseline
@@ -38,19 +39,19 @@ These systems must fit the interfaces below but are added only after the dry bas
 
 ## 3. Locked prototype decisions
 
-| Topic                 | Decision                                                                  |
-| --------------------- | ------------------------------------------------------------------------- |
-| Resolution            | Fixed `TrackSegment` steps                                                |
-| Track structure       | 12–20 segments grouped into three official timing sectors                 |
-| Baseline layout       | 15 segments; five per official sector                                     |
-| Baseline championship | Formula Development Championship (`academy`)                              |
-| Baseline field        | 10 teams × 3 cars = 30 entries                                            |
-| Baseline distance     | 50 laps                                                                   |
-| Conditions            | Dry and static                                                            |
-| Refueling             | Disabled; full-race fuel load and consumption still simulated             |
-| Strategy input        | Predefined deterministic command schedule                                 |
-| Calibration           | Real-world-shaped statistical ranges using wholly fictional content       |
-| Persistence           | Materialize immutable session inputs and persist official session outputs |
+| Topic                 | Decision                                                                                                           |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Resolution            | Fixed `TrackSegment` steps                                                                                         |
+| Track structure       | 12–20 segments grouped into three official timing sectors                                                          |
+| Baseline layout       | 15 segments; five per official sector                                                                              |
+| Baseline championship | Formula Development Championship (`academy`)                                                                       |
+| Baseline field        | 10 teams × 3 cars = 30 entries                                                                                     |
+| Baseline distance     | 50 laps                                                                                                            |
+| Conditions            | Dry and static                                                                                                     |
+| Refueling             | Disabled; full-race fuel load and consumption still simulated                                                      |
+| Strategy input        | Predefined deterministic command schedule                                                                          |
+| Calibration           | Real-world-shaped statistical ranges using wholly fictional content                                                |
+| Persistence           | Materialize immutable session inputs, persist official session outputs, and hand off one immutable weekend package |
 
 ---
 
@@ -85,6 +86,11 @@ but it must preserve the same official outcome semantics.
 The management layer aggregates the completed weekend sessions into one immutable, idempotent
 weekend-result package and applies downstream career consequences exactly once. The engine never
 directly mutates standings, finances, personnel, contracts, board state, news, or narrative state.
+
+The package records the championship event, execution detail (`interactive` or `off_screen`),
+formula and engine versions, the resolved input hash, a result hash, and the complete session-result
+facts required by settlement. Package creation is deterministic from persisted session outputs and
+must fail if any official session is unfinished, missing results, or has an active checkpoint.
 
 ## 5. Version contract
 
@@ -200,7 +206,9 @@ The first formula version consumes these car factors:
 - `reliabilityOverall`
 - `dryWeightKg`
 
-ERS fields remain accepted by the boundary but are inactive when `ersEnabled = false`.
+ERS deployment and harvesting use the enabled rules, strategy commands, and existing resolved
+driver/engineering inputs. There is no dedicated driver `ersManagement` attribute. ERS fields are
+inert when `ersEnabled = false`.
 
 ---
 
@@ -609,5 +617,6 @@ After Stage C is stable:
    `academy-dry-v5-ratings-0-100` baseline requires a fresh batch, matched-strategy,
    tyre-management, and setup-sweep review.
 
-No UI or broader management-layer implementation begins until Stage C behavior and the current
-materialization boundary are accepted.
+The management layer may consume the accepted session output and official-package boundary without
+changing engine formulas. Further engine work must preserve the 0–100 rating, version, hash, and
+deterministic handoff contracts above.

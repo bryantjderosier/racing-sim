@@ -1,15 +1,28 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import {
 	IPC_CHANNELS,
+	type AIWorldActionDto,
+	type AIWorldActionListRequest,
 	type CalendarAdvanceDto,
 	type CalendarAdvanceRequest,
 	type CareerIdentityDto,
 	type CurrentWeekendDto,
+	type DevelopmentProjectDto,
+	type DevelopmentStartRequest,
+	type FinanceSummaryDto,
+	type InboxListRequest,
+	type InboxMessageDto,
+	type InboxActionDto,
+	type InboxActionRequest,
+	type InboxActionResult,
 	type ResultsGetRequest,
 	type SaveBackupResult,
 	type SaveCreateRequest,
 	type SaveIdRequest,
 	type SaveSummary,
+	type SponsorAcceptOfferRequest,
+	type SponsorAcceptOfferResult,
+	type SponsorDashboardDto,
 	type SessionFinalizationDto,
 	type SessionResultDto,
 	type SessionStrategyCommand,
@@ -37,13 +50,39 @@ const electronAPI = {
 		getCurrent: (): Promise<CurrentWeekendDto | null> =>
 			ipcRenderer.invoke(IPC_CHANNELS.weekendGetCurrent)
 	},
+	finance: {
+		getSummary: (): Promise<FinanceSummaryDto> => ipcRenderer.invoke(IPC_CHANNELS.financeGetSummary)
+	},
 	calendar: {
 		advanceDay: (request: CalendarAdvanceRequest = {}): Promise<CalendarAdvanceDto> =>
 			ipcRenderer.invoke(IPC_CHANNELS.calendarAdvanceDay, request)
 	},
+	development: {
+		start: (request: DevelopmentStartRequest): Promise<DevelopmentProjectDto> =>
+			ipcRenderer.invoke(IPC_CHANNELS.developmentStart, request),
+		list: (): Promise<DevelopmentProjectDto[]> => ipcRenderer.invoke(IPC_CHANNELS.developmentList)
+	},
+	inbox: {
+		list: (request: InboxListRequest = {}): Promise<InboxMessageDto[]> =>
+			ipcRenderer.invoke(IPC_CHANNELS.inboxList, request),
+		action: (request: InboxActionRequest): Promise<InboxActionResult> =>
+			ipcRenderer.invoke(IPC_CHANNELS.inboxAction, request),
+		listActions: (messageId?: string): Promise<InboxActionDto[]> =>
+			ipcRenderer.invoke(IPC_CHANNELS.inboxListActions, { messageId })
+	},
+	aiWorld: {
+		listActions: (request: AIWorldActionListRequest = {}): Promise<AIWorldActionDto[]> =>
+			ipcRenderer.invoke(IPC_CHANNELS.aiWorldListActions, request)
+	},
 	results: {
 		get: (request: ResultsGetRequest): Promise<SessionResultDto[]> =>
 			ipcRenderer.invoke(IPC_CHANNELS.resultsGet, request)
+	},
+	sponsors: {
+		getDashboard: (): Promise<SponsorDashboardDto> =>
+			ipcRenderer.invoke(IPC_CHANNELS.sponsorGetDashboard),
+		acceptOffer: (request: SponsorAcceptOfferRequest): Promise<SponsorAcceptOfferResult> =>
+			ipcRenderer.invoke(IPC_CHANNELS.sponsorAcceptOffer, request)
 	},
 	session: {
 		getState: (): Promise<SessionStateDto> => ipcRenderer.invoke(IPC_CHANNELS.sessionGetState),

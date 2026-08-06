@@ -143,7 +143,10 @@ try {
 				.where(eq(schema.weekendSession.id, session.weekendSessionId));
 		}
 
-		const first = await settleChampionshipEvent(save.db, firstEvent.id, { settledAt });
+		const first = await settleChampionshipEvent(save.db, firstEvent.id, {
+			settledAt,
+			executionDetail: 'off_screen'
+		});
 		assert.equal(first.idempotent, false);
 		assert.equal(first.advancedToWorldDate, '2030-04-05');
 		assert.equal(first.driverPointsApplied, 151.5);
@@ -173,6 +176,18 @@ try {
 		assert.equal(teamStandings[0]?.teamSeasonEntryId, 'fdc-entry-northstar-2030');
 		assert.equal(teamStandings[0]?.points, 64.5);
 		assert.equal(teamStandings[0]?.wins, 2);
+		const packages = await save.db
+			.select()
+			.from(schema.officialWeekendResultPackage)
+			.where(eq(schema.officialWeekendResultPackage.championshipEventId, firstEvent.id));
+		assert.equal(packages.length, 1);
+		assert.equal(packages[0]?.executionDetail, 'off_screen');
+		assert.equal(JSON.parse(packages[0]?.payload ?? '{}').sessions.length, 5);
+		const settlements = await save.db
+			.select()
+			.from(schema.championshipWeekendSettlement)
+			.where(eq(schema.championshipWeekendSettlement.championshipEventId, firstEvent.id));
+		assert.equal(settlements[0]?.officialResultPackageId, packages[0]?.id);
 		assert.equal((await save.db.select().from(schema.championshipWeekendSettlement)).length, 1);
 		assert.equal(
 			(await save.db.select().from(schema.championshipWeekendSettlementAward)).length,

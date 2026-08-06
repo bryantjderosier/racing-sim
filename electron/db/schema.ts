@@ -98,6 +98,281 @@ export const dailyPhaseExecution = sqliteTable(
 	]
 );
 
+export const financeAccount = sqliteTable(
+	'finance_account',
+	{
+		id: text('id').primaryKey(),
+		teamSeasonEntryId: text('team_season_entry_id')
+			.notNull()
+			.references(() => teamSeasonEntry.id, { onDelete: 'cascade' }),
+		currencyCode: text('currency_code').notNull(),
+		openingBalanceMinor: integer('opening_balance_minor').notNull(),
+		currentBalanceMinor: integer('current_balance_minor').notNull(),
+		budgetCapMinor: integer('budget_cap_minor').notNull(),
+		createdAt: text('created_at').notNull(),
+		updatedAt: text('updated_at').notNull()
+	},
+	(table) => [
+		uniqueIndex('finance_account_team_season_entry_unique').on(table.teamSeasonEntryId),
+		check('finance_account_opening_balance_check', sql`${table.openingBalanceMinor} >= 0`),
+		check('finance_account_current_balance_check', sql`${table.currentBalanceMinor} >= 0`),
+		check('finance_account_budget_cap_check', sql`${table.budgetCapMinor} >= 0`)
+	]
+);
+
+export const financeTransaction = sqliteTable(
+	'finance_transaction',
+	{
+		id: text('id').primaryKey(),
+		accountId: text('account_id')
+			.notNull()
+			.references(() => financeAccount.id, { onDelete: 'cascade' }),
+		worldDate: text('world_date').notNull(),
+		postedAt: text('posted_at').notNull(),
+		transactionType: text('transaction_type').notNull(),
+		category: text('category').notNull(),
+		amountMinor: integer('amount_minor').notNull(),
+		currencyCode: text('currency_code').notNull(),
+		sourceType: text('source_type').notNull(),
+		sourceId: text('source_id'),
+		idempotencyKey: text('idempotency_key').notNull(),
+		description: text('description').notNull(),
+		balanceAfterMinor: integer('balance_after_minor').notNull()
+	},
+	(table) => [
+		uniqueIndex('finance_transaction_idempotency_unique').on(table.idempotencyKey),
+		index('finance_transaction_account_date_idx').on(table.accountId, table.worldDate),
+		check('finance_transaction_amount_nonzero_check', sql`${table.amountMinor} <> 0`),
+		check('finance_transaction_balance_check', sql`${table.balanceAfterMinor} >= 0`)
+	]
+);
+
+export const sponsor = sqliteTable(
+	'sponsor',
+	{
+		id: text('id').primaryKey(),
+		code: text('code').notNull(),
+		name: text('name').notNull(),
+		category: text('category').notNull(),
+		slotType: text('slot_type').notNull(),
+		priorityPayload: text('priority_payload').notNull(),
+		compatibleChampionshipCodesPayload: text('compatible_championship_codes_payload').notNull(),
+		createdAt: text('created_at').notNull()
+	},
+	(table) => [
+		uniqueIndex('sponsor_code_unique').on(table.code),
+		index('sponsor_category_slot_idx').on(table.category, table.slotType)
+	]
+);
+
+export const sponsorOffer = sqliteTable(
+	'sponsor_offer',
+	{
+		id: text('id').primaryKey(),
+		teamSeasonEntryId: text('team_season_entry_id')
+			.notNull()
+			.references(() => teamSeasonEntry.id, { onDelete: 'cascade' }),
+		sponsorId: text('sponsor_id')
+			.notNull()
+			.references(() => sponsor.id, { onDelete: 'cascade' }),
+		status: text('status').notNull(),
+		availableFrom: text('available_from').notNull(),
+		expiresAt: text('expires_at').notNull(),
+		termSeasons: integer('term_seasons').notNull(),
+		annualBasePaymentMinor: integer('annual_base_payment_minor').notNull(),
+		signingBonusMinor: integer('signing_bonus_minor').notNull(),
+		performanceBonusMinor: integer('performance_bonus_minor').notNull(),
+		targetPayload: text('target_payload').notNull(),
+		obligationPayload: text('obligation_payload').notNull(),
+		fitPayload: text('fit_payload').notNull(),
+		createdAt: text('created_at').notNull(),
+		updatedAt: text('updated_at').notNull()
+	},
+	(table) => [
+		uniqueIndex('sponsor_offer_team_sponsor_unique').on(table.teamSeasonEntryId, table.sponsorId),
+		index('sponsor_offer_team_status_idx').on(table.teamSeasonEntryId, table.status),
+		check('sponsor_offer_term_seasons_check', sql`${table.termSeasons} BETWEEN 1 AND 3`),
+		check('sponsor_offer_base_payment_check', sql`${table.annualBasePaymentMinor} >= 0`),
+		check('sponsor_offer_signing_bonus_check', sql`${table.signingBonusMinor} >= 0`),
+		check('sponsor_offer_performance_bonus_check', sql`${table.performanceBonusMinor} >= 0`)
+	]
+);
+
+export const sponsorContract = sqliteTable(
+	'sponsor_contract',
+	{
+		id: text('id').primaryKey(),
+		offerId: text('offer_id')
+			.notNull()
+			.references(() => sponsorOffer.id),
+		teamSeasonEntryId: text('team_season_entry_id')
+			.notNull()
+			.references(() => teamSeasonEntry.id, { onDelete: 'cascade' }),
+		sponsorId: text('sponsor_id')
+			.notNull()
+			.references(() => sponsor.id),
+		category: text('category').notNull(),
+		slotType: text('slot_type').notNull(),
+		status: text('status').notNull(),
+		startDate: text('start_date').notNull(),
+		endDate: text('end_date').notNull(),
+		renewalWindowStartDate: text('renewal_window_start_date').notNull(),
+		termSeasons: integer('term_seasons').notNull(),
+		annualBasePaymentMinor: integer('annual_base_payment_minor').notNull(),
+		signingBonusMinor: integer('signing_bonus_minor').notNull(),
+		performanceBonusMinor: integer('performance_bonus_minor').notNull(),
+		targetPayload: text('target_payload').notNull(),
+		obligationPayload: text('obligation_payload').notNull(),
+		fitPayload: text('fit_payload').notNull(),
+		signedAt: text('signed_at').notNull(),
+		createdAt: text('created_at').notNull(),
+		updatedAt: text('updated_at').notNull()
+	},
+	(table) => [
+		uniqueIndex('sponsor_contract_offer_unique').on(table.offerId),
+		index('sponsor_contract_team_dates_idx').on(
+			table.teamSeasonEntryId,
+			table.startDate,
+			table.endDate
+		),
+		check('sponsor_contract_term_seasons_check', sql`${table.termSeasons} BETWEEN 1 AND 3`),
+		check('sponsor_contract_base_payment_check', sql`${table.annualBasePaymentMinor} >= 0`),
+		check('sponsor_contract_signing_bonus_check', sql`${table.signingBonusMinor} >= 0`),
+		check('sponsor_contract_performance_bonus_check', sql`${table.performanceBonusMinor} >= 0`)
+	]
+);
+
+export const aiTeamProfile = sqliteTable(
+	'ai_team_profile',
+	{
+		id: text('id').primaryKey(),
+		teamSeasonEntryId: text('team_season_entry_id')
+			.notNull()
+			.references(() => teamSeasonEntry.id, { onDelete: 'cascade' }),
+		archetype: text('archetype').notNull(),
+		developmentPriority: text('development_priority').notNull(),
+		driverStrategy: text('driver_strategy').notNull(),
+		supplierStrategy: text('supplier_strategy').notNull(),
+		riskTolerance: integer('risk_tolerance').notNull(),
+		spendingDiscipline: integer('spending_discipline').notNull(),
+		talentFocus: integer('talent_focus').notNull(),
+		createdAt: text('created_at').notNull(),
+		updatedAt: text('updated_at').notNull()
+	},
+	(table) => [
+		uniqueIndex('ai_team_profile_team_season_entry_unique').on(table.teamSeasonEntryId),
+		check('ai_team_profile_risk_tolerance_check', sql`${table.riskTolerance} BETWEEN 0 AND 100`),
+		check(
+			'ai_team_profile_spending_discipline_check',
+			sql`${table.spendingDiscipline} BETWEEN 0 AND 100`
+		),
+		check('ai_team_profile_talent_focus_check', sql`${table.talentFocus} BETWEEN 0 AND 100`)
+	]
+);
+
+export const aiWorldDecision = sqliteTable(
+	'ai_world_decision',
+	{
+		id: text('id').primaryKey(),
+		teamSeasonEntryId: text('team_season_entry_id')
+			.notNull()
+			.references(() => teamSeasonEntry.id, { onDelete: 'cascade' }),
+		worldDate: text('world_date').notNull(),
+		decisionType: text('decision_type').notNull(),
+		priority: integer('priority').notNull(),
+		reasonCode: text('reason_code').notNull(),
+		summary: text('summary').notNull(),
+		createdAt: text('created_at').notNull()
+	},
+	(table) => [
+		uniqueIndex('ai_world_decision_team_date_unique').on(table.teamSeasonEntryId, table.worldDate),
+		index('ai_world_decision_date_idx').on(table.worldDate),
+		check('ai_world_decision_priority_check', sql`${table.priority} BETWEEN 0 AND 100`)
+	]
+);
+
+export const aiWorldAction = sqliteTable(
+	'ai_world_action',
+	{
+		id: text('id').primaryKey(),
+		decisionId: text('decision_id')
+			.notNull()
+			.references(() => aiWorldDecision.id, { onDelete: 'cascade' }),
+		teamSeasonEntryId: text('team_season_entry_id')
+			.notNull()
+			.references(() => teamSeasonEntry.id, { onDelete: 'cascade' }),
+		worldDate: text('world_date').notNull(),
+		actionType: text('action_type').notNull(),
+		status: text('status').notNull(),
+		reasonCode: text('reason_code').notNull(),
+		summary: text('summary').notNull(),
+		developmentProjectId: text('development_project_id').references(() => developmentProject.id, {
+			onDelete: 'set null'
+		}),
+		createdAt: text('created_at').notNull()
+	},
+	(table) => [
+		uniqueIndex('ai_world_action_decision_unique').on(table.decisionId),
+		index('ai_world_action_team_date_idx').on(table.teamSeasonEntryId, table.worldDate)
+	]
+);
+
+export const inboxMessage = sqliteTable(
+	'inbox_message',
+	{
+		id: text('id').primaryKey(),
+		worldDate: text('world_date').notNull(),
+		category: text('category').notNull(),
+		severity: text('severity').notNull(),
+		status: text('status').notNull(),
+		priority: integer('priority').notNull(),
+		title: text('title').notNull(),
+		body: text('body').notNull(),
+		sourceType: text('source_type').notNull(),
+		sourceId: text('source_id'),
+		dedupeKey: text('dedupe_key').notNull(),
+		requiresDecision: integer('requires_decision', { mode: 'boolean' }).notNull(),
+		isBlocking: integer('is_blocking', { mode: 'boolean' }).notNull(),
+		deadlineWorldDate: text('deadline_world_date'),
+		deferredUntilWorldDate: text('deferred_until_world_date'),
+		createdAt: text('created_at').notNull(),
+		readAt: text('read_at'),
+		resolvedAt: text('resolved_at')
+	},
+	(table) => [
+		uniqueIndex('inbox_message_dedupe_unique').on(table.dedupeKey),
+		index('inbox_message_status_priority_idx').on(table.status, table.priority),
+		index('inbox_message_world_date_idx').on(table.worldDate),
+		check('inbox_message_priority_check', sql`${table.priority} BETWEEN 0 AND 100`),
+		check(
+			'inbox_message_blocking_requires_decision_check',
+			sql`${table.isBlocking} = 0 OR ${table.requiresDecision} = 1`
+		)
+	]
+);
+
+export const inboxMessageAction = sqliteTable(
+	'inbox_message_action',
+	{
+		id: text('id').primaryKey(),
+		inboxMessageId: text('inbox_message_id')
+			.notNull()
+			.references(() => inboxMessage.id, { onDelete: 'cascade' }),
+		actionType: text('action_type').notNull(),
+		previousStatus: text('previous_status').notNull(),
+		nextStatus: text('next_status').notNull(),
+		deferredUntilWorldDate: text('deferred_until_world_date'),
+		actionWorldDate: text('action_world_date').notNull(),
+		note: text('note'),
+		idempotencyKey: text('idempotency_key').notNull(),
+		createdAt: text('created_at').notNull()
+	},
+	(table) => [
+		uniqueIndex('inbox_message_action_idempotency_unique').on(table.idempotencyKey),
+		index('inbox_message_action_message_created_idx').on(table.inboxMessageId, table.createdAt)
+	]
+);
+
 export const nationality = sqliteTable(
 	'nationality',
 	{
@@ -594,6 +869,69 @@ export const partDesignVersion = sqliteTable(
 	]
 );
 
+export const developmentProject = sqliteTable(
+	'development_project',
+	{
+		id: text('id').primaryKey(),
+		teamSeasonEntryId: text('team_season_entry_id')
+			.notNull()
+			.references(() => teamSeasonEntry.id),
+		partCategory: text('part_category').notNull(),
+		projectKind: text('project_kind').notNull(),
+		status: text('status').notNull(),
+		currentStage: text('current_stage').notNull(),
+		baseDesignVersionId: text('base_design_version_id').references(() => partDesignVersion.id),
+		performanceDeltaPayload: text('performance_delta_payload').notNull(),
+		performanceDeltaSchemaVersion: text('performance_delta_schema_version').notNull(),
+		reliabilityDeltaPayload: text('reliability_delta_payload').notNull(),
+		reliabilityDeltaSchemaVersion: text('reliability_delta_schema_version').notNull(),
+		totalCostMinor: integer('total_cost_minor').notNull(),
+		spentCostMinor: integer('spent_cost_minor').notNull(),
+		startWorldDate: text('start_world_date').notNull(),
+		completedWorldDate: text('completed_world_date'),
+		startedAt: text('started_at').notNull(),
+		createdAt: text('created_at').notNull(),
+		updatedAt: text('updated_at').notNull(),
+		completedAt: text('completed_at')
+	},
+	(table) => [
+		index('development_project_team_status_idx').on(
+			table.teamSeasonEntryId,
+			table.status,
+			table.partCategory
+		),
+		index('development_project_updated_idx').on(table.updatedAt)
+	]
+);
+
+export const developmentProjectStage = sqliteTable(
+	'development_project_stage',
+	{
+		id: text('id').primaryKey(),
+		projectId: text('project_id')
+			.notNull()
+			.references(() => developmentProject.id, { onDelete: 'cascade' }),
+		stage: text('stage').notNull(),
+		sequence: integer('sequence').notNull(),
+		status: text('status').notNull(),
+		durationDays: integer('duration_days').notNull(),
+		costMinor: integer('cost_minor').notNull(),
+		remainingDays: integer('remaining_days').notNull(),
+		startedWorldDate: text('started_world_date'),
+		completedWorldDate: text('completed_world_date'),
+		startedAt: text('started_at'),
+		completedAt: text('completed_at')
+	},
+	(table) => [
+		uniqueIndex('development_project_stage_project_stage_unique').on(table.projectId, table.stage),
+		uniqueIndex('development_project_stage_project_sequence_unique').on(
+			table.projectId,
+			table.sequence
+		),
+		index('development_project_stage_status_idx').on(table.projectId, table.status)
+	]
+);
+
 export const chassisInstance = sqliteTable(
 	'chassis_instance',
 	{
@@ -624,6 +962,29 @@ export const partInstance = sqliteTable(
 		status: text('status').notNull()
 	},
 	(table) => [uniqueIndex('part_instance_serial_unique').on(table.serialNumber)]
+);
+
+export const developmentProjectResult = sqliteTable(
+	'development_project_result',
+	{
+		id: text('id').primaryKey(),
+		projectId: text('project_id')
+			.notNull()
+			.references(() => developmentProject.id, { onDelete: 'cascade' }),
+		partDesignVersionId: text('part_design_version_id')
+			.notNull()
+			.references(() => partDesignVersion.id),
+		partInstanceId: text('part_instance_id').references(() => partInstance.id),
+		chassisInstanceId: text('chassis_instance_id').references(() => chassisInstance.id),
+		manufacturedAt: text('manufactured_at').notNull()
+	},
+	(table) => [
+		uniqueIndex('development_project_result_project_unique').on(table.projectId),
+		check(
+			'development_project_result_one_asset_check',
+			sql`(${table.partInstanceId} IS NOT NULL AND ${table.chassisInstanceId} IS NULL) OR (${table.partInstanceId} IS NULL AND ${table.chassisInstanceId} IS NOT NULL)`
+		)
+	]
 );
 
 export const partInstallation = sqliteTable(
@@ -975,6 +1336,31 @@ export const championshipTeamFinishCount = sqliteTable(
 	]
 );
 
+export const officialWeekendResultPackage = sqliteTable(
+	'official_weekend_result_package',
+	{
+		id: text('id').primaryKey(),
+		championshipEventId: text('championship_event_id')
+			.notNull()
+			.references(() => championshipEvent.id, { onDelete: 'cascade' }),
+		championshipSeasonId: text('championship_season_id')
+			.notNull()
+			.references(() => championshipSeason.id, { onDelete: 'cascade' }),
+		packageSchemaVersion: text('package_schema_version').notNull(),
+		executionDetail: text('execution_detail').notNull(),
+		formulaVersion: text('formula_version').notNull(),
+		engineVersion: text('engine_version').notNull(),
+		inputHash: text('input_hash').notNull(),
+		resultHash: text('result_hash').notNull(),
+		payload: text('payload').notNull(),
+		createdAt: text('created_at').notNull()
+	},
+	(table) => [
+		uniqueIndex('official_weekend_result_package_event_unique').on(table.championshipEventId),
+		index('official_weekend_result_package_season_idx').on(table.championshipSeasonId)
+	]
+);
+
 export const championshipWeekendSettlement = sqliteTable(
 	'championship_weekend_settlement',
 	{
@@ -985,6 +1371,9 @@ export const championshipWeekendSettlement = sqliteTable(
 		championshipSeasonId: text('championship_season_id')
 			.notNull()
 			.references(() => championshipSeason.id, { onDelete: 'cascade' }),
+		officialResultPackageId: text('official_result_package_id').references(
+			() => officialWeekendResultPackage.id
+		),
 		settledAt: text('settled_at').notNull(),
 		advancedToWorldDate: text('advanced_to_world_date').notNull()
 	},

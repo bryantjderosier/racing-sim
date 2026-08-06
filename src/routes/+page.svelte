@@ -4,10 +4,13 @@
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Settings from '@lucide/svelte/icons/settings';
 	import LogOut from '@lucide/svelte/icons/log-out';
+	import LayoutDashboard from '@lucide/svelte/icons/layout-dashboard';
 	import type { Component } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { quitApp } from '$lib/electron';
 
-	type MenuId = 'new' | 'load' | 'delete' | 'settings' | 'exit';
+	type MenuId = 'new' | 'load' | 'delete' | 'settings' | 'dashboard' | 'exit';
 
 	type MenuItem = {
 		id: MenuId;
@@ -20,6 +23,12 @@
 		{ id: 'new', label: 'NEW CAREER', subtitle: 'Start a fresh journey', icon: Flag },
 		{ id: 'load', label: 'LOAD CAREER', subtitle: 'Continue a saved game', icon: Folder },
 		{ id: 'delete', label: 'DELETE CAREER', subtitle: 'Remove a saved game', icon: Trash2 },
+		{
+			id: 'dashboard',
+			label: 'VIEW GAME SHELL',
+			subtitle: 'Preview the management layout',
+			icon: LayoutDashboard
+		},
 		{ id: 'settings', label: 'SETTINGS', subtitle: 'Game & audio options', icon: Settings },
 		{ id: 'exit', label: 'EXIT', subtitle: 'Quit to desktop', icon: LogOut }
 	];
@@ -34,6 +43,10 @@
 		selected = id;
 		if (id === 'exit') {
 			void quitApp();
+			return;
+		}
+		if (id === 'dashboard') {
+			void goto(resolve('/dashboard'));
 			return;
 		}
 		console.log(`Selected: ${id}`);
@@ -152,19 +165,19 @@
 		display: flex;
 		flex-direction: column;
 		height: 100%;
-		padding: calc(118 * var(--u)) calc(106 * var(--u)) calc(54 * var(--u));
-		max-width: calc(900 * var(--u));
+		padding: calc(118px * var(--u)) calc(106px * var(--u)) calc(54px * var(--u));
+		max-width: calc(900px * var(--u));
 	}
 
 	.brand {
-		margin-bottom: calc(48 * var(--u));
+		margin-bottom: calc(48px * var(--u));
 		animation: fade-slide-in 0.7s ease-out both;
 	}
 
 	.brand h1 {
-		margin: 0 0 calc(14 * var(--u));
+		margin: 0 0 calc(14px * var(--u));
 		font-family: var(--font-ui);
-		font-size: calc(64 * var(--u));
+		font-size: calc(64px * var(--u));
 		font-weight: 700;
 		letter-spacing: 0.02em;
 		line-height: 0.98;
@@ -174,8 +187,8 @@
 
 	.brand p {
 		margin: 0;
-		max-width: calc(420 * var(--u));
-		font-size: calc(16 * var(--u));
+		max-width: calc(420px * var(--u));
+		font-size: calc(16px * var(--u));
 		font-weight: 400;
 		line-height: 1.5;
 		color: var(--content-secondary);
@@ -184,19 +197,19 @@
 	.menu {
 		display: flex;
 		flex-direction: column;
-		gap: calc(10 * var(--u));
-		width: calc(340 * var(--u));
+		gap: calc(10px * var(--u));
+		width: calc(340px * var(--u));
 	}
 
 	.menu-item {
 		display: flex;
 		align-items: center;
-		gap: calc(14 * var(--u));
+		gap: calc(14px * var(--u));
 		width: 100%;
-		padding: calc(14 * var(--u)) calc(16 * var(--u)) calc(14 * var(--u)) calc(14 * var(--u));
+		padding: calc(14px * var(--u)) calc(16px * var(--u)) calc(14px * var(--u)) calc(14px * var(--u));
 		border: none;
-		border-radius: calc(6 * var(--u));
-		border-left: calc(2 * var(--u)) solid transparent;
+		border-radius: calc(6px * var(--u));
+		border-left: calc(2px * var(--u)) solid transparent;
 		background: color-mix(in srgb, var(--surface) 78%, transparent);
 		color: var(--content-primary);
 		text-align: left;
@@ -215,8 +228,8 @@
 	}
 
 	.menu-item:focus-visible {
-		outline: calc(2 * var(--u)) solid var(--content-primary);
-		outline-offset: calc(2 * var(--u));
+		outline: calc(2px * var(--u)) solid var(--content-primary);
+		outline-offset: calc(2px * var(--u));
 	}
 
 	.icon {
@@ -224,25 +237,25 @@
 		flex-shrink: 0;
 		align-items: center;
 		justify-content: center;
-		width: calc(24 * var(--u));
-		height: calc(24 * var(--u));
+		width: calc(24px * var(--u));
+		height: calc(24px * var(--u));
 		color: var(--content-primary);
 	}
 
 	.icon :global(svg) {
-		width: calc(24 * var(--u));
-		height: calc(24 * var(--u));
+		width: calc(24px * var(--u));
+		height: calc(24px * var(--u));
 	}
 
 	.labels {
 		display: flex;
 		flex-direction: column;
-		gap: calc(2 * var(--u));
+		gap: calc(2px * var(--u));
 		min-width: 0;
 	}
 
 	.label {
-		font-size: calc(15 * var(--u));
+		font-size: calc(15px * var(--u));
 		font-weight: 700;
 		letter-spacing: 0.06em;
 		line-height: 1.2;
@@ -251,7 +264,7 @@
 	}
 
 	.sublabel {
-		font-size: calc(12 * var(--u));
+		font-size: calc(12px * var(--u));
 		font-weight: 400;
 		line-height: 1.25;
 		color: var(--content-secondary);
@@ -259,18 +272,18 @@
 
 	.footer {
 		position: absolute;
-		left: calc(106 * var(--u));
-		bottom: calc(36 * var(--u));
+		left: calc(106px * var(--u));
+		bottom: calc(36px * var(--u));
 		display: flex;
 		align-items: center;
-		gap: calc(14 * var(--u));
-		font-size: calc(12 * var(--u));
+		gap: calc(14px * var(--u));
+		font-size: calc(12px * var(--u));
 		color: var(--content-disabled);
 		animation: fade-slide-in 0.55s ease-out 0.65s both;
 	}
 
 	.version {
-		padding: calc(5 * var(--u)) calc(12 * var(--u));
+		padding: calc(5px * var(--u)) calc(12px * var(--u));
 		border: 1px solid var(--border);
 		border-radius: 999px;
 		color: var(--content-tertiary);
@@ -285,7 +298,7 @@
 	@keyframes fade-slide-in {
 		from {
 			opacity: 0;
-			transform: translateX(calc(-12 * var(--u)));
+			transform: translateX(calc(-12px * var(--u)));
 		}
 		to {
 			opacity: 1;

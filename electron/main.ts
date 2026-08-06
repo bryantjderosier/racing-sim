@@ -24,7 +24,7 @@ async function createWindow() {
 	const mainWindow = new BrowserWindow({
 		width: 1600,
 		height: 1000,
-		fullscreen: false,
+		fullscreen: true,
 		autoHideMenuBar: true,
 		backgroundColor: '#0E0E0E',
 		show: false,
@@ -37,7 +37,6 @@ async function createWindow() {
 	});
 
 	mainWindow.once('ready-to-show', () => {
-		mainWindow.maximize();
 		mainWindow.show();
 		mainWindow.focus();
 		if (isWsl) {

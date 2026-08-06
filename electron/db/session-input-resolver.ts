@@ -26,6 +26,7 @@ export class SessionInputResolverError extends Error {
 
 interface SessionRow {
 	weekendSessionId: string;
+	eventId: string;
 	status: string;
 	inputPayload: string;
 	inputSchemaVersion: string;
@@ -134,13 +135,27 @@ function checkpointContextFactory(
 export function createPersistedSessionDefinitionResolver(
 	options: {
 		clock?: () => string;
+		eventId?: string;
+		weekendSessionId?: string;
 	} = {}
 ): SessionDefinitionResolver {
 	const clock = options.clock ?? (() => new Date().toISOString());
 	return async (db: Database): Promise<ResolvedSessionDefinition | null> => {
+		const predicate =
+			options.eventId && options.weekendSessionId
+				? and(
+						eq(schema.championshipEvent.id, options.eventId),
+						eq(schema.weekendSession.id, options.weekendSessionId)
+					)
+				: options.eventId
+					? eq(schema.championshipEvent.id, options.eventId)
+					: options.weekendSessionId
+						? eq(schema.weekendSession.id, options.weekendSessionId)
+						: undefined;
 		const rows = await db
 			.select({
 				weekendSessionId: schema.weekendSession.id,
+				eventId: schema.championshipEvent.id,
 				status: schema.weekendSession.status,
 				inputPayload: schema.weekendSession.simulationInputPayload,
 				inputSchemaVersion: schema.weekendSession.simulationInputSchemaVersion,
@@ -151,6 +166,11 @@ export function createPersistedSessionDefinitionResolver(
 				schema.eventSessionDefinition,
 				eq(schema.weekendSession.eventSessionDefinitionId, schema.eventSessionDefinition.id)
 			)
+			.innerJoin(
+				schema.championshipEvent,
+				eq(schema.eventSessionDefinition.championshipEventId, schema.championshipEvent.id)
+			)
+			.where(predicate)
 			.orderBy(asc(schema.eventSessionDefinition.scheduledStart));
 		const row = rows
 			.filter((candidate) => ['live', 'paused', 'scheduled'].includes(candidate.status))

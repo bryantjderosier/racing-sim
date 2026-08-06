@@ -11,7 +11,7 @@ import type {
 import * as schema from './schema.js';
 
 type Database = ReturnType<typeof drizzle<typeof schema>>;
-type Transaction = Parameters<Parameters<Database['transaction']>[0]>[0];
+export type Transaction = Parameters<Parameters<Database['transaction']>[0]>[0];
 
 export interface FinalizeSessionOptions {
 	weekendSessionId: string;
@@ -183,88 +183,94 @@ async function existingFinalization(
 	};
 }
 
+export async function finalizeSessionInTransaction(
+	tx: Transaction,
+	output: RaceRunResult,
+	options: FinalizeSessionOptions
+): Promise<FinalizeSessionResult> {
+	validateOutput(output, options);
+	const alreadyFinalized = await existingFinalization(tx, options.weekendSessionId);
+	if (alreadyFinalized) return alreadyFinalized;
+
+	const session = await tx
+		.select({ activeCheckpointId: schema.weekendSession.activeCheckpointId })
+		.from(schema.weekendSession)
+		.where(eq(schema.weekendSession.id, options.weekendSessionId))
+		.limit(1);
+	if (session.length !== 1) {
+		throw new FinalizationValidationError('Weekend session does not exist.');
+	}
+
+	const rows = output.sessionResults.map((result) =>
+		resultRow(
+			options.weekendSessionId,
+			result,
+			options.finalizedAt,
+			options.lapsBehindByEntry?.[result.sessionEntryId] ?? 0
+		)
+	);
+	await tx.insert(schema.sessionResult).values(rows);
+	const resultIds = new Map(rows.map((row) => [row.sessionEntryId, row.id]));
+	await tx.insert(schema.raceResultDetail).values(
+		rows.map((row) => {
+			const detail = detailFor(output.raceDetails, row.sessionEntryId);
+			return {
+				sessionResultId: row.id,
+				pitStops: detail.pitStops,
+				lapsLed: detail.lapsLed,
+				positionsGained: detail.positionsGained,
+				retirementReason: null
+			};
+		})
+	);
+	const awards = options.pointsSystemId
+		? awardRows(output.pointAwards, resultIds, options.pointsSystemId)
+		: [];
+	if (awards.length > 0) await tx.insert(schema.sessionPointAward).values(awards);
+
+	const events = output.events
+		.map((event) => ({ event, persisted: eventTypeAndPayload(event) }))
+		.filter((entry): entry is { event: RaceEvent; persisted: PersistedEvent } =>
+			Boolean(entry.persisted)
+		);
+	if (events.length > 0) {
+		await tx.insert(schema.sessionEvent).values(
+			events.map(({ event, persisted }, index) => ({
+				id: randomUUID(),
+				weekendSessionId: options.weekendSessionId,
+				sequence: index + 1,
+				simulationTimeMs: event.simulationTimeMs,
+				lap: event.lap,
+				segmentId: event.segmentId,
+				eventType: persisted.eventType,
+				sessionEntryIdsPayload: JSON.stringify(event.sessionEntryIds),
+				payload: JSON.stringify(persisted.payload),
+				payloadSchemaVersion: 'session-event-v1'
+			}))
+		);
+	}
+
+	if (session[0]?.activeCheckpointId) {
+		await tx
+			.delete(schema.sessionCheckpoint)
+			.where(eq(schema.sessionCheckpoint.id, session[0].activeCheckpointId));
+	}
+	await tx
+		.update(schema.weekendSession)
+		.set({ status: 'finished', activeCheckpointId: null })
+		.where(eq(schema.weekendSession.id, options.weekendSessionId));
+
+	return {
+		idempotent: false,
+		sessionResultIds: Object.fromEntries(resultIds),
+		persistedEventCount: events.length
+	};
+}
+
 export async function finalizeSession(
 	db: Database,
 	output: RaceRunResult,
 	options: FinalizeSessionOptions
 ): Promise<FinalizeSessionResult> {
-	validateOutput(output, options);
-	return db.transaction(async (tx) => {
-		const alreadyFinalized = await existingFinalization(tx, options.weekendSessionId);
-		if (alreadyFinalized) return alreadyFinalized;
-
-		const session = await tx
-			.select({ activeCheckpointId: schema.weekendSession.activeCheckpointId })
-			.from(schema.weekendSession)
-			.where(eq(schema.weekendSession.id, options.weekendSessionId))
-			.limit(1);
-		if (session.length !== 1) {
-			throw new FinalizationValidationError('Weekend session does not exist.');
-		}
-
-		const rows = output.sessionResults.map((result) =>
-			resultRow(
-				options.weekendSessionId,
-				result,
-				options.finalizedAt,
-				options.lapsBehindByEntry?.[result.sessionEntryId] ?? 0
-			)
-		);
-		await tx.insert(schema.sessionResult).values(rows);
-		const resultIds = new Map(rows.map((row) => [row.sessionEntryId, row.id]));
-		await tx.insert(schema.raceResultDetail).values(
-			rows.map((row) => {
-				const detail = detailFor(output.raceDetails, row.sessionEntryId);
-				return {
-					sessionResultId: row.id,
-					pitStops: detail.pitStops,
-					lapsLed: detail.lapsLed,
-					positionsGained: detail.positionsGained,
-					retirementReason: null
-				};
-			})
-		);
-		const awards = options.pointsSystemId
-			? awardRows(output.pointAwards, resultIds, options.pointsSystemId)
-			: [];
-		if (awards.length > 0) await tx.insert(schema.sessionPointAward).values(awards);
-
-		const events = output.events
-			.map((event) => ({ event, persisted: eventTypeAndPayload(event) }))
-			.filter((entry): entry is { event: RaceEvent; persisted: PersistedEvent } =>
-				Boolean(entry.persisted)
-			);
-		if (events.length > 0) {
-			await tx.insert(schema.sessionEvent).values(
-				events.map(({ event, persisted }, index) => ({
-					id: randomUUID(),
-					weekendSessionId: options.weekendSessionId,
-					sequence: index + 1,
-					simulationTimeMs: event.simulationTimeMs,
-					lap: event.lap,
-					segmentId: event.segmentId,
-					eventType: persisted.eventType,
-					sessionEntryIdsPayload: JSON.stringify(event.sessionEntryIds),
-					payload: JSON.stringify(persisted.payload),
-					payloadSchemaVersion: 'session-event-v1'
-				}))
-			);
-		}
-
-		if (session[0]?.activeCheckpointId) {
-			await tx
-				.delete(schema.sessionCheckpoint)
-				.where(eq(schema.sessionCheckpoint.id, session[0].activeCheckpointId));
-		}
-		await tx
-			.update(schema.weekendSession)
-			.set({ status: 'finished', activeCheckpointId: null })
-			.where(eq(schema.weekendSession.id, options.weekendSessionId));
-
-		return {
-			idempotent: false,
-			sessionResultIds: Object.fromEntries(resultIds),
-			persistedEventCount: events.length
-		};
-	});
+	return db.transaction((tx) => finalizeSessionInTransaction(tx, output, options));
 }

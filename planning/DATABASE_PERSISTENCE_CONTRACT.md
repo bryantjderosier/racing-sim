@@ -92,9 +92,24 @@ explicit game-rule fallback; it never silently advances or partially applies the
 
 Daily advancement uses a fixed phase order: validate queued actions, resolve completions and starts,
 apply daily progress and recovery, settle finances and contracts, advance world and AI systems,
-generate inbox events, then evaluate blockers. The initial implementation persists the maintenance
-phase with passive driver recovery, injury countdowns, and effective-date contract/seat observations;
-finance, R&D, AI, and inbox phases remain explicit follow-on implementations.
+generate inbox events, then evaluate blockers. The implementation now persists the maintenance phase
+with passive driver recovery, injury countdowns, and effective-date contract/seat observations, plus
+the R&D phase with four-stage project progression and physical-part manufacture. The finance phase
+now persists one account per team-season entry, an idempotent signed transaction ledger, daily
+supplier and driver-contract charges, and R&D stage/completion debits. The AI world phase persists
+deterministic team identities and one daily decision summary per team. The inbox phase now creates
+deduplicated, prioritized player-facing messages for the player team’s world, development, and
+finance changes. Supported off-screen racing resolves due non-player weekends through the same
+materializer, race engine, result repository, package, and settlement path. Player-team weekends
+remain interactive blockers, and unsupported refueling or ERS rules fail closed rather than being
+approximated.
+The AI phase now resolves bounded rival actions: deterministic R&D projects may start only when
+funding preserves the team reserve, while supplier and personnel actions remain deferred intents.
+Inbox actions now persist immutable read, defer, resolve, and archive history with idempotency;
+unresolved blocking decisions fail closed before another calendar day can advance. Weekend
+settlement now creates and consumes one hashed official result package before applying standings
+and advancing the calendar; off-screen execution uses the same package shape with lower execution
+detail.
 
 ### Checkpoint cadence and shutdown
 
@@ -140,6 +155,7 @@ is:
 
 - `save.list`, `save.create`, `save.open`, `save.close`, `save.backup`, `save.delete`
 - `calendar.advanceDay`
+- `development.start`, `development.list`
 - `weekend.getCurrent`
 - `session.getState`, `session.start`, `session.pause`, `session.resume`,
   `session.issueStrategy`, `session.checkpoint`, `session.finalize`
@@ -176,9 +192,19 @@ Persisted codes remain stable while display names are stored and rendered as fol
    `WeekendSession`, persists the immutable input snapshot transactionally, and only then resolves
    the session for the race UI.**
 5. Implement the authoritative calendar/day-transition service and typed `calendar.advanceDay` IPC.
-   **Implemented for one-day advancement, idempotent replay, weekend gates, and season-transition
-   blocking.**
-6. Build database UI layers against DTOs only, then add live-session streaming.
+   **Implemented for one-day advancement, idempotent replay, weekend gates, season-transition
+   blocking, daily maintenance, R&D progression/manufacturing, finance, AI/world, inbox generation,
+   inbox actions, and unresolved-decision blocking.**
+6. Persist the immutable official weekend-result package and consume it through one idempotent
+   settlement transaction. **Implemented for standings and calendar advancement; other deterministic
+   finance, personnel, board, news, and narrative consumers remain explicit follow-on phases.**
+7. Resolve supported off-screen non-player weekends through the same race and settlement path.
+   **Implemented with deterministic pit strategies, player-weekend protection, typed calendar
+   reporting, and fail-closed unsupported-rule handling.**
+8. Implement the player-controlled interactive weekend orchestrator around materialization,
+   checkpoints, session ordering, and final settlement. **Implemented with event-scoped lifecycle
+   commands, pause/resume/strategy support, idempotent completion, and a table-producing CLI check.**
+9. Build database UI layers against DTOs only, then add live-session streaming.
 
 The calibration JSON outputs are review artifacts, not runtime content. They live under
 `planning/calibration/` and are documented by its README.

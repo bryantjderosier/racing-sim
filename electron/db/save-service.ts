@@ -18,6 +18,9 @@ import {
 	parseManagerAvatar,
 	serializeManagerAvatar
 } from '../../src/lib/content/manager-avatar.js';
+import { ensureFinanceAccounts } from './finance-service.js';
+import { ensureAITeamProfiles } from './ai-world-service.js';
+import { ensureSponsorMarket } from './sponsor-service.js';
 
 type Database = ReturnType<typeof drizzle<typeof schema>>;
 type Transaction = Parameters<Parameters<Database['transaction']>[0]>[0];
@@ -25,7 +28,7 @@ type DatabaseExecutor =
 	Pick<Database, 'select' | 'insert'> | Pick<Transaction, 'select' | 'insert'>;
 
 const DEFAULT_MIGRATIONS_FOLDER = fileURLToPath(new URL('../../drizzle', import.meta.url));
-export const SAVE_SCHEMA_VERSION = 5;
+export const SAVE_SCHEMA_VERSION = 14;
 
 export class SaveAlreadyExistsError extends Error {
 	readonly code = 'SAVE_ALREADY_EXISTS' as const;
@@ -194,8 +197,19 @@ export async function openSaveDatabase(options: {
 	const db = drizzle(client, { schema });
 	try {
 		await migrate(db, { migrationsFolder: options.migrationsFolder ?? DEFAULT_MIGRATIONS_FOLDER });
-		const saves = await db.select({ id: schema.saveGame.id }).from(schema.saveGame).limit(1);
+		const saves = await db
+			.select({ id: schema.saveGame.id, worldDate: schema.saveGame.worldDate })
+			.from(schema.saveGame)
+			.limit(1);
 		if (saves.length !== 1) throw new SaveMetadataMissingError();
+		await db.transaction(async (tx) => {
+			await ensureFinanceAccounts(tx, {
+				now: new Date().toISOString(),
+				worldDate: saves[0].worldDate
+			});
+			await ensureAITeamProfiles(tx, { now: new Date().toISOString() });
+			await ensureSponsorMarket(tx, { now: new Date().toISOString() });
+		});
 		return { client, db, path };
 	} catch (error) {
 		client.close();
@@ -274,6 +288,9 @@ export async function createSaveDatabase(options: CreateSaveOptions): Promise<Cr
 				createdAt: now,
 				updatedAt: now
 			});
+			await ensureFinanceAccounts(tx, { now, worldDate: options.worldDate });
+			await ensureAITeamProfiles(tx, { now });
+			await ensureSponsorMarket(tx, { now });
 		});
 
 		const saves = await db.select({ id: schema.saveGame.id }).from(schema.saveGame).limit(2);

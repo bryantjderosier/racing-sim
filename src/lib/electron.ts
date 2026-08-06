@@ -1,13 +1,42 @@
 import type {
+	AIWorldActionDto,
+	AIWorldActionListRequest,
 	CalendarAdvanceDto,
 	CalendarAdvanceRequest,
 	CareerIdentityDto,
+	DevelopmentProjectDto,
+	DevelopmentStartRequest,
+	InboxActionDto,
+	InboxActionRequest,
+	InboxActionResult,
+	InboxListRequest,
+	InboxMessageDto,
 	SaveCreateRequest,
 	SaveIdRequest,
-	SaveSummary
+	SaveSummary,
+	SponsorAcceptOfferRequest,
+	SponsorAcceptOfferResult,
+	SponsorDashboardDto
 } from '../../electron/ipc-contract';
 
-export type { CalendarAdvanceDto, CalendarAdvanceRequest, CareerIdentityDto, SaveSummary };
+export type {
+	AIWorldActionDto,
+	AIWorldActionListRequest,
+	CalendarAdvanceDto,
+	CalendarAdvanceRequest,
+	CareerIdentityDto,
+	DevelopmentProjectDto,
+	DevelopmentStartRequest,
+	InboxActionDto,
+	InboxActionRequest,
+	InboxActionResult,
+	InboxListRequest,
+	InboxMessageDto,
+	SaveSummary,
+	SponsorAcceptOfferRequest,
+	SponsorAcceptOfferResult,
+	SponsorDashboardDto
+};
 export function isElectron(): boolean {
 	return typeof window !== 'undefined' && 'electronAPI' in window;
 }
@@ -57,6 +86,54 @@ export async function advanceCalendarDay(
 ): Promise<CalendarAdvanceDto> {
 	if (!isElectron()) throw new Error('Advancing the calendar requires the Electron app.');
 	return window.electronAPI.calendar.advanceDay(request);
+}
+
+export async function startDevelopmentProject(
+	request: DevelopmentStartRequest
+): Promise<DevelopmentProjectDto> {
+	if (!isElectron()) throw new Error('Starting development requires the Electron app.');
+	return window.electronAPI.development.start(request);
+}
+
+export async function listDevelopmentProjects(): Promise<DevelopmentProjectDto[]> {
+	if (!isElectron()) throw new Error('Development projects require the Electron app.');
+	return window.electronAPI.development.list();
+}
+
+export async function listInboxMessages(
+	request: InboxListRequest = {}
+): Promise<InboxMessageDto[]> {
+	if (!isElectron()) throw new Error('Inbox messages require the Electron app.');
+	return window.electronAPI.inbox.list(request);
+}
+
+export async function applyInboxAction(request: InboxActionRequest): Promise<InboxActionResult> {
+	if (!isElectron()) throw new Error('Inbox actions require the Electron app.');
+	return window.electronAPI.inbox.action(request);
+}
+
+export async function listInboxActions(messageId?: string): Promise<InboxActionDto[]> {
+	if (!isElectron()) throw new Error('Inbox action history requires the Electron app.');
+	return window.electronAPI.inbox.listActions(messageId);
+}
+
+export async function listAIWorldActions(
+	request: AIWorldActionListRequest = {}
+): Promise<AIWorldActionDto[]> {
+	if (!isElectron()) throw new Error('AI world actions require the Electron app.');
+	return window.electronAPI.aiWorld.listActions(request);
+}
+
+export async function getSponsorDashboard(): Promise<SponsorDashboardDto> {
+	if (!isElectron()) throw new Error('Sponsor data requires the Electron app.');
+	return window.electronAPI.sponsors.getDashboard();
+}
+
+export async function acceptSponsorOffer(
+	request: SponsorAcceptOfferRequest
+): Promise<SponsorAcceptOfferResult> {
+	if (!isElectron()) throw new Error('Accepting a sponsor offer requires the Electron app.');
+	return window.electronAPI.sponsors.acceptOffer(request);
 }
 
 export function formatSaveTimestamp(value: string | null): string {

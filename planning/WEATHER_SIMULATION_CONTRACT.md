@@ -1,9 +1,10 @@
 # Weather Simulation Contract — Stage D1
 
-**Status:** Prototype expansion contract; deferred from launch
+**Status:** Accepted prototype expansion contract; launch boundary reconciled through D-543
 **Scope:** Deterministic static-to-changing weather for the headless race engine; segment-level surface detail is not launch behavior
 **Depends on:** Recalibrated `academy-dry-v5-ratings-0-100` baseline
-**Persistence:** In-memory prototype with checkpoint-compatible state
+**Persistence:** Session-scoped versioned runtime state persisted through the session input and
+checkpoint boundary; hidden weather truth is never exposed to the renderer
 
 ---
 

@@ -26,7 +26,21 @@ const requiredTables = [
 	'session_event',
 	'session_telemetry_archive',
 	'calendar_transition',
-	'daily_phase_execution'
+	'daily_phase_execution',
+	'finance_account',
+	'finance_transaction',
+	'sponsor',
+	'sponsor_offer',
+	'sponsor_contract',
+	'ai_team_profile',
+	'ai_world_decision',
+	'ai_world_action',
+	'official_weekend_result_package',
+	'inbox_message',
+	'inbox_message_action',
+	'development_project',
+	'development_project_stage',
+	'development_project_result'
 ];
 
 try {

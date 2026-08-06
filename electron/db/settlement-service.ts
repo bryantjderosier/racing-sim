@@ -1,10 +1,15 @@
-import { and, asc, eq, isNotNull } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/libsql';
 import * as schema from './schema.js';
 import { commitCalendarTransition } from './calendar-service.js';
+import {
+	ensureOfficialWeekendResultPackage,
+	type OfficialResultFact,
+	type OfficialResultExecutionDetail
+} from './official-result-service.js';
 
 type Database = ReturnType<typeof drizzle<typeof schema>>;
-type Transaction = Parameters<Parameters<Database['transaction']>[0]>[0];
+export type Transaction = Parameters<Parameters<Database['transaction']>[0]>[0];
 
 export interface WeekendSettlementResult {
 	settlementId: string;
@@ -56,31 +61,9 @@ interface EventContext {
 	eventStartDate: string;
 }
 
-interface EventSessionRow {
-	weekendSessionId: string;
-	status: string;
-	activeCheckpointId: string | null;
-	pointsSystemId: string | null;
-}
-
 interface ParticipantRow {
 	driverId: string;
 	teamSeasonEntryId: string;
-}
-
-interface AwardRow {
-	sessionPointAwardId: string;
-	driverId: string;
-	teamSeasonEntryId: string;
-	points: number;
-}
-
-interface FinishRow {
-	weekendSessionId: string;
-	driverId: string;
-	teamSeasonEntryId: string;
-	classificationPosition: number | null;
-	classificationStatus: string;
 }
 
 function standingId(kind: 'driver' | 'team', seasonId: string, entityId: string): string {
@@ -91,7 +74,11 @@ function finishCountId(standing: string, position: number): string {
 	return `${standing}:finish:${position}`;
 }
 
-function isCountbackResult(row: FinishRow): row is FinishRow & { classificationPosition: number } {
+function isCountbackResult(
+	row: Pick<OfficialResultFact, 'classificationPosition' | 'classificationStatus'>
+): row is Pick<OfficialResultFact, 'classificationPosition' | 'classificationStatus'> & {
+	classificationPosition: number;
+} {
 	const position = row.classificationPosition;
 	return (
 		(row.classificationStatus === 'finished' || row.classificationStatus === 'classified') &&
@@ -120,22 +107,6 @@ async function eventContext(tx: Transaction, eventId: string): Promise<EventCont
 	return event;
 }
 
-async function eventSessions(tx: Transaction, eventId: string): Promise<EventSessionRow[]> {
-	return tx
-		.select({
-			weekendSessionId: schema.weekendSession.id,
-			status: schema.weekendSession.status,
-			activeCheckpointId: schema.weekendSession.activeCheckpointId,
-			pointsSystemId: schema.eventSessionDefinition.pointsSystemId
-		})
-		.from(schema.eventSessionDefinition)
-		.innerJoin(
-			schema.weekendSession,
-			eq(schema.weekendSession.eventSessionDefinitionId, schema.eventSessionDefinition.id)
-		)
-		.where(eq(schema.eventSessionDefinition.championshipEventId, eventId));
-}
-
 async function nextScheduledSession(tx: Transaction): Promise<string | null> {
 	const rows = await tx
 		.select({
@@ -158,71 +129,6 @@ async function nextScheduledSession(tx: Transaction): Promise<string | null> {
 		)
 		.limit(1);
 	return rows[0]?.weekendSessionId ?? null;
-}
-
-async function participants(tx: Transaction, eventId: string): Promise<ParticipantRow[]> {
-	const rows = await tx
-		.select({
-			driverId: schema.eventEntry.driverId,
-			teamSeasonEntryId: schema.eventEntry.teamSeasonEntryId
-		})
-		.from(schema.eventEntry)
-		.where(eq(schema.eventEntry.championshipEventId, eventId));
-	return rows;
-}
-
-async function pointAwards(tx: Transaction, eventId: string): Promise<AwardRow[]> {
-	return tx
-		.select({
-			sessionPointAwardId: schema.sessionPointAward.id,
-			driverId: schema.sessionEntry.driverId,
-			teamSeasonEntryId: schema.eventEntry.teamSeasonEntryId,
-			points: schema.sessionPointAward.points
-		})
-		.from(schema.sessionPointAward)
-		.innerJoin(
-			schema.sessionResult,
-			eq(schema.sessionPointAward.sessionResultId, schema.sessionResult.id)
-		)
-		.innerJoin(schema.sessionEntry, eq(schema.sessionResult.sessionEntryId, schema.sessionEntry.id))
-		.innerJoin(schema.eventEntry, eq(schema.sessionEntry.eventEntryId, schema.eventEntry.id))
-		.innerJoin(
-			schema.weekendSession,
-			eq(schema.sessionResult.weekendSessionId, schema.weekendSession.id)
-		)
-		.innerJoin(
-			schema.eventSessionDefinition,
-			eq(schema.weekendSession.eventSessionDefinitionId, schema.eventSessionDefinition.id)
-		)
-		.where(eq(schema.eventSessionDefinition.championshipEventId, eventId));
-}
-
-async function finishRows(tx: Transaction, eventId: string): Promise<FinishRow[]> {
-	return tx
-		.select({
-			weekendSessionId: schema.sessionResult.weekendSessionId,
-			driverId: schema.sessionEntry.driverId,
-			teamSeasonEntryId: schema.eventEntry.teamSeasonEntryId,
-			classificationPosition: schema.sessionResult.classificationPosition,
-			classificationStatus: schema.sessionResult.classificationStatus
-		})
-		.from(schema.sessionResult)
-		.innerJoin(schema.sessionEntry, eq(schema.sessionResult.sessionEntryId, schema.sessionEntry.id))
-		.innerJoin(schema.eventEntry, eq(schema.sessionEntry.eventEntryId, schema.eventEntry.id))
-		.innerJoin(
-			schema.weekendSession,
-			eq(schema.sessionResult.weekendSessionId, schema.weekendSession.id)
-		)
-		.innerJoin(
-			schema.eventSessionDefinition,
-			eq(schema.weekendSession.eventSessionDefinitionId, schema.eventSessionDefinition.id)
-		)
-		.where(
-			and(
-				eq(schema.eventSessionDefinition.championshipEventId, eventId),
-				isNotNull(schema.eventSessionDefinition.pointsSystemId)
-			)
-		);
 }
 
 function addValue(map: Map<string, number>, key: string, value: number): void {
@@ -425,125 +331,154 @@ async function advanceWorldDate(
 	return next;
 }
 
+export async function settleChampionshipEventInTransaction(
+	tx: Transaction,
+	championshipEventId: string,
+	options: {
+		settledAt?: string;
+		executionDetail?: OfficialResultExecutionDetail;
+		advanceCalendar?: boolean;
+	} = {}
+): Promise<WeekendSettlementResult> {
+	const settledAt = options.settledAt ?? new Date().toISOString();
+	const context = await eventContext(tx, championshipEventId);
+	const existing = await tx
+		.select()
+		.from(schema.championshipWeekendSettlement)
+		.where(eq(schema.championshipWeekendSettlement.championshipEventId, championshipEventId))
+		.limit(1);
+	if (existing[0]) {
+		return {
+			settlementId: existing[0].id,
+			championshipEventId,
+			idempotent: true,
+			advancedToWorldDate: existing[0].advancedToWorldDate,
+			nextWeekendSessionId: await nextScheduledSession(tx),
+			driverPointsApplied: 0,
+			teamPointsApplied: 0
+		};
+	}
+
+	let officialResult;
+	try {
+		officialResult = await ensureOfficialWeekendResultPackage(tx, {
+			championshipEventId,
+			executionDetail: options.executionDetail,
+			createdAt: settledAt
+		});
+	} catch (error) {
+		if (error instanceof SettlementError) throw error;
+		throw new SettlementError(error instanceof Error ? error.message : String(error));
+	}
+	const participantRows = [
+		...new Map(
+			officialResult.payload.sessions.flatMap((session) =>
+				session.results.map(
+					(result) =>
+						[
+							result.driverId,
+							{
+								driverId: result.driverId,
+								teamSeasonEntryId: result.teamSeasonEntryId
+							}
+						] as const
+				)
+			)
+		).values()
+	];
+	if (participantRows.length === 0) throw new SettlementError('Championship event has no entries.');
+	await ensureStandings(tx, context.seasonId, participantRows, settledAt);
+
+	const driverPoints = new Map<string, number>();
+	const teamPoints = new Map<string, number>();
+	const driverFinishes = new Map<string, Map<number, number>>();
+	const teamFinishes = new Map<string, Map<number, number>>();
+	const bestTeamFinishes = new Map<string, { teamSeasonEntryId: string; position: number }>();
+	for (const session of officialResult.payload.sessions) {
+		for (const result of session.results) {
+			for (const award of result.pointAwards) {
+				addValue(driverPoints, result.driverId, award.points);
+				addValue(teamPoints, result.teamSeasonEntryId, award.points);
+			}
+			if (session.pointsSystemId === null || !isCountbackResult(result)) continue;
+			addFinish(driverFinishes, result.driverId, result.classificationPosition);
+			const teamResultKey = `${session.weekendSessionId}:${result.teamSeasonEntryId}`;
+			const bestPosition = bestTeamFinishes.get(teamResultKey);
+			if (bestPosition === undefined || result.classificationPosition < bestPosition.position) {
+				bestTeamFinishes.set(teamResultKey, {
+					teamSeasonEntryId: result.teamSeasonEntryId,
+					position: result.classificationPosition
+				});
+			}
+		}
+	}
+	for (const finish of bestTeamFinishes.values()) {
+		addFinish(teamFinishes, finish.teamSeasonEntryId, finish.position);
+	}
+
+	const advancedToWorldDate =
+		options.advanceCalendar === false
+			? ((
+					await tx.select({ worldDate: schema.saveGame.worldDate }).from(schema.saveGame).limit(1)
+				)[0]?.worldDate ?? context.eventStartDate)
+			: await advanceWorldDate(tx, context.seasonId, context.eventStartDate, settledAt);
+	const settlementId = `${championshipEventId}:settlement`;
+	await tx.insert(schema.championshipWeekendSettlement).values({
+		id: settlementId,
+		championshipEventId,
+		championshipSeasonId: context.seasonId,
+		officialResultPackageId: officialResult.id,
+		settledAt,
+		advancedToWorldDate
+	});
+	const awards = officialResult.payload.sessions.flatMap((session) =>
+		session.results.flatMap((result) =>
+			result.pointAwards.map((award) => ({
+				sessionPointAwardId: award.id,
+				driverId: result.driverId,
+				teamSeasonEntryId: result.teamSeasonEntryId,
+				points: award.points
+			}))
+		)
+	);
+	if (awards.length > 0) {
+		await tx.insert(schema.championshipWeekendSettlementAward).values(
+			awards.map((award) => ({
+				id: `${settlementId}:${award.sessionPointAwardId}`,
+				settlementId,
+				sessionPointAwardId: award.sessionPointAwardId,
+				driverId: award.driverId,
+				teamSeasonEntryId: award.teamSeasonEntryId,
+				points: award.points
+			}))
+		);
+	}
+	await applyDriverStandings(tx, context.seasonId, driverPoints, driverFinishes, settledAt);
+	await applyTeamStandings(tx, context.seasonId, teamPoints, teamFinishes, settledAt);
+
+	return {
+		settlementId,
+		championshipEventId,
+		idempotent: false,
+		advancedToWorldDate,
+		nextWeekendSessionId: await nextScheduledSession(tx),
+		driverPointsApplied: [...driverPoints.values()].reduce((total, value) => total + value, 0),
+		teamPointsApplied: [...teamPoints.values()].reduce((total, value) => total + value, 0)
+	};
+}
+
 export async function settleChampionshipEvent(
 	db: Database,
 	championshipEventId: string,
-	options: { settledAt?: string } = {}
+	options: {
+		settledAt?: string;
+		executionDetail?: OfficialResultExecutionDetail;
+		advanceCalendar?: boolean;
+	} = {}
 ): Promise<WeekendSettlementResult> {
-	const settledAt = options.settledAt ?? new Date().toISOString();
-	return db.transaction(async (tx) => {
-		const context = await eventContext(tx, championshipEventId);
-		const existing = await tx
-			.select()
-			.from(schema.championshipWeekendSettlement)
-			.where(eq(schema.championshipWeekendSettlement.championshipEventId, championshipEventId))
-			.limit(1);
-		if (existing[0]) {
-			return {
-				settlementId: existing[0].id,
-				championshipEventId,
-				idempotent: true,
-				advancedToWorldDate: existing[0].advancedToWorldDate,
-				nextWeekendSessionId: await nextScheduledSession(tx),
-				driverPointsApplied: 0,
-				teamPointsApplied: 0
-			};
-		}
-
-		const sessions = await eventSessions(tx, championshipEventId);
-		if (sessions.length === 0) throw new SettlementError('Championship event has no sessions.');
-		if (sessions.some((session) => session.status !== 'finished' || session.activeCheckpointId)) {
-			throw new SettlementError('All event sessions must be finished with no active checkpoint.');
-		}
-		const resultSessionIds = new Set(
-			(
-				await tx
-					.select({ weekendSessionId: schema.sessionResult.weekendSessionId })
-					.from(schema.sessionResult)
-					.innerJoin(
-						schema.weekendSession,
-						eq(schema.sessionResult.weekendSessionId, schema.weekendSession.id)
-					)
-					.innerJoin(
-						schema.eventSessionDefinition,
-						eq(schema.weekendSession.eventSessionDefinitionId, schema.eventSessionDefinition.id)
-					)
-					.where(eq(schema.eventSessionDefinition.championshipEventId, championshipEventId))
-			).map((row) => row.weekendSessionId)
-		);
-		if (sessions.some((session) => !resultSessionIds.has(session.weekendSessionId))) {
-			throw new SettlementError('Every event session must have persisted results.');
-		}
-
-		const participantRows = await participants(tx, championshipEventId);
-		if (participantRows.length === 0)
-			throw new SettlementError('Championship event has no entries.');
-		await ensureStandings(tx, context.seasonId, participantRows, settledAt);
-
-		const awards = await pointAwards(tx, championshipEventId);
-		const driverPoints = new Map<string, number>();
-		const teamPoints = new Map<string, number>();
-		for (const award of awards) {
-			addValue(driverPoints, award.driverId, award.points);
-			addValue(teamPoints, award.teamSeasonEntryId, award.points);
-		}
-
-		const driverFinishes = new Map<string, Map<number, number>>();
-		const teamFinishes = new Map<string, Map<number, number>>();
-		const bestTeamFinishes = new Map<string, number>();
-		for (const finish of await finishRows(tx, championshipEventId)) {
-			if (!isCountbackResult(finish)) continue;
-			addFinish(driverFinishes, finish.driverId, finish.classificationPosition);
-			const teamResultKey = `${finish.weekendSessionId}:${finish.teamSeasonEntryId}`;
-			const bestPosition = bestTeamFinishes.get(teamResultKey);
-			if (bestPosition === undefined || finish.classificationPosition < bestPosition) {
-				bestTeamFinishes.set(teamResultKey, finish.classificationPosition);
-			}
-		}
-		for (const [teamResultKey, position] of bestTeamFinishes) {
-			const teamSeasonEntryId = teamResultKey.slice(teamResultKey.indexOf(':') + 1);
-			addFinish(teamFinishes, teamSeasonEntryId, position);
-		}
-
-		const advancedToWorldDate = await advanceWorldDate(
-			tx,
-			context.seasonId,
-			context.eventStartDate,
-			settledAt
-		);
-		const settlementId = `${championshipEventId}:settlement`;
-		await tx.insert(schema.championshipWeekendSettlement).values({
-			id: settlementId,
-			championshipEventId,
-			championshipSeasonId: context.seasonId,
-			settledAt,
-			advancedToWorldDate
-		});
-		if (awards.length > 0) {
-			await tx.insert(schema.championshipWeekendSettlementAward).values(
-				awards.map((award) => ({
-					id: `${settlementId}:${award.sessionPointAwardId}`,
-					settlementId,
-					sessionPointAwardId: award.sessionPointAwardId,
-					driverId: award.driverId,
-					teamSeasonEntryId: award.teamSeasonEntryId,
-					points: award.points
-				}))
-			);
-		}
-		await applyDriverStandings(tx, context.seasonId, driverPoints, driverFinishes, settledAt);
-		await applyTeamStandings(tx, context.seasonId, teamPoints, teamFinishes, settledAt);
-
-		return {
-			settlementId,
-			championshipEventId,
-			idempotent: false,
-			advancedToWorldDate,
-			nextWeekendSessionId: await nextScheduledSession(tx),
-			driverPointsApplied: [...driverPoints.values()].reduce((total, value) => total + value, 0),
-			teamPointsApplied: [...teamPoints.values()].reduce((total, value) => total + value, 0)
-		};
-	});
+	return db.transaction((tx) =>
+		settleChampionshipEventInTransaction(tx, championshipEventId, options)
+	);
 }
 
 function countbackCompare(

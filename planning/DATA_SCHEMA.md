@@ -34,8 +34,8 @@
 | Circuit geography                            | `Circuit` + `CircuitLayoutVersion`                                         |
 | Career history                               | Effective-dated contracts, assignments, license awards; result tables      |
 | Weekend settlement                           | Management-layer official weekend-result package and idempotent settlement |
-| Current championship standings               | `Championship*Standing` + finish-count rows                                  |
-| World and narrative state                    | Persistent management-layer entities and history inside the save          |
+| Current championship standings               | `Championship*Standing` + finish-count rows                                |
+| World and narrative state                    | Persistent management-layer entities and history inside the save           |
 
 ---
 
@@ -81,41 +81,159 @@ Calendar transitions are the idempotency and failure boundary for serialized wor
 The first implementation supports one-day transitions and records blocked attempts without changing
 `SaveGame.worldDate`.
 
-| Attribute         | Type     | Notes                                                                    |
-| ----------------- | -------- | ------------------------------------------------------------------------ |
-| `id`              | ID       | Deterministic transition identity                                        |
-| `transitionKind`  | enum     | `day` \| `weekend_settlement` at launch                                   |
-| `fromWorldDate`   | date     | Expected committed source date                                           |
-| `toWorldDate`     | date     | Candidate next date                                                      |
-| `status`          | enum     | `blocked` \| `committed`                                               |
-| `blockCode`       | enum?    | Weekend, season-transition, or future domain blocker                    |
-| `blockReason`     | string?  | Player-facing recovery context                                          |
-| `createdAt`       | datetime | First attempt                                                            |
-| `updatedAt`       | datetime | Last attempt                                                             |
-| `completedAt`     | datetime | Set only after `SaveGame.worldDate` commits                             |
+| Attribute        | Type     | Notes                                                |
+| ---------------- | -------- | ---------------------------------------------------- |
+| `id`             | ID       | Deterministic transition identity                    |
+| `transitionKind` | enum     | `day` \| `weekend_settlement` at launch              |
+| `fromWorldDate`  | date     | Expected committed source date                       |
+| `toWorldDate`    | date     | Candidate next date                                  |
+| `status`         | enum     | `blocked` \| `committed`                             |
+| `blockCode`      | enum?    | Weekend, season-transition, or future domain blocker |
+| `blockReason`    | string?  | Player-facing recovery context                       |
+| `createdAt`      | datetime | First attempt                                        |
+| `updatedAt`      | datetime | Last attempt                                         |
+| `completedAt`    | datetime | Set only after `SaveGame.worldDate` commits          |
 
 Unique on `(transitionKind, fromWorldDate, toWorldDate)`. A replay of a committed transition is
 idempotent; a blocked transition may be retried after its blocker is resolved.
 
 ### 1.5 DailyPhaseExecution
 
-Daily maintenance phases are persisted inside the same transaction as the day transition. The first
-phase applies passive driver recovery and injury countdowns, and records effective-date contract and
-seat changes for later recommendation/inbox consumers.
+Daily phases are persisted inside the same transaction as the day transition. Maintenance applies
+passive driver recovery and injury countdowns, and records effective-date contract and seat changes
+for later recommendation/inbox consumers.
 
-| Attribute              | Type     | Notes                              |
-| ---------------------- | -------- | ---------------------------------- |
-| `id`                   | ID       | Deterministic save/date/phase key  |
-| `worldDate`            | date     | Date being resolved                |
-| `phase`                | enum     | `maintenance` at launch            |
-| `status`               | enum     | `completed`                        |
-| `resultPayload`        | typed JSON | Phase result summary              |
-| `resultSchemaVersion`  | string   | `daily-maintenance-v1`             |
-| `createdAt`            | datetime | First execution                    |
-| `completedAt`          | datetime | Successful phase completion        |
+| Attribute             | Type       | Notes                                                                 |
+| --------------------- | ---------- | --------------------------------------------------------------------- |
+| `id`                  | ID         | Deterministic save/date/phase key                                     |
+| `worldDate`           | date       | Date being resolved                                                   |
+| `phase`               | enum       | `maintenance`, `research_development`, `finance`, `ai_world`, `inbox` |
+| `status`              | enum       | `completed`                                                           |
+| `resultPayload`       | typed JSON | Phase result summary                                                  |
+| `resultSchemaVersion` | string     | Phase-specific schema version                                         |
+| `createdAt`           | datetime   | First execution                                                       |
+| `completedAt`         | datetime   | Successful phase completion                                           |
 
 Unique on `(worldDate, phase)`. A committed calendar transition cannot exist without its completed
 daily phase.
+
+### 1.6 FinanceAccount and FinanceTransaction
+
+Each team-season entry receives one finance account when a save is created or opened. The account
+stores the current non-negative balance; every change is an immutable signed transaction with a
+unique idempotency key and the resulting balance snapshot.
+
+| Attribute                      | Type            | Notes                                      |
+| ------------------------------ | --------------- | ------------------------------------------ |
+| `FinanceAccount.id`            | ID              | Deterministic team-season finance identity |
+| `teamSeasonEntryId`            | ID              | FK → `TeamSeasonEntry`, unique             |
+| `currencyCode`                 | string          | Explicit account currency                  |
+| `openingBalanceMinor`          | money           | Initial account balance                    |
+| `currentBalanceMinor`          | money           | Non-negative current balance               |
+| `budgetCapMinor`               | money           | Team budget reference                      |
+| `createdAt` / `updatedAt`      | datetime        | UTC audit timestamps                       |
+| `FinanceTransaction.id`        | ID              | Immutable ledger row                       |
+| `accountId`                    | ID              | FK → `FinanceAccount`                      |
+| `worldDate` / `postedAt`       | date / datetime | In-game date and UTC posting time          |
+| `transactionType` / `category` | enum / string   | Income, expense, opening balance, etc.     |
+| `amountMinor`                  | money           | Signed; non-zero                           |
+| `sourceType` / `sourceId`      | enum / ID?      | Originating system and entity              |
+| `idempotencyKey`               | string          | Unique replay protection                   |
+| `description`                  | string          | Audit/read-model text                      |
+| `balanceAfterMinor`            | money           | Non-negative post-transaction balance      |
+
+Daily finance is part of the serialized calendar transaction. It currently posts recurring supplier
+and active driver-contract charges plus R&D stage/completion costs. Weekend prize, sponsor, and
+settlement-linked entries remain future finance inputs rather than invented defaults.
+
+### 1.7 AITeamProfile and AIWorldDecision
+
+Every team-season entry receives a deterministic AI identity. The profile describes strategic
+priorities and behavioral tendencies; it is not an omniscient player-facing scouting result. The
+daily AI world phase evaluates the profile against current team state and records one summarized
+decision per team and world date. The bounded action resolver may start deterministic rival R&D
+projects when the team can preserve its cash reserve; supplier and personnel decisions remain
+deferred intents, and player-controlled decisions are never altered automatically.
+
+| Attribute                         | Type      | Notes                                      |
+| --------------------------------- | --------- | ------------------------------------------ |
+| `AITeamProfile.id`                | ID        | Deterministic profile identity             |
+| `teamSeasonEntryId`               | ID        | FK → `TeamSeasonEntry`, unique             |
+| `archetype`                       | enum      | Stable strategic identity                  |
+| `developmentPriority`             | enum      | Preferred car category                     |
+| `driverStrategy`                  | enum      | Talent, stability, experience, or balanced |
+| `supplierStrategy`                | enum      | Parity, value, or independence             |
+| `riskTolerance`                   | 0–100     | Decision tendency                          |
+| `spendingDiscipline`              | 0–100     | Reserve-preservation tendency              |
+| `talentFocus`                     | 0–100     | Personnel-development tendency             |
+| `createdAt` / `updatedAt`         | datetime  | UTC audit timestamps                       |
+| `AIWorldDecision.id`              | ID        | Save/date/team deterministic identity      |
+| `teamSeasonEntryId` / `worldDate` | ID / date | One decision summary per team/date         |
+| `decisionType`                    | enum      | Cash, development, supplier, or planning   |
+| `priority`                        | 0–100     | Relative urgency                           |
+| `reasonCode` / `summary`          | string    | Deterministic explanation                  |
+| `createdAt`                       | datetime  | UTC audit timestamp                        |
+
+### 1.8 AIWorldAction
+
+AI actions are persisted separately from decisions so the world can distinguish intent from a
+bounded result. Rival teams may start deterministic R&D projects when funding and state allow it;
+supplier and personnel actions remain deferred until their market systems are implemented. The
+player team is excluded from automatic AI actions.
+
+| Attribute                | Type     | Notes                                  |
+| ------------------------ | -------- | -------------------------------------- |
+| `id`                     | ID       | Deterministic decision action identity |
+| `decisionId`             | ID       | FK → `AIWorldDecision`, unique         |
+| `teamSeasonEntryId`      | ID       | Rival team-season owner                |
+| `worldDate`              | date     | Date the action resolved               |
+| `actionType`             | enum     | Decision type being resolved           |
+| `status`                 | enum     | Applied, deferred, or skipped          |
+| `reasonCode` / `summary` | string   | Deterministic outcome explanation      |
+| `developmentProjectId`   | ID?      | FK → `DevelopmentProject` when started |
+| `createdAt`              | datetime | UTC audit timestamp                    |
+
+### 1.9 InboxMessage
+
+Inbox messages are player-facing, persisted summaries generated after the AI/world phase. They are
+prioritized and source-linked, but do not apply management actions automatically. Blocking messages
+must also require a decision; ordinary world updates remain non-blocking and can be reviewed later.
+
+| Attribute                 | Type       | Notes                                         |
+| ------------------------- | ---------- | --------------------------------------------- |
+| `id`                      | ID         | Deterministic save/date/source identity       |
+| `worldDate`               | date       | Date that produced the message                |
+| `category`                | enum       | World, development, or finance                |
+| `severity`                | enum       | Informational, actionable, urgent, blocking   |
+| `status`                  | enum       | Unread, read, deferred, resolved, or archived |
+| `priority`                | 0–100      | Queue ordering                                |
+| `title` / `body`          | string     | Rendered summary text                         |
+| `sourceType` / `sourceId` | string/ID? | Originating system and entity                 |
+| `dedupeKey`               | string     | Unique daily generation key                   |
+| `requiresDecision`        | bool       | Whether player action is required             |
+| `isBlocking`              | bool       | Whether unresolved state can pause time       |
+| `deadlineWorldDate`       | date?      | Optional consequence deadline                 |
+| `deferredUntilWorldDate`  | date?      | Optional future reappearance date             |
+| `createdAt` / `readAt`    | datetime   | UTC audit and read timestamps                 |
+| `resolvedAt`              | datetime   | Action completion timestamp                   |
+
+### 1.10 InboxMessageAction
+
+Every inbox mutation is an immutable action record. The message row stores current lifecycle state;
+the action history preserves the player’s decisions and makes retries safe through a unique
+idempotency key. Blocking messages may be read, but must be resolved before calendar advancement.
+
+| Attribute                       | Type     | Notes                            |
+| ------------------------------- | -------- | -------------------------------- |
+| `id`                            | ID       | Deterministic action identity    |
+| `inboxMessageId`                | ID       | FK → `InboxMessage`              |
+| `actionType`                    | enum     | Read, defer, resolve, or archive |
+| `previousStatus` / `nextStatus` | enum     | Lifecycle transition             |
+| `deferredUntilWorldDate`        | date?    | Set for defer actions            |
+| `actionWorldDate`               | date     | In-game date of the action       |
+| `note`                          | string?  | Optional player context          |
+| `idempotencyKey`                | string   | Unique retry protection          |
+| `createdAt`                     | datetime | UTC audit timestamp              |
 
 ---
 
@@ -149,25 +267,25 @@ Approved championship display names:
 
 ### 2.3 ChampionshipSeasonRuleset
 
-| Attribute                       | Type       | Notes                                                                     |
-| ------------------------------- | ---------- | ------------------------------------------------------------------------- |
-| `id`                            | ID         |                                                                           |
-| `entriesPerTeam`                | int        | Race seats entered (2 for the launch FDC field)                           |
-| `weekendFormatTemplateId`       | ID         |                                                                           |
-| `refuelingEnabled`              | bool       |                                                                           |
-| `ersEnabled`                    | bool       |                                                                           |
-| `drsEnabled`                    | bool       |                                                                           |
-| `constructorConversionAllowed`  | bool       |                                                                           |
-| `supplyContractTiersAllowed`    | enum[]     | `factory_parity`, `customer_spec`                                         |
-| `ageCapMax`                     | int?       | Seasonal; null = none                                                     |
-| `personnelLimitsPayload`        | typed JSON | Immutable versioned rules payload                                         |
-| `personnelLimitsSchemaVersion`  | string     |                                                                           |
-| `testingLimitsPayload`          | typed JSON | Immutable versioned rules payload                                         |
-| `testingLimitsSchemaVersion`    | string     |                                                                           |
-| `raceDistanceRulePayload`       | typed JSON | How sessions resolve laps/time                                            |
-| `raceDistanceRuleSchemaVersion` | string     |                                                                           |
+| Attribute                       | Type       | Notes                                                                    |
+| ------------------------------- | ---------- | ------------------------------------------------------------------------ |
+| `id`                            | ID         |                                                                          |
+| `entriesPerTeam`                | int        | Race seats entered (2 for the launch FDC field)                          |
+| `weekendFormatTemplateId`       | ID         |                                                                          |
+| `refuelingEnabled`              | bool       |                                                                          |
+| `ersEnabled`                    | bool       |                                                                          |
+| `drsEnabled`                    | bool       |                                                                          |
+| `constructorConversionAllowed`  | bool       |                                                                          |
+| `supplyContractTiersAllowed`    | enum[]     | `factory_parity`, `customer_spec`                                        |
+| `ageCapMax`                     | int?       | Seasonal; null = none                                                    |
+| `personnelLimitsPayload`        | typed JSON | Immutable versioned rules payload                                        |
+| `personnelLimitsSchemaVersion`  | string     |                                                                          |
+| `testingLimitsPayload`          | typed JSON | Immutable versioned rules payload                                        |
+| `testingLimitsSchemaVersion`    | string     |                                                                          |
+| `raceDistanceRulePayload`       | typed JSON | How sessions resolve laps/time                                           |
+| `raceDistanceRuleSchemaVersion` | string     |                                                                          |
 | `gridPolicyPayload`             | typed JSON | Regulation-defined qualifying absence, grid source, and opening fallback |
-| `gridPolicySchemaVersion`       | string     |                                                                           |
+| `gridPolicySchemaVersion`       | string     |                                                                          |
 
 Part procurement/upgrade → `RulesetPartCategoryRule` only.
 
@@ -289,31 +407,31 @@ relational owners. Staff, facilities, and organization detail remain management-
 
 ### 3.1 Driver
 
-| Attribute                          | Type    | Notes                                                                                                                                                                                          |
-| ---------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`                               | ID      |                                                                                                                                                                                                |
-| `firstName`                        | string  |                                                                                                                                                                                                |
-| `lastName`                         | string  |                                                                                                                                                                                                |
-| `displayName`                      | string? |                                                                                                                                                                                                |
-| `dateOfBirth`                      | date    |                                                                                                                                                                                                |
-| `nationalityId`                    | ID      |                                                                                                                                                                                                |
-| `portraitId`                       | string  |                                                                                                                                                                                                |
-| `biographySeed`                    | string  |                                                                                                                                                                                                |
-| `preferredNumber`                  | int?    |                                                                                                                                                                                                |
-| `careerStartYear`                  | int     |                                                                                                                                                                                                |
-| `retiredAt`                        | date?   | Null = not retired                                                                                                                                                                             |
-| `reputation`                       | 0–100   |                                                                                                                                                                                                |
-| `ambition`                         | 0–100   |                                                                                                                                                                                                |
-| `loyalty`                          | 0–100   |                                                                                                                                                                                                |
-| `temperament`                      | 0–100   |                                                                                                                                                                                                |
-| `leadership`                       | 0–100   |                                                                                                                                                                                                |
-| `mediaHandling`                    | 0–100   |                                                                                                                                                                                                |
-| `developmentRate`                  | 0–100   |                                                                                                                                                                                                |
-| `peakAgeStart`                     | int     |                                                                                                                                                                                                |
-| `peakAgeEnd`                       | int     |                                                                                                                                                                                                |
-| `declineRate`                      | 0–100   |                                                                                                                                                                                                |
-| **Current abilities (0–100)**       |         | `pace`, `raceCraft`, `consistency`, `tyreManagement`, `fuelManagement`, `wetPace`, `qualifyingPace`, `starts`, `focus`, `feedback`, `adaptability`, `aggression`, `composure`                 |
-| **Latent ceilings (0–100, hidden)** |         | `pacePotential`, `raceCraftPotential`, … (one per ability)                                                                                                                                     |
+| Attribute                           | Type    | Notes                                                                                                                                                                         |
+| ----------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                                | ID      |                                                                                                                                                                               |
+| `firstName`                         | string  |                                                                                                                                                                               |
+| `lastName`                          | string  |                                                                                                                                                                               |
+| `displayName`                       | string? |                                                                                                                                                                               |
+| `dateOfBirth`                       | date    |                                                                                                                                                                               |
+| `nationalityId`                     | ID      |                                                                                                                                                                               |
+| `portraitId`                        | string  |                                                                                                                                                                               |
+| `biographySeed`                     | string  |                                                                                                                                                                               |
+| `preferredNumber`                   | int?    |                                                                                                                                                                               |
+| `careerStartYear`                   | int     |                                                                                                                                                                               |
+| `retiredAt`                         | date?   | Null = not retired                                                                                                                                                            |
+| `reputation`                        | 0–100   |                                                                                                                                                                               |
+| `ambition`                          | 0–100   |                                                                                                                                                                               |
+| `loyalty`                           | 0–100   |                                                                                                                                                                               |
+| `temperament`                       | 0–100   |                                                                                                                                                                               |
+| `leadership`                        | 0–100   |                                                                                                                                                                               |
+| `mediaHandling`                     | 0–100   |                                                                                                                                                                               |
+| `developmentRate`                   | 0–100   |                                                                                                                                                                               |
+| `peakAgeStart`                      | int     |                                                                                                                                                                               |
+| `peakAgeEnd`                        | int     |                                                                                                                                                                               |
+| `declineRate`                       | 0–100   |                                                                                                                                                                               |
+| **Current abilities (0–100)**       |         | `pace`, `raceCraft`, `consistency`, `tyreManagement`, `fuelManagement`, `wetPace`, `qualifyingPace`, `starts`, `focus`, `feedback`, `adaptability`, `aggression`, `composure` |
+| **Latent ceilings (0–100, hidden)** |         | `pacePotential`, `raceCraftPotential`, … (one per ability)                                                                                                                    |
 
 **Derived (not authoritative columns):** `currentAbility`, `potentialAbility` rollups.
 **Eligibility:** derive from `LicensePointAward` history, age vs ruleset `ageCapMax`, and championship rules — **do not** store `highestEligibleChampionshipId`.
@@ -390,12 +508,12 @@ No `teamId` / `championshipSeasonId` / `chassisInstanceId` (derive or bind elsew
 
 ### 3.8 DriverRelationship
 
-| Attribute       | Type | Notes                    |
-| --------------- | ---- | ------------------------ |
-| `id`            | ID   |                          |
-| `driverId`      | ID   |                          |
-| `otherDriverId` | ID   |                          |
-| `kind`          | enum | `rival` \| `mentor` \| … |
+| Attribute       | Type  | Notes                    |
+| --------------- | ----- | ------------------------ |
+| `id`            | ID    |                          |
+| `driverId`      | ID    |                          |
+| `otherDriverId` | ID    |                          |
+| `kind`          | enum  | `rival` \| `mentor` \| … |
 | `strength`      | 0–100 |                          |
 
 ### 3.9 DriverChampionshipExperience
@@ -483,6 +601,43 @@ International Formula Championship non-constructor paths).
 Legality computed against ruleset + participant status; never a global `isLegal` flag.
 
 **R&D rule:** any performance or base-reliability change creates a new immutable `PartDesignVersion`. Teams manufacture `PartInstance` rows from an exact design version; manufactured instances do not gain independent performance levels. `RulesetPartCategoryRule.upgradeMode` controls which new design projects are permitted.
+
+### 4.3.1 DevelopmentProject
+
+`DevelopmentProject` is the authoritative management-layer lifecycle for a team-owned design
+change. A project may have one active project per team-season entry and part category at a time.
+Its performance deltas use dotted paths into the existing performance payload, so a project can
+improve one sub-item while reducing another. Costs are stored in minor currency units and are
+posted to the team finance ledger as each stage completes and when manufacturing completes.
+
+| Attribute                                 | Type       | Notes                                               |
+| ----------------------------------------- | ---------- | --------------------------------------------------- |
+| `id`                                      | ID         |                                                     |
+| `teamSeasonEntryId`                       | ID         | FK → `TeamSeasonEntry`                              |
+| `partCategory`                            | enum       | Category being developed                            |
+| `projectKind`                             | enum       | `upgrade` \| `new_design`                           |
+| `status`                                  | enum       | `active` \| `completed` \| `cancelled`              |
+| `currentStage`                            | enum       | Fixed four-stage lifecycle or `completed`           |
+| `baseDesignVersionId`                     | ID?        | Required for an `upgrade`; FK → `PartDesignVersion` |
+| `performanceDeltaPayload`                 | typed JSON | Dotted sub-item deltas                              |
+| `reliabilityDeltaPayload`                 | typed JSON | Reliability delta                                   |
+| `totalCostMinor` / `spentCostMinor`       | money      | Planned and applied project cost                    |
+| `startWorldDate` / `completedWorldDate`   | date?      | In-game lifecycle dates                             |
+| `startedAt` / `updatedAt` / `completedAt` | datetime   | UTC audit timestamps                                |
+
+### 4.3.2 DevelopmentProjectStage
+
+Every project has exactly four ordered stages: `concept_design`, `cfd`, `wind_tunnel`, and
+`manufacturing`. Each stage owns its duration, cost, remaining days, state, and effective dates.
+Completing a stage activates the next stage; the next stage does not consume time until the next
+daily tick.
+
+### 4.3.3 DevelopmentProjectResult
+
+Completion creates one immutable `PartDesignVersion` and exactly one physical output. Non-chassis
+categories create a `PartInstance`; `chassis` creates a `ChassisInstance`. The result row links the
+project, design, manufactured asset, and UTC manufacturing timestamp, with a database check that
+exactly one physical asset is present.
 
 ### 4.4 ChassisInstance
 
@@ -939,19 +1094,42 @@ Does **not** own `simClockMs` (clock is on `SessionCheckpoint`).
 | `driverId`               | ID   |       |
 | `seasonYear`             | int  |       |
 
-### 7.7 Championship standings and weekend settlement
+### 7.7 OfficialWeekendResultPackage
+
+`OfficialWeekendResultPackage` is the immutable management-layer handoff from completed session
+results to weekend settlement. It is unique per championship event and contains the complete,
+versioned session-result facts needed to apply standings and later deterministic management
+consequences without rerunning the race engine. `inputHash` covers the ordered persisted session
+input snapshots; `resultHash` covers the canonical package payload. A package cannot be created
+until every event session is finished, has persisted results, and has no active checkpoint.
+
+| Attribute                          | Type       | Notes                                                |
+| ---------------------------------- | ---------- | ---------------------------------------------------- |
+| `id`                               | ID         | Deterministic event-scoped package identity          |
+| `championshipEventId`              | ID         | FK → `ChampionshipEvent`, unique                     |
+| `championshipSeasonId`             | ID         | FK → `ChampionshipSeason`                            |
+| `packageSchemaVersion`             | string     | `official-weekend-result-v1`                         |
+| `executionDetail`                  | enum       | `interactive` \| `off_screen`                        |
+| `formulaVersion` / `engineVersion` | string     | Versions represented by source session inputs        |
+| `inputHash` / `resultHash`         | string     | SHA-256 integrity hashes                             |
+| `payload`                          | typed JSON | Complete session-result facts and point-award inputs |
+| `createdAt`                        | datetime   | UTC package creation time                            |
+
+### 7.8 Championship standings and weekend settlement
 
 `ChampionshipDriverStanding` and `ChampionshipTeamStanding` are current season snapshots. They
 store points, wins, second places, third places, and normalized finish-count rows for complete
 countback ordering. Driver points remain attached to the driver; constructor points remain attached
 to the `TeamSeasonEntry` that operated the car.
 
-`ChampionshipWeekendSettlement` is unique per `ChampionshipEvent` and is the idempotency boundary.
-Its award children preserve the source `SessionPointAward`, driver, team-season entry, and points
-applied by the settlement. Settlement is allowed only after every event session is finished, has
-persisted results, and has no active checkpoint. It updates both standings in one transaction and
-advances `SaveGame.worldDate` to the next event date. Finances, personnel, R&D, recommendations,
-and other management consequences are intentionally outside this first slice.
+`ChampionshipWeekendSettlement` is unique per `ChampionshipEvent` and records the package consumed
+by the idempotent settlement. Its award children preserve the source `SessionPointAward`, driver,
+team-season entry, and points applied by the settlement. Standalone settlement updates both
+standings in one transaction and advances `SaveGame.worldDate` to the next event date. When the
+authoritative daily calendar resolves a supported off-screen event, settlement records the package
+without moving the clock so the enclosing day transition remains the sole time authority.
+Settlement-linked financial awards, personnel updates, recommendations, and other management
+consequences remain explicit follow-on consumers rather than being invented by the result handoff.
 
 ---
 
@@ -1013,7 +1191,7 @@ Expressed as `RulesetPartCategoryRule` rows per `(category, participantStatus)`:
 
 ## 11. Out of this document
 
-Team organization detail, Staff, HQ buildings, Finance ledger, and `formulaVersion` whitepaper.
-These remain separate management-layer contracts, but their authoritative state, recommendation
-threads, world events, news, narrative state, and settlement history must be persisted in the same
-save and participate in the shared calendar and result-settlement boundaries.
+Team organization detail, Staff, HQ buildings, the full finance policy, and `formulaVersion`
+whitepaper. These remain separate management-layer contracts, but their authoritative state,
+recommendation threads, world events, news, narrative state, and settlement history must be persisted
+in the same save and participate in the shared calendar and result-settlement boundaries.

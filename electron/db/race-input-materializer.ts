@@ -11,12 +11,14 @@ import type {
 } from '../../src/lib/sim/core/types.js';
 import { validateRaceInput } from '../../src/lib/sim/core/validate.js';
 import {
-	materializeWeekendSession,
+	materializeWeekendSessionInTransaction,
+	type Transaction,
 	type SessionMaterializationResult
 } from './session-materializer.js';
 import * as schema from './schema.js';
 
 type Database = ReturnType<typeof drizzle<typeof schema>>;
+type QueryDatabase = Database | Transaction;
 
 export interface MaterializedCurrentSession {
 	input: RaceInput;
@@ -68,6 +70,10 @@ interface CurrentSession {
 	layoutPitLossSeconds: number;
 	layoutFuelConsumptionModifier: number;
 	layoutTopSpeedZoneFactor: number;
+}
+
+export interface RaceInputMaterializationOptions {
+	inputTransform?: (input: RaceInput) => RaceInput;
 }
 
 interface EventEntryRow {
@@ -302,7 +308,10 @@ function buildTrack(session: CurrentSession): RaceInput['track'] {
 	};
 }
 
-async function resolveCurrentSession(db: Database): Promise<CurrentSession> {
+async function resolveCurrentSession(
+	db: QueryDatabase,
+	eventSessionDefinitionId?: string
+): Promise<CurrentSession> {
 	const rows = await db
 		.select({
 			weekendSessionId: schema.weekendSession.id,
@@ -362,7 +371,12 @@ async function resolveCurrentSession(db: Database): Promise<CurrentSession> {
 		.innerJoin(schema.circuit, eq(schema.circuitLayoutVersion.circuitId, schema.circuit.id))
 		.orderBy(asc(schema.eventSessionDefinition.scheduledStart));
 	const current = [...rows]
-		.filter((row) => row.status === 'live' || row.status === 'paused' || row.status === 'scheduled')
+		.filter(
+			(row) =>
+				(row.status === 'live' || row.status === 'paused' || row.status === 'scheduled') &&
+				(eventSessionDefinitionId === undefined ||
+					row.eventSessionDefinitionId === eventSessionDefinitionId)
+		)
 		.sort(
 			(left, right) =>
 				(left.status === 'live' || left.status === 'paused' ? 0 : 1) -
@@ -373,8 +387,11 @@ async function resolveCurrentSession(db: Database): Promise<CurrentSession> {
 	return current;
 }
 
-export async function materializeCurrentSession(db: Database): Promise<MaterializedCurrentSession> {
-	const session = await resolveCurrentSession(db);
+async function materializeResolvedSession(
+	db: Transaction,
+	session: CurrentSession,
+	options: RaceInputMaterializationOptions = {}
+): Promise<MaterializedCurrentSession> {
 	if (session.rainNow !== null && session.rainNow > 0) {
 		throw new RaceInputMaterializationError('Wet-session materialization is not enabled yet.');
 	}
@@ -535,17 +552,17 @@ export async function materializeCurrentSession(db: Database): Promise<Materiali
 			tyreSets: requiredTyres.map((name) => {
 				const row = tyreByName.get(name)!;
 				return {
-					id: `${session.weekendSessionId}:${eventEntry.eventEntryId}:${name}`,
+					id: `${eventEntry.eventEntryId}:${name}`,
 					compound: tyreSpec(row)
 				};
 			}),
-			startingTyreSetId: `${session.weekendSessionId}:${eventEntry.eventEntryId}:medium`,
+			startingTyreSetId: `${eventEntry.eventEntryId}:medium`,
 			initialMode: 'balanced'
 		};
 	});
 	const tyreSets = eventEntries.flatMap((eventEntry) =>
 		requiredTyres.map((name, index) => ({
-			id: `${session.weekendSessionId}:${eventEntry.eventEntryId}:${name}`,
+			id: `${eventEntry.eventEntryId}:${name}`,
 			eventEntryId: eventEntry.eventEntryId,
 			tyreCompoundSpecId: tyreByName.get(name)!.specId,
 			setIndex: index + 1,
@@ -554,7 +571,7 @@ export async function materializeCurrentSession(db: Database): Promise<Materiali
 		}))
 	);
 
-	const input: RaceInput = {
+	const baseInput: RaceInput = {
 		formulaVersion: FORMULA_CONFIG.version,
 		engineVersion: DRY_ENGINE_VERSION,
 		seed: hashString(
@@ -576,6 +593,7 @@ export async function materializeCurrentSession(db: Database): Promise<Materiali
 		entries,
 		commands: []
 	};
+	const input = options.inputTransform ? options.inputTransform(baseInput) : baseInput;
 	try {
 		validateRaceInput(input);
 	} catch (error) {
@@ -622,7 +640,7 @@ export async function materializeCurrentSession(db: Database): Promise<Materiali
 		startStatus: 'started',
 		resolvedPerformanceSnapshotId: performanceSnapshots[index].id
 	}));
-	const materialization = await materializeWeekendSession(db, {
+	const materialization = await materializeWeekendSessionInTransaction(db, {
 		weekendSessionId: session.weekendSessionId,
 		eventSessionDefinitionId: session.eventSessionDefinitionId,
 		input,
@@ -643,4 +661,30 @@ export async function materializeCurrentSession(db: Database): Promise<Materiali
 		pointsSystemId: session.pointsSystemId,
 		materialization
 	};
+}
+
+export async function materializeSessionInTransaction(
+	tx: Transaction,
+	eventSessionDefinitionId: string,
+	options: RaceInputMaterializationOptions = {}
+): Promise<MaterializedCurrentSession> {
+	const session = await resolveCurrentSession(tx, eventSessionDefinitionId);
+	return materializeResolvedSession(tx, session, options);
+}
+
+export async function materializeSession(
+	db: Database,
+	eventSessionDefinitionId: string,
+	options: RaceInputMaterializationOptions = {}
+): Promise<MaterializedCurrentSession> {
+	return db.transaction((tx) =>
+		materializeSessionInTransaction(tx, eventSessionDefinitionId, options)
+	);
+}
+
+export async function materializeCurrentSession(db: Database): Promise<MaterializedCurrentSession> {
+	return db.transaction(async (tx) => {
+		const session = await resolveCurrentSession(tx);
+		return materializeResolvedSession(tx, session);
+	});
 }

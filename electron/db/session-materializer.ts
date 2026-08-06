@@ -5,7 +5,7 @@ import { persistSessionInput, SESSION_INPUT_SCHEMA_VERSION } from './session-inp
 import * as schema from './schema.js';
 
 type Database = ReturnType<typeof drizzle<typeof schema>>;
-type Transaction = Parameters<Parameters<Database['transaction']>[0]>[0];
+export type Transaction = Parameters<Parameters<Database['transaction']>[0]>[0];
 
 export interface SessionMaterializationConditions {
 	tempC?: number | null;
@@ -70,71 +70,61 @@ async function persistSessionParticipants(
 	}
 }
 
-export async function materializeWeekendSession(
-	db: Database,
+export async function materializeWeekendSessionInTransaction(
+	tx: Transaction,
 	request: SessionMaterializationRequest
 ): Promise<SessionMaterializationResult> {
 	requireId(request.weekendSessionId, 'weekendSessionId');
 	requireId(request.eventSessionDefinitionId, 'eventSessionDefinitionId');
 
-	return db.transaction(async (tx) => {
-		const definitions = await tx
-			.select({
-				id: schema.eventSessionDefinition.id,
-				pointsSystemId: schema.eventSessionDefinition.pointsSystemId
-			})
-			.from(schema.eventSessionDefinition)
-			.where(eq(schema.eventSessionDefinition.id, request.eventSessionDefinitionId));
-		const definition = definitions[0];
-		if (!definition) {
+	const definitions = await tx
+		.select({
+			id: schema.eventSessionDefinition.id,
+			pointsSystemId: schema.eventSessionDefinition.pointsSystemId
+		})
+		.from(schema.eventSessionDefinition)
+		.where(eq(schema.eventSessionDefinition.id, request.eventSessionDefinitionId));
+	const definition = definitions[0];
+	if (!definition) {
+		throw new SessionMaterializationError(
+			`Event session definition was not found: ${request.eventSessionDefinitionId}.`
+		);
+	}
+	const existingRows = await tx
+		.select({
+			id: schema.weekendSession.id,
+			status: schema.weekendSession.status,
+			activeCheckpointId: schema.weekendSession.activeCheckpointId,
+			inputPayload: schema.weekendSession.simulationInputPayload,
+			inputSchemaVersion: schema.weekendSession.simulationInputSchemaVersion
+		})
+		.from(schema.weekendSession)
+		.where(eq(schema.weekendSession.eventSessionDefinitionId, request.eventSessionDefinitionId));
+	const existing = existingRows[0];
+	if (existing) {
+		if (existing.id !== request.weekendSessionId) {
 			throw new SessionMaterializationError(
-				`Event session definition was not found: ${request.eventSessionDefinitionId}.`
+				'An event session already has a different weekend session.',
+				'CONFLICT'
 			);
 		}
-		const existingRows = await tx
-			.select({
-				id: schema.weekendSession.id,
-				status: schema.weekendSession.status,
-				activeCheckpointId: schema.weekendSession.activeCheckpointId,
-				inputPayload: schema.weekendSession.simulationInputPayload,
-				inputSchemaVersion: schema.weekendSession.simulationInputSchemaVersion
-			})
-			.from(schema.weekendSession)
-			.where(eq(schema.weekendSession.eventSessionDefinitionId, request.eventSessionDefinitionId));
-		const existing = existingRows[0];
-		if (existing) {
-			if (existing.id !== request.weekendSessionId) {
+		if (existing.status !== 'scheduled' || existing.activeCheckpointId) {
+			throw new SessionMaterializationError(
+				'Only an unstarted scheduled session can be materialized.',
+				'CONFLICT'
+			);
+		}
+		if (existing.inputPayload !== '{}') {
+			const requestedPayload = JSON.stringify(request.input);
+			if (
+				existing.inputSchemaVersion !== SESSION_INPUT_SCHEMA_VERSION ||
+				existing.inputPayload !== requestedPayload
+			) {
 				throw new SessionMaterializationError(
-					'An event session already has a different weekend session.',
+					'The scheduled session already has a different simulation input.',
 					'CONFLICT'
 				);
 			}
-			if (existing.status !== 'scheduled' || existing.activeCheckpointId) {
-				throw new SessionMaterializationError(
-					'Only an unstarted scheduled session can be materialized.',
-					'CONFLICT'
-				);
-			}
-			if (existing.inputPayload !== '{}') {
-				const requestedPayload = JSON.stringify(request.input);
-				if (
-					existing.inputSchemaVersion !== SESSION_INPUT_SCHEMA_VERSION ||
-					existing.inputPayload !== requestedPayload
-				) {
-					throw new SessionMaterializationError(
-						'The scheduled session already has a different simulation input.',
-						'CONFLICT'
-					);
-				}
-				await persistSessionParticipants(tx, request);
-				return {
-					weekendSessionId: request.weekendSessionId,
-					created: false,
-					inputPersisted: true
-				};
-			}
-
-			await persistSessionInput(tx, request.weekendSessionId, request.input);
 			await persistSessionParticipants(tx, request);
 			return {
 				weekendSessionId: request.weekendSessionId,
@@ -143,24 +133,39 @@ export async function materializeWeekendSession(
 			};
 		}
 
-		await tx.insert(schema.weekendSession).values({
-			id: request.weekendSessionId,
-			eventSessionDefinitionId: request.eventSessionDefinitionId,
-			status: 'scheduled',
-			tempC: request.conditions?.tempC ?? null,
-			rainNow: request.conditions?.rainNow ?? null,
-			rainInMinutes: request.conditions?.rainInMinutes ?? null,
-			trackWetness: request.conditions?.trackWetness ?? 0,
-			simulationInputPayload: '{}',
-			simulationInputSchemaVersion: SESSION_INPUT_SCHEMA_VERSION,
-			activeCheckpointId: null
-		});
 		await persistSessionInput(tx, request.weekendSessionId, request.input);
 		await persistSessionParticipants(tx, request);
 		return {
 			weekendSessionId: request.weekendSessionId,
-			created: true,
+			created: false,
 			inputPersisted: true
 		};
+	}
+
+	await tx.insert(schema.weekendSession).values({
+		id: request.weekendSessionId,
+		eventSessionDefinitionId: request.eventSessionDefinitionId,
+		status: 'scheduled',
+		tempC: request.conditions?.tempC ?? null,
+		rainNow: request.conditions?.rainNow ?? null,
+		rainInMinutes: request.conditions?.rainInMinutes ?? null,
+		trackWetness: request.conditions?.trackWetness ?? 0,
+		simulationInputPayload: '{}',
+		simulationInputSchemaVersion: SESSION_INPUT_SCHEMA_VERSION,
+		activeCheckpointId: null
 	});
+	await persistSessionInput(tx, request.weekendSessionId, request.input);
+	await persistSessionParticipants(tx, request);
+	return {
+		weekendSessionId: request.weekendSessionId,
+		created: true,
+		inputPersisted: true
+	};
+}
+
+export async function materializeWeekendSession(
+	db: Database,
+	request: SessionMaterializationRequest
+): Promise<SessionMaterializationResult> {
+	return db.transaction((tx) => materializeWeekendSessionInTransaction(tx, request));
 }

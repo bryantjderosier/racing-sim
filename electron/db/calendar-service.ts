@@ -1,6 +1,13 @@
 import { and, asc, eq, gte, lte, or } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/libsql';
 import { runDailyMaintenance, type DailyMaintenanceResult } from './daily-phase-service.js';
+import {
+	runDailyResearchDevelopment,
+	type DailyResearchDevelopmentResult
+} from './development-service.js';
+import { runDailyFinance, type DailyFinanceResult } from './finance-service.js';
+import { runDailyAIWorld, type DailyAIWorldResult } from './ai-world-service.js';
+import { getBlockingInboxMessages, runDailyInbox, type DailyInboxResult } from './inbox-service.js';
 import * as schema from './schema.js';
 
 type Database = ReturnType<typeof drizzle<typeof schema>>;
@@ -8,7 +15,11 @@ type Transaction = Parameters<Parameters<Database['transaction']>[0]>[0];
 
 export type CalendarAdvanceStatus = 'advanced' | 'blocked' | 'idempotent';
 export type CalendarBlockCode =
-	'weekend_active' | 'weekend_start_required' | 'season_transition_required';
+	| 'weekend_active'
+	| 'weekend_start_required'
+	| 'offscreen_race_failed'
+	| 'season_transition_required'
+	| 'inbox_decision_required';
 
 export interface CalendarAdvanceResult {
 	transitionId: string;
@@ -24,6 +35,11 @@ export interface CalendarAdvanceResult {
 	championshipEventId: string | null;
 	championshipEventName: string | null;
 	dailyMaintenance: DailyMaintenanceResult | null;
+	dailyResearchDevelopment: DailyResearchDevelopmentResult | null;
+	dailyFinance: DailyFinanceResult | null;
+	dailyAIWorld: DailyAIWorldResult | null;
+	dailyInbox: DailyInboxResult | null;
+	offscreenWeekendsResolved: number;
 }
 
 export class CalendarError extends Error {
@@ -111,7 +127,12 @@ function resultBase(
 	blockCode: CalendarBlockCode | null,
 	blockReason: string | null,
 	weekend: WeekendRow | null,
-	dailyMaintenance: DailyMaintenanceResult | null = null
+	dailyMaintenance: DailyMaintenanceResult | null = null,
+	dailyResearchDevelopment: DailyResearchDevelopmentResult | null = null,
+	dailyFinance: DailyFinanceResult | null = null,
+	dailyAIWorld: DailyAIWorldResult | null = null,
+	dailyInbox: DailyInboxResult | null = null,
+	offscreenWeekendsResolved = 0
 ): CalendarAdvanceResult {
 	return {
 		transitionId,
@@ -129,8 +150,77 @@ function resultBase(
 		weekendSessionId: weekend?.weekendSessionId ?? null,
 		championshipEventId: weekend?.championshipEventId ?? null,
 		championshipEventName: weekend?.championshipEventName ?? null,
-		dailyMaintenance
+		dailyMaintenance,
+		dailyResearchDevelopment,
+		dailyFinance,
+		dailyAIWorld,
+		dailyInbox,
+		offscreenWeekendsResolved
 	};
+}
+
+async function eventHasPlayerTeam(
+	tx: Transaction,
+	championshipEventId: string,
+	playerTeamId: string
+): Promise<boolean> {
+	const rows = await tx
+		.select({ id: schema.eventEntry.id })
+		.from(schema.eventEntry)
+		.innerJoin(
+			schema.teamSeasonEntry,
+			eq(schema.eventEntry.teamSeasonEntryId, schema.teamSeasonEntry.id)
+		)
+		.where(
+			and(
+				eq(schema.eventEntry.championshipEventId, championshipEventId),
+				eq(schema.teamSeasonEntry.teamId, playerTeamId)
+			)
+		)
+		.limit(1);
+	return rows.length > 0;
+}
+
+async function resolveOffscreenWeekends(
+	tx: Transaction,
+	options: { throughWorldDate: string; playerTeamId: string; now: string }
+): Promise<{
+	resolved: number;
+	playerWeekend: WeekendRow | null;
+	failure: { weekend: WeekendRow; reason: string } | null;
+}> {
+	let resolved = 0;
+	while (true) {
+		const weekend = await firstWeekend(
+			tx,
+			and(
+				eq(schema.weekendSession.status, 'scheduled'),
+				lte(schema.championshipEvent.startDate, options.throughWorldDate)
+			)
+		);
+		if (!weekend) return { resolved, playerWeekend: null, failure: null };
+		if (await eventHasPlayerTeam(tx, weekend.championshipEventId, options.playerTeamId)) {
+			return { resolved, playerWeekend: weekend, failure: null };
+		}
+		try {
+			const { runOffscreenChampionshipEventInTransaction } =
+				await import('./offscreen-race-service.js');
+			await runOffscreenChampionshipEventInTransaction(tx, weekend.championshipEventId, {
+				now: options.now,
+				advanceCalendar: false
+			});
+			resolved += 1;
+		} catch (error) {
+			return {
+				resolved,
+				playerWeekend: null,
+				failure: {
+					weekend,
+					reason: error instanceof Error ? error.message : String(error)
+				}
+			};
+		}
+	}
 }
 
 async function writeTransition(
@@ -294,14 +384,70 @@ export async function advanceCalendarDay(
 			);
 		}
 
-		const weekendStartRequired = await firstWeekend(
-			tx,
-			and(
-				eq(schema.weekendSession.status, 'scheduled'),
-				lte(schema.championshipEvent.startDate, fromWorldDate)
-			)
-		);
-		if (weekendStartRequired) {
+		const blockingInboxMessages = await getBlockingInboxMessages(tx, {
+			throughWorldDate: fromWorldDate
+		});
+		if (blockingInboxMessages.length > 0) {
+			const firstMessage = blockingInboxMessages[0];
+			const blockReason =
+				blockingInboxMessages.length === 1
+					? `Inbox decision required: ${firstMessage.title}.`
+					: `${blockingInboxMessages.length} inbox decisions require attention before advancing time.`;
+			await writeTransition(tx, {
+				id: transitionId,
+				fromWorldDate,
+				toWorldDate,
+				status: 'blocked',
+				blockCode: 'inbox_decision_required',
+				blockReason,
+				now
+			});
+			return resultBase(
+				transitionId,
+				'blocked',
+				fromWorldDate,
+				toWorldDate,
+				save.worldDate,
+				'inbox_decision_required',
+				blockReason,
+				null
+			);
+		}
+
+		const offscreenResolution = await resolveOffscreenWeekends(tx, {
+			throughWorldDate: fromWorldDate,
+			playerTeamId: save.playerTeamId ?? '',
+			now
+		});
+		if (offscreenResolution.failure) {
+			const blockReason = `Off-screen race failed: ${offscreenResolution.failure.reason}`;
+			await writeTransition(tx, {
+				id: transitionId,
+				fromWorldDate,
+				toWorldDate,
+				status: 'blocked',
+				blockCode: 'offscreen_race_failed',
+				blockReason,
+				now
+			});
+			return resultBase(
+				transitionId,
+				'blocked',
+				fromWorldDate,
+				toWorldDate,
+				save.worldDate,
+				'offscreen_race_failed',
+				blockReason,
+				offscreenResolution.failure.weekend,
+				null,
+				null,
+				null,
+				null,
+				null,
+				offscreenResolution.resolved
+			);
+		}
+		if (offscreenResolution.playerWeekend) {
 			const blockReason = `Race weekend must be started before advancing beyond ${fromWorldDate}.`;
 			await writeTransition(tx, {
 				id: transitionId,
@@ -320,7 +466,13 @@ export async function advanceCalendarDay(
 				save.worldDate,
 				'weekend_start_required',
 				blockReason,
-				weekendStartRequired
+				offscreenResolution.playerWeekend,
+				null,
+				null,
+				null,
+				null,
+				null,
+				offscreenResolution.resolved
 			);
 		}
 
@@ -360,6 +512,26 @@ export async function advanceCalendarDay(
 			worldDate: toWorldDate,
 			now
 		});
+		const dailyResearchDevelopment = await runDailyResearchDevelopment(tx, {
+			saveId: save.id,
+			worldDate: toWorldDate,
+			now
+		});
+		const dailyFinance = await runDailyFinance(tx, {
+			saveId: save.id,
+			worldDate: toWorldDate,
+			now
+		});
+		const dailyAIWorld = await runDailyAIWorld(tx, {
+			saveId: save.id,
+			worldDate: toWorldDate,
+			now
+		});
+		const dailyInbox = await runDailyInbox(tx, {
+			saveId: save.id,
+			worldDate: toWorldDate,
+			now
+		});
 		await commitCalendarTransition(tx, {
 			transitionKind: 'day',
 			fromWorldDate,
@@ -383,7 +555,12 @@ export async function advanceCalendarDay(
 			null,
 			null,
 			weekendAtTarget,
-			dailyMaintenance
+			dailyMaintenance,
+			dailyResearchDevelopment,
+			dailyFinance,
+			dailyAIWorld,
+			dailyInbox,
+			offscreenResolution.resolved
 		);
 	});
 }

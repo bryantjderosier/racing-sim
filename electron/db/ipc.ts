@@ -5,13 +5,18 @@ import { join } from 'node:path';
 import { Xoshiro128ss } from '../../src/lib/sim/core/rng.js';
 import {
 	IPC_CHANNELS,
+	type AIWorldActionListRequest,
 	type IpcErrorCode,
 	type CareerIdentityDto,
+	type DevelopmentStartRequest,
+	type InboxActionRequest,
+	type InboxListRequest,
 	type SaveBackupResult,
 	type SaveCreateRequest,
 	type SaveIdRequest,
 	type SaveSummary,
 	type ResultsGetRequest,
+	type SponsorAcceptOfferRequest,
 	type SessionStrategyCommand,
 	type SessionFinalizationDto,
 	type SessionStateDto,
@@ -27,8 +32,19 @@ import {
 import { SaveCatalog, type SaveCatalogEntry } from './save-catalog.js';
 import { getCareerIdentity, getCurrentWeekend, getSessionResults } from './read-models.js';
 import { advanceCalendarDay } from './calendar-service.js';
+import { listAIWorldActions } from './ai-world-service.js';
+import { listDevelopmentProjects, startDevelopmentProject } from './development-service.js';
+import { getPlayerFinanceSummary } from './finance-service.js';
+import {
+	applyInboxAction,
+	INBOX_ACTIONS,
+	INBOX_STATUSES,
+	listInboxActions,
+	listInboxMessages
+} from './inbox-service.js';
 import { SessionOrchestrator, SessionLifecycleError } from './session-orchestrator.js';
 import { SessionFactory } from './session-factory.js';
+import { acceptSponsorOffer, getSponsorDashboard } from './sponsor-service.js';
 
 let registered = false;
 let activeSave: { entry: SaveCatalogEntry; database: SaveDatabase } | null = null;
@@ -69,6 +85,7 @@ function errorCode(error: unknown): IpcErrorCode {
 		code === 'SESSION_NOT_LIVE' ||
 		code === 'CHECKPOINT_FAILED' ||
 		code === 'FINALIZATION_FAILED' ||
+		code === 'INSUFFICIENT_FUNDS' ||
 		code === 'CONFLICT'
 	) {
 		return code;
@@ -270,6 +287,9 @@ export function registerDbIpc(options: { sessionFactory?: SessionFactory } = {})
 	ipcMain.handle(IPC_CHANNELS.weekendGetCurrent, () =>
 		invoke(async () => getCurrentWeekend(requireActiveDatabase()))
 	);
+	ipcMain.handle(IPC_CHANNELS.financeGetSummary, () =>
+		invoke(async () => getPlayerFinanceSummary(requireActiveDatabase()))
+	);
 	ipcMain.handle(IPC_CHANNELS.calendarAdvanceDay, (_event, request) =>
 		invoke(async () =>
 			advanceCalendarDay(requireActiveDatabase(), {
@@ -278,10 +298,65 @@ export function registerDbIpc(options: { sessionFactory?: SessionFactory } = {})
 			})
 		)
 	);
+	ipcMain.handle(IPC_CHANNELS.developmentStart, (_event, request: DevelopmentStartRequest) =>
+		invoke(async () => {
+			requireRequestValue(request?.teamSeasonEntryId, 'teamSeasonEntryId');
+			requireRequestValue(request?.partCategory, 'partCategory');
+			if (!Array.isArray(request?.stagePlans) || typeof request?.performanceDeltas !== 'object') {
+				throw Object.assign(new Error('Development project plan is incomplete.'), {
+					code: 'INVALID_COMMAND'
+				});
+			}
+			return startDevelopmentProject(requireActiveDatabase(), request);
+		})
+	);
+	ipcMain.handle(IPC_CHANNELS.developmentList, () =>
+		invoke(async () => listDevelopmentProjects(requireActiveDatabase()))
+	);
+	ipcMain.handle(IPC_CHANNELS.inboxList, (_event, request: InboxListRequest = {}) =>
+		invoke(async () => {
+			if (request.status && !INBOX_STATUSES.includes(request.status)) {
+				throw Object.assign(new Error(`Unknown inbox status: ${request.status}.`), {
+					code: 'INVALID_COMMAND'
+				});
+			}
+			return listInboxMessages(requireActiveDatabase(), request);
+		})
+	);
+	ipcMain.handle(IPC_CHANNELS.inboxAction, (_event, request: InboxActionRequest) =>
+		invoke(async () => {
+			requireRequestValue(request?.messageId, 'messageId');
+			if (!INBOX_ACTIONS.includes(request.actionType)) {
+				throw Object.assign(new Error(`Unknown inbox action: ${request.actionType}.`), {
+					code: 'INVALID_COMMAND'
+				});
+			}
+			return applyInboxAction(requireActiveDatabase(), request);
+		})
+	);
+	ipcMain.handle(IPC_CHANNELS.inboxListActions, (_event, request: { messageId?: string } = {}) =>
+		invoke(async () =>
+			listInboxActions(requireActiveDatabase(), { inboxMessageId: request.messageId })
+		)
+	);
+	ipcMain.handle(
+		IPC_CHANNELS.aiWorldListActions,
+		(_event, request: AIWorldActionListRequest = {}) =>
+			invoke(async () => listAIWorldActions(requireActiveDatabase(), request))
+	);
 	ipcMain.handle(IPC_CHANNELS.resultsGet, (_event, request: ResultsGetRequest) =>
 		invoke(async () => {
 			requireRequestValue(request?.weekendSessionId, 'weekendSessionId');
 			return getSessionResults(requireActiveDatabase(), request.weekendSessionId);
+		})
+	);
+	ipcMain.handle(IPC_CHANNELS.sponsorGetDashboard, () =>
+		invoke(async () => getSponsorDashboard(requireActiveDatabase()))
+	);
+	ipcMain.handle(IPC_CHANNELS.sponsorAcceptOffer, (_event, request: SponsorAcceptOfferRequest) =>
+		invoke(async () => {
+			requireRequestValue(request?.offerId, 'offerId');
+			return acceptSponsorOffer(requireActiveDatabase(), request.offerId);
 		})
 	);
 
